@@ -13,6 +13,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #305: search result pages now size their initial and follow-up fetches from the visible grid capacity, with a small row buffer instead of a hard-coded 25 items.
 * #301: VOD resume positions now compare against the previous saved value before overwriting it, so periodic progress updates are persisted.
 * #286: high-DPI startup no longer depends on the deprecated `QT_AUTO_SCREEN_SCALE_FACTOR` path.
+* #265: fullscreen playback no longer toggles the main navigation header on top-edge hover, avoiding the repeated resize loop.
 * #264: added a setting to enable or disable screensaver inhibition during playback.
 * #260: Linux screensaver reset calls now only run while screensaver inhibition is active.
 * #134: added a Ctrl+Q application shortcut.
@@ -42,6 +43,8 @@ These issues remained open upstream but the final `master` code already contains
 * #207: setting to disable click-video-to-pause.
 * #205: multiple-instance setting, now exposed in the options view.
 * #223: UI/text scaling and font selection settings.
+* #220: VOD timestamp/position display is present in the player controls.
+* #215: VOD seek/open paths no longer emit duplicate online notifications in the current channel model update flow.
 * #275: Linux `make install` target in `orion.pro`.
 
 ## Needs Twitch API modernization
@@ -61,7 +64,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #295, #278, #271, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
+* #295, #278, #271, #254, #241, #240, #234, #226, #217, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
 
 ## Administrative
 

@@ -15,37 +15,12 @@
 import QtQuick 2.5
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.1
-import QtQuick.Window 2.0
 import app.orion 1.0
 
 ToolBar {
     id: root
     property alias currentIndex : tab.currentIndex
-    visible : !appFullScreen || hovered || windowTop.containsMouse
-
-    // 1px topmost popup allows to detect when mouse is at top of the screen while fullscreen
-    // even while other Popups (e.g. chat) are present
-    Popup {
-        z: -1 // behind normal popups
-        parent: app.view
-        modal: false
-        dim: false
-        visible: appFullScreen && !isMobile()
-        closePolicy: Popup.NoAutoClose
-        height: 1
-        width: parent.width
-        background: Item {}
-        enter: Transition {}
-        exit: Transition {}
-        padding: 0
-        MouseArea {
-            id: windowTop
-            width: parent.width
-            height: parent.height
-            hoverEnabled: true
-            preventStealing: true
-        }
-    }
+    visible : !appFullScreen
 
     //Base font color
     Material.foreground: Material.Grey
