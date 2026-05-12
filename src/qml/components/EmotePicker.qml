@@ -17,11 +17,13 @@ import QtQuick 2.7
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.1
 import QtQuick.Window 2.2
+import app.orion 1.0
 
 Page {
     id: root
 
-    Material.background: "#fff"
+    Material.theme: rootWindow.Material.theme
+    Material.background: rootWindow.Material.background
     property bool loading: false
     property string filterTextProperty
 
@@ -264,7 +266,9 @@ Page {
             anchors.margins: 1
 
             Rectangle {
-                color: _imageMouseArea.hoveringItem === parent ? "#dddddd" : "#ffffff"
+                color: _imageMouseArea.hoveringItem === parent
+                       ? (Settings.lightTheme ? "#dddddd" : Qt.lighter(Material.background, 1.35))
+                       : Material.background
                 anchors.fill: parent
             }
 
@@ -292,14 +296,14 @@ Page {
     }
 
     header: ToolBar {
-        Material.theme: Material.Light
-        Material.background: "white"
+        Material.theme: rootWindow.Material.theme
+        Material.background: rootWindow.Material.background
         padding: 5
 
         TextField {
             id: _filterTextInput
             placeholderText: "Filter emotes"
-            Material.foreground: "black"
+            Material.foreground: rootWindow.Material.foreground
             inputMethodHints: Qt.ImhNoPredictiveText
             selectByMouse: true
             anchors.fill: parent

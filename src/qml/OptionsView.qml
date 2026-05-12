@@ -329,6 +329,13 @@ Page {
                     }
 
                     Switch {
+                        visible: !isMobile()
+                        text: "Allow multiple instances"
+                        checked: Settings.multipleInstances
+                        onClicked: Settings.multipleInstances = checked
+                    }
+
+                    Switch {
                         text: "Start minimized"
                         checked: Settings.minimizeOnStartup
                         onClicked: Settings.minimizeOnStartup = checked
