@@ -84,7 +84,7 @@ Page {
         target: Network
 
         onNetworkAccessChanged: {
-            if (up && currentChannel && !renderer.status !== "PAUSED") {
+            if (up && currentChannel && renderer && renderer.status !== "PAUSED") {
                 //console.log("Network up. Resuming playback...")
                 loadAndPlay()
             }
@@ -92,7 +92,7 @@ Page {
 
         onStreamGetOperationFinished: {
             //console.log("Received stream status", channelId, currentChannel._id, online)
-            if (channelId === currentChannel._id) {
+            if (currentChannel && channelId === currentChannel._id) {
                 if (online && !root.streamOnline) {
                     console.log("Stream back online, resuming playback")
                     loadAndPlay()

@@ -54,6 +54,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #212: bundled Noto Sans and Material Icons fonts are registered with Qt before QML loads to avoid startup fallback rendering of missing text/icons; the original openSUSE/KDE/Qt 5.9 rendering path has not been reproduced in this environment.
 * #74: QML context menus now run a one-time main-window position refresh before opening, matching the historical Qt multi-screen workaround; the original multi-monitor bug has not been reproduced in this environment.
 * #285: live and VOD playlist requests now use the current HTTPS `usher.ttvnw.net` host, the live `allow_audio_only` query parameter typo is fixed, and empty token-parser results now fail as token errors instead of fetching an empty URL; the old playback-token endpoints still need a deeper replacement.
+* #167: fixed a network-recovery condition that always reloaded playback on network-up events, and guarded stream-status polling against stale/no current channel state; hosted-channel IRC behavior still needs live reproduction.
 
 ## Already covered by the final upstream code
 
@@ -70,7 +71,7 @@ These issues remained open upstream but the final `master` code already contains
 
 These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VOD endpoints and should be handled as a dedicated Helix/EventSub/chat migration rather than one-off fixes:
 
-* #283, #277, #268, #257, #243, #239, #224, #167, #142, #47, #42, #34.
+* #283, #277, #268, #257, #243, #239, #224, #142, #47, #42, #34.
 
 ## Platform, packaging, and distribution follow-up
 
