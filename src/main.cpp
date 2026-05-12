@@ -75,6 +75,20 @@ void configureHighDpiScaling()
 #endif
 }
 
+void registerBundledFont(const QString &path)
+{
+    const int fontId = QFontDatabase::addApplicationFont(path);
+    if (fontId < 0) {
+        qWarning().noquote() << "Could not load bundled font" << path;
+    }
+}
+
+void registerBundledFonts()
+{
+    registerBundledFont(":/fonts/MaterialIcons-Regular.ttf");
+    registerBundledFont(":/fonts/NotoSans-Regular.ttf");
+}
+
 QString normalizedStartupChannel(QString value)
 {
     value = value.trimmed();
@@ -392,6 +406,7 @@ int main(int argc, char *argv[])
 
     const QIcon appIcon = QIcon(":/icon/orion.ico");
     app.setWindowIcon(appIcon);
+    registerBundledFonts();
 
     QString startupChannel;
     QString mpvConfigFile;

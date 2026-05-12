@@ -49,6 +49,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #108: hidden live chat now sends desktop notifications for incoming whispers and `@username` mentions; a dedicated private-message inbox is still not implemented.
 * #187: the existing player selector is limited to backends compiled into the binary, and saved backend settings are now validated against that compiled list at startup; runtime detection of separately installed backend plugins is still not implemented.
 * #240: Helix stream and channel language fields are parsed and shown in stream details, and authenticated searches support `/language <code>` using Helix `Get Streams`; no dedicated language picker UI was added.
+* #212: bundled Noto Sans and Material Icons fonts are registered with Qt before QML loads to avoid startup fallback rendering of missing text/icons; the original openSUSE/KDE/Qt 5.9 rendering path has not been reproduced in this environment.
 
 ## Already covered by the final upstream code
 
@@ -78,7 +79,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #226, #212, #210, #74, #45.
+* #278, #271, #226, #210, #74, #45.
 
 ## Administrative
 
