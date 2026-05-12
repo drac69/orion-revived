@@ -30,6 +30,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(bool clickTogglePause READ clickTogglePause WRITE setClickTogglePause NOTIFY clickTogglePauseChanged)
     Q_PROPERTY(bool inhibitScreensaver READ inhibitScreensaver WRITE setInhibitScreensaver NOTIFY inhibitScreensaverChanged)
     Q_PROPERTY(bool autoScrollSmoothing READ autoScrollSmoothing WRITE setAutoScrollSmoothing NOTIFY autoScrollSmoothingChanged)
+    Q_PROPERTY(QString chatBlacklist READ chatBlacklist WRITE setChatBlacklist NOTIFY chatBlacklistChanged)
     Q_PROPERTY(QString font READ font WRITE setFont NOTIFY fontChanged)
     Q_PROPERTY(bool versionCheckEnabled READ versionCheckEnabled)
     Q_PROPERTY(bool keepOnTop READ keepOnTop WRITE setKeepOnTop NOTIFY keepOnTopChanged)
@@ -77,6 +78,7 @@ class SettingsManager : public QObject
     bool mClickTogglePause = true;
     bool mInhibitScreensaver = true;
     bool mAutoScrollSmoothing = true;
+    QString mChatBlacklist = "";
     QString mFont = "";
 
     bool mHiDpi = false;
@@ -151,6 +153,9 @@ public:
     bool autoScrollSmoothing() const;
     void setAutoScrollSmoothing(bool autoScrollSmoothing);
 
+    QString chatBlacklist() const;
+    void setChatBlacklist(const QString &chatBlacklist);
+
     Q_INVOKABLE void copyToClipboard(const QString &text) const;
 
 signals:
@@ -175,6 +180,7 @@ signals:
     void clickTogglePauseChanged();
     void inhibitScreensaverChanged();
     void autoScrollSmoothingChanged();
+    void chatBlacklistChanged();
 
 public slots:
     void setAccessToken(const QString accessToken);

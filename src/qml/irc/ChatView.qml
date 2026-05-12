@@ -332,6 +332,48 @@ Page {
                 return Qt.hsla(h, s, l, a)
             }
 
+            function messagePartText(part) {
+                if (typeof part === "string") {
+                    return part
+                }
+                if (!part) {
+                    return ""
+                }
+
+                var text = part.originalText || ""
+                if (part.textSuffix) {
+                    text += part.textSuffix
+                }
+                return text
+            }
+
+            function plainMessageText(message) {
+                var text = ""
+                if (message) {
+                    for (var i = 0; i < message.length; i++) {
+                        text += messagePartText(message[i])
+                    }
+                }
+                return text
+            }
+
+            function messageBlocked(message) {
+                var blacklist = Settings.chatBlacklist
+                if (!blacklist) {
+                    return false
+                }
+
+                var lowerMessage = plainMessageText(message).toLowerCase()
+                var entries = blacklist.split(/[\r\n,]+/)
+                for (var i = 0; i < entries.length; i++) {
+                    var entry = entries[i].trim().toLowerCase()
+                    if (entry !== "" && lowerMessage.indexOf(entry) !== -1) {
+                        return true
+                    }
+                }
+                return false
+            }
+
             Connections {
                 target: Settings
                 function updateColors() {
@@ -351,6 +393,10 @@ Page {
 
             onMessageReceived: {
                 if (debugOutput) console.log("ChatView chat override onMessageReceived; typeof message " + typeof(message) + " toString: " + message.toString());
+
+                if (!isChannelNotice && messageBlocked(message)) {
+                    return
+                }
 
                 var u = user.toLowerCase();
 

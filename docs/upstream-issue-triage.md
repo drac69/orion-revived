@@ -21,6 +21,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #274: added a default stream-quality setting with lower-quality fallback when the exact variant is unavailable.
 * #282: added `--channel` and positional `twitch.tv` URL startup handling for opening a specific channel from a launcher.
 * #273: chat lines mentioning the logged-in username are highlighted.
+* #270: added a persisted chat blacklist for hiding messages containing configured terms.
 * #263: the emote picker now follows the selected light/dark theme.
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.
@@ -60,7 +61,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #295, #278, #271, #270, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
+* #295, #278, #271, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
 
 ## Administrative
 

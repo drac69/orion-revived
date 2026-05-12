@@ -399,6 +399,25 @@ Page {
                         checked: Settings.pastelColors
                         onClicked: Settings.pastelColors = checked
                     }
+
+                    Label {
+                        text: "Filtered chat terms"
+                        font.bold: true
+                    }
+
+                    TextArea {
+                        width: parent.width
+                        height: 90
+                        text: Settings.chatBlacklist
+                        selectByMouse: true
+                        wrapMode: TextEdit.Wrap
+                        onTextChanged: {
+                            if (Settings.chatBlacklist !== text) {
+                                Settings.chatBlacklist = text
+                            }
+                        }
+                    }
+
                     OptionCombo {
                         anchors.left: parent.left
                         anchors.right: parent.right

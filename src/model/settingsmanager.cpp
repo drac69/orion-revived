@@ -41,6 +41,7 @@ void SettingsManager::load()
     setPastelColors(settings.value("pastelColors", mPastelColors).toBool());
     setClickTogglePause(settings.value("clickTogglePause", mClickTogglePause).toBool());
     setInhibitScreensaver(settings.value("inhibitScreensaver", mInhibitScreensaver).toBool());
+    setChatBlacklist(settings.value("chatBlacklist", mChatBlacklist).toString());
 }
 
 bool SettingsManager::alert() const
@@ -335,6 +336,20 @@ void SettingsManager::setAutoScrollSmoothing(bool autoScrollSmoothing)
         mAutoScrollSmoothing = autoScrollSmoothing;
         settings.setValue("autoScrollSmoothing", autoScrollSmoothing);
         emit autoScrollSmoothingChanged();
+    }
+}
+
+QString SettingsManager::chatBlacklist() const
+{
+    return mChatBlacklist;
+}
+
+void SettingsManager::setChatBlacklist(const QString &chatBlacklist)
+{
+    if (mChatBlacklist != chatBlacklist) {
+        mChatBlacklist = chatBlacklist;
+        settings.setValue("chatBlacklist", chatBlacklist);
+        emit chatBlacklistChanged();
     }
 }
 
