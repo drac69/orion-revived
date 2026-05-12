@@ -224,6 +224,8 @@ private:
     QMap<quint32, QString> gameStreamsPageCursors;
     quint64 lastBroadcastsChannelId = 0;
     QMap<quint32, QString> broadcastsPageCursors;
+    QMap<int, QMap<int, QString>> pendingEmoteSets;
+    int pendingEmoteSetReplies = 0;
     QMap<quint32, QString> userFavouritesPageCursors;
     QMap<quint32, QString> blockedUserListPageCursors;
 

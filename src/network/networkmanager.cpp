@@ -633,6 +633,40 @@ void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, qui
 }
 
 void NetworkManager::getEmoteSets(const QList<int> &emoteSetIDs) {
+    QString auth = "Bearer " + access_token;
+    if (!access_token.isEmpty()) {
+        pendingEmoteSets.clear();
+        pendingEmoteSetReplies = (emoteSetIDs.size() + 24) / 25;
+
+        for (int pos = 0; pos < emoteSetIDs.size(); pos += 25) {
+            const QList<int> chunk = emoteSetIDs.mid(pos, 25);
+
+            QUrl url(QString(HELIX_API) + "/chat/emotes/set");
+            QUrlQuery query;
+            for (auto id : chunk) {
+                query.addQueryItem("emote_set_id", QString::number(id));
+            }
+            url.setQuery(query);
+
+            qDebug() << "Requesting" << url;
+
+            QNetworkRequest request;
+            request.setRawHeader("Accept", "application/json");
+            request.setRawHeader("Client-ID", getClientId().toUtf8());
+            request.setUrl(url);
+            request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+
+            QNetworkReply *reply = operation->get(request);
+
+            connect(reply, &QNetworkReply::finished, this, &NetworkManager::emoteSetsReply);
+        }
+
+        if (emoteSetIDs.isEmpty()) {
+            emit getEmoteSetsOperationFinished(pendingEmoteSets);
+        }
+        return;
+    }
+
     QList<QString> emoteSetsIDsStr;
     for (auto id : emoteSetIDs) {
         emoteSetsIDsStr.append(QString::number(id));
@@ -640,7 +674,6 @@ void NetworkManager::getEmoteSets(const QList<int> &emoteSetIDs) {
 
     QString url = QString(KRAKEN_API) + "/chat/emoticon_images"
         + QString("?emotesets=") + emoteSetsIDsStr.join(',');
-    QString auth = "Bearer " + access_token;
 
     qDebug() << "Requesting" << url;
 
@@ -1718,11 +1751,31 @@ void NetworkManager::emoteSetsReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        if (pendingEmoteSetReplies > 0) {
+            pendingEmoteSetReplies--;
+            if (pendingEmoteSetReplies == 0) {
+                emit getEmoteSetsOperationFinished(pendingEmoteSets);
+            }
+        }
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
-    
-    emit getEmoteSetsOperationFinished(JsonParser::parseEmoteSets(data));
+
+    auto parsed = JsonParser::parseEmoteSets(data);
+    if (pendingEmoteSetReplies > 0) {
+        for (auto setEntry = parsed.constBegin(); setEntry != parsed.constEnd(); setEntry++) {
+            pendingEmoteSets.insert(setEntry.key(), setEntry.value());
+        }
+
+        pendingEmoteSetReplies--;
+        if (pendingEmoteSetReplies == 0) {
+            emit getEmoteSetsOperationFinished(pendingEmoteSets);
+        }
+    }
+    else {
+        emit getEmoteSetsOperationFinished(parsed);
+    }
 
     reply->deleteLater();
 }

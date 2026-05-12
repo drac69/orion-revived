@@ -632,7 +632,18 @@ QMap<int, QMap<int, QString>> JsonParser::parseEmoteSets(const QByteArray &data)
 
     if (error.error == QJsonParseError::NoError) {
         QJsonObject json = doc.object();
-        if (!json["emoticon_sets"].isNull()) {
+        if (json["data"].isArray()) {
+            for (const auto &emoteEntry : json["data"].toArray()) {
+                const QJsonObject emote = emoteEntry.toObject();
+                const int setId = emote["emote_set_id"].toString().toInt();
+                const int emoteId = emote["id"].toString().toInt();
+                const QString name = emote["name"].toString();
+                if (setId != 0 && emoteId != 0 && !name.isEmpty()) {
+                    out[setId].insert(emoteId, name);
+                }
+            }
+        }
+        else if (!json["emoticon_sets"].isNull()) {
             auto emoticon_sets = json["emoticon_sets"].toObject();
             for (auto emoticonSetEntry = emoticon_sets.begin(); emoticonSetEntry != emoticon_sets.end(); emoticonSetEntry++) {
                 auto emoticonSetID = emoticonSetEntry.key();
