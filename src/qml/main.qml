@@ -102,6 +102,27 @@ ApplicationWindow {
         height = Math.floor(view.width * 0.5625)
     }
 
+    function openChannelName(channelName) {
+        channelName = (channelName || "").trim().replace(/^[@#\/]+/, "")
+        if (!channelName) {
+            return false
+        }
+
+        view.playerView.getStreams({
+            "_id": 0,
+            "name": channelName,
+            "game": "",
+            "title": channelName,
+            "online": true,
+            "favourite": false,
+            "viewers": 0,
+            "logo": "",
+            "preview": ""
+        }, null, 0)
+        topbar.setCurrentIndex(4)
+        return true
+    }
+
     function isMobile() {
         return {android: true, ios: true, winphone: true}[Qt.platform.os] || false;
     }
@@ -161,7 +182,9 @@ ApplicationWindow {
         console.log("Orientation", Screen.orientation)
 
         //Initial view
-        if (!Settings.hasAccessToken) {
+        if (g_startupChannel && openChannelName(g_startupChannel)) {
+            console.log("Opening startup channel", g_startupChannel)
+        } else if (!Settings.hasAccessToken) {
             topbar.setCurrentIndex(5)
         } else {
             topbar.setCurrentIndex(1)

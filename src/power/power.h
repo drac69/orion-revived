@@ -24,9 +24,9 @@ public:
 
 private:
     quint32 cookie;
+    bool screensaverEnabled;
 
     // QObject interface
 protected:
     void timerEvent(QTimerEvent *event);
 };
-

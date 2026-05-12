@@ -70,9 +70,11 @@ Item {
     function enterChannelCommon(channelName, channelId) {
         root.channel = channelName
         root.channelId = channelId
-        Emotes.loadChannelBadgeUrls(channelId);
-        Emotes.loadChannelBetaBadgeUrls(channelId);
-        Emotes.loadChannelBitsUrls(channelId);
+        if (channelId) {
+            Emotes.loadChannelBadgeUrls(channelId);
+            Emotes.loadChannelBetaBadgeUrls(channelId);
+            Emotes.loadChannelBitsUrls(channelId);
+        }
         Emotes.loadChannelBttvEmotes(channelName);
     }
 

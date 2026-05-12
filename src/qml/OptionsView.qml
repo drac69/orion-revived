@@ -153,6 +153,27 @@ Page {
                     }
 
                     OptionCombo {
+                        id: qualityOption
+                        text: "Default stream quality"
+                        width: parent.width
+                        model: ["source", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "audio_only"]
+
+                        Component.onCompleted: selectItem(Settings.quality)
+
+                        onActivated: Settings.quality = model[currentIndex]
+
+                        function selectItem(name) {
+                            for (var i in model) {
+                                if (model[i] === name) {
+                                    currentIndex = i
+                                    return
+                                }
+                            }
+                            currentIndex = 0
+                        }
+                    }
+
+                    OptionCombo {
                         width: parent.width
                         id: playerOption
                         text: "Player"

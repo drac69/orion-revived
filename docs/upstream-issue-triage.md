@@ -14,9 +14,15 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #301: VOD resume positions now compare against the previous saved value before overwriting it, so periodic progress updates are persisted.
 * #286: high-DPI startup no longer depends on the deprecated `QT_AUTO_SCREEN_SCALE_FACTOR` path.
 * #264: added a setting to enable or disable screensaver inhibition during playback.
+* #260: Linux screensaver reset calls now only run while screensaver inhibition is active.
 * #134: added a Ctrl+Q application shortcut.
 * #44: the existing version checker now checks this fork's releases instead of the archived upstream repository.
 * #242: QML startup warnings are now printed before the fatal startup error, which exposes missing QML modules directly.
+* #274: added a default stream-quality setting with lower-quality fallback when the exact variant is unavailable.
+* #282: added `--channel` and positional `twitch.tv` URL startup handling for opening a specific channel from a launcher.
+* #199: chat input focus is restored after sending a message.
+* #195: chat input text now follows the chat text scaling setting.
+* #190: Escape is handled as an application shortcut while the emote picker is open.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
 * #284: kept the upstream localhost OAuth response fix from #272.
@@ -32,7 +38,6 @@ These issues remained open upstream but the final `master` code already contains
 * #207: setting to disable click-video-to-pause.
 * #223: UI/text scaling and font selection settings.
 * #275: Linux `make install` target in `orion.pro`.
-* #190: Escape closes the emote picker.
 
 ## Needs Twitch API modernization
 
@@ -44,13 +49,14 @@ These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VO
 
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
-* #276, #267, #261, #236, #235, #232, #219, #216, #202, #119, #90.
+* #276: added FreeBSD dependency notes to the README.
+* #267, #261, #236, #235, #232, #219, #216, #202, #119, #90.
 
 ## Feature requests not implemented here
 
 These remain product work outside the maintenance pass:
 
-* #295, #282, #278, #274, #273, #271, #270, #263, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #199, #195, #187, #178, #141, #108, #101, #89, #74, #45, #40, #26, #18.
+* #295, #278, #273, #271, #270, #263, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #187, #178, #141, #108, #101, #89, #74, #45, #40, #26, #18.
 
 ## Administrative
 

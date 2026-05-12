@@ -27,13 +27,15 @@ namespace m3u8 {
 
         QString streamName;
         foreach(QString str, QString(data).split("\n")){
+            str = str.trimmed();
 
             if (str.contains("VIDEO=")){
                 str.remove(0, str.indexOf("VIDEO=") + 6);
                 str.replace("\"","");
                 streamName = str;
             }
-            else if (!streamName.isEmpty() && str.startsWith("http://")){
+            else if (!streamName.isEmpty()
+                     && (str.startsWith("http://") || str.startsWith("https://"))){
 
                 if (streamName == "chunked")
                     streamName = "source";

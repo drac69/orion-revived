@@ -101,6 +101,7 @@ Page {
         }
         chat.sendChatMessage(message, relevantEmotes)
         _input.text = ""
+        _input.forceActiveFocus()
         chatList.positionViewAtEnd()
     }
 
@@ -147,6 +148,15 @@ Page {
                 chat.lastEmoteSets = emoteSets;
             }
 
+        }
+    }
+
+    Shortcut {
+        sequence: "Esc"
+        context: Qt.ApplicationShortcut
+        enabled: root.visible && _emotePicker.visible
+        onActivated: {
+            _emotePicker.startClosing()
         }
     }
 
@@ -529,6 +539,7 @@ Page {
                     selectByMouse: true
                     wrapMode: TextEdit.Wrap
                     activeFocusOnTab: true
+                    font.pointSize: Settings.textScaleFactor * 12
 
                     Layout.fillWidth: true
 

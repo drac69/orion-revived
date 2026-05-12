@@ -47,6 +47,13 @@ Ubuntu/Linux Mint:
 sudo apt install build-essential libmpv-dev qt5-qmake qtbase5-dev qtdeclarative5-dev qtquickcontrols2-5-dev qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtgraphicaleffects
 ```
 
+FreeBSD:
+
+```
+pkg install qt5-buildtools qt5-core qt5-declarative qt5-graphicaleffects qt5-gui \
+  qt5-network qt5-quickcontrols2 qt5-widgets mpv
+```
+
 If using backend other than mpv, install those packages instead.
 
 #### Choosing player backend (optional)
@@ -68,6 +75,13 @@ qmake ../
 make && sudo make install
 ```
 
+Open a channel directly from a launcher or shell:
+
+```
+orion --channel channelname
+orion https://www.twitch.tv/channelname
+```
+
 ## Building on MacOS
 
 macOS packaging has not been revalidated in this fork.
@@ -82,7 +96,7 @@ Make sure the Qt 5 `qmake` is on `PATH`.
 #### Get orion from github and install
 
 ```
-git clone https://github.com/alamminsalo/orion
+git clone https://github.com/belagrf/orion
 cd orion
 mkdir build && cd build
 qmake ../

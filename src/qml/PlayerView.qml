@@ -141,11 +141,10 @@ Page {
 
         var start = !isVod ? -1 : seekBar.value
 
-        var quality = Settings.quality;
-        if (!streamMap.hasOwnProperty(quality)) {
-            console.log("no stream for quality", quality);
-            quality = "source";
-            console.log("using", quality);
+        var quality = selectStreamQuality(Settings.quality);
+        if (!quality) {
+            console.error("did not find a usable stream quality");
+            return;
         }
         var url = streamMap[quality]
 
@@ -158,6 +157,65 @@ Page {
 
         renderer.load(url, start, description)
         renderer.setVolume(volumeSlider.value)
+    }
+
+    function streamQualityHeight(name) {
+        if (name === "source") {
+            return Number.MAX_VALUE
+        }
+        if (name === "audio_only") {
+            return 0
+        }
+
+        var match = /(\d+)p/.exec(name)
+        return match ? parseInt(match[1]) : -1
+    }
+
+    function selectStreamQuality(preferred) {
+        if (!streamMap) {
+            return ""
+        }
+        if (streamMap.hasOwnProperty(preferred)) {
+            return preferred
+        }
+
+        var preferredHeight = streamQualityHeight(preferred)
+        var bestLowerQuality = ""
+        var bestLowerHeight = -1
+        var lowestQuality = ""
+        var lowestHeight = Number.MAX_VALUE
+        var firstQuality = ""
+
+        for (var qualityName in streamMap) {
+            if (!firstQuality) {
+                firstQuality = qualityName
+            }
+
+            var height = streamQualityHeight(qualityName)
+            if (height >= 0 && height < lowestHeight) {
+                lowestHeight = height
+                lowestQuality = qualityName
+            }
+            if (preferredHeight > 0 && height >= 0 && height <= preferredHeight && height > bestLowerHeight) {
+                bestLowerHeight = height
+                bestLowerQuality = qualityName
+            }
+        }
+
+        if (bestLowerQuality) {
+            console.log("no stream for quality", preferred, "using", bestLowerQuality)
+            return bestLowerQuality
+        }
+        if (preferred !== "source" && lowestQuality) {
+            console.log("no stream at or below quality", preferred, "using lowest available", lowestQuality)
+            return lowestQuality
+        }
+        if (streamMap.hasOwnProperty("source")) {
+            console.log("no stream for quality", preferred, "using source")
+            return "source"
+        }
+
+        return firstQuality
     }
 
     function getStreams(channel, vod, startPos){
@@ -262,7 +320,7 @@ Page {
         streamMap = streams
         sourcesBox.model = sourceNames
 
-        sourcesBox.selectItem(Settings.quality);
+        sourcesBox.selectItem(selectStreamQuality(Settings.quality));
         loadAndPlay()
     }
 

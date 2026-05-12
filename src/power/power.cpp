@@ -14,7 +14,7 @@
 
 #include "power.h"
 //#include <QtGlobal>
-//#include <QProcess>
+#include <QProcess>
 #include <QDebug>
 //#include <QWindow>
 
@@ -32,7 +32,8 @@
 #endif
 
 Power::Power() :
-    cookie(0)
+    cookie(0),
+    screensaverEnabled(true)
 {
     setProperty("_timer", startTimer(5000));
 }
@@ -50,6 +51,7 @@ Power::~Power()
 
 void Power::setScreensaver(bool enabled)
 {
+    screensaverEnabled = enabled;
 
 #ifdef Q_OS_LINUX
 #ifndef Q_OS_ANDROID
@@ -106,6 +108,12 @@ void Power::setScreensaver(bool enabled)
 
 void Power::timerEvent(QTimerEvent *event)
 {
+    Q_UNUSED(event)
+
+    if (screensaverEnabled) {
+        return;
+    }
+
 #ifdef Q_OS_LINUX
 #ifndef Q_OS_ANDROID
     QProcess::startDetached("xdg-screensaver reset");

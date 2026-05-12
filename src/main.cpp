@@ -22,6 +22,8 @@
 #include <QIcon>
 #include <QQuickWindow>
 #include <QLockFile>
+#include <QRegularExpression>
+#include <QUrl>
 
 #include "model/channelmanager.h"
 #include "network/networkmanager.h"
@@ -59,6 +61,29 @@ void configureHighDpiScaling()
     }
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
+}
+
+QString normalizedStartupChannel(QString value)
+{
+    value = value.trimmed();
+    if (value.isEmpty()) {
+        return value;
+    }
+
+    const QUrl url = QUrl::fromUserInput(value);
+    if (url.isValid() && !url.host().isEmpty()) {
+        const QString host = url.host().toLower();
+        if (host == "twitch.tv" || host == "www.twitch.tv") {
+            const QStringList parts = url.path().split('/', Qt::SkipEmptyParts);
+            if (!parts.isEmpty()) {
+                value = parts.first();
+            }
+        }
+    }
+
+    value.remove(QRegularExpression("^[#@/]+"));
+    value.remove(QRegularExpression("[/?#].*$"));
+    return value.trimmed();
 }
 
 #ifdef Q_OS_WIN
@@ -208,6 +233,8 @@ int main(int argc, char *argv[])
     const QIcon appIcon = QIcon(":/icon/orion.ico");
     app.setWindowIcon(appIcon);
 
+    QString startupChannel;
+
 #ifndef Q_OS_ANDROID
     QCommandLineParser parser;
     parser.setApplicationDescription("Twitch.tv client");
@@ -216,6 +243,11 @@ int main(int argc, char *argv[])
 
     QCommandLineOption debugOption(QStringList() << "d" << "debug", "show debug output");
     parser.addOption(debugOption);
+
+    QCommandLineOption channelOption(QStringList() << "c" << "channel",
+                                     "open a Twitch channel on startup", "channel");
+    parser.addOption(channelOption);
+    parser.addPositionalArgument("channel", "Twitch channel name or twitch.tv URL to open on startup.");
 
 #ifdef Q_OS_WIN
     QCommandLineOption noConsoleOption(QStringList() << "nc" << "no console", "don't open console in debug mode");
@@ -226,6 +258,12 @@ int main(int argc, char *argv[])
     parser.addOption(quietOption);
 
     parser.process(QCoreApplication::arguments());
+
+    if (parser.isSet(channelOption)) {
+        startupChannel = normalizedStartupChannel(parser.value(channelOption));
+    } else if (!parser.positionalArguments().isEmpty()) {
+        startupChannel = normalizedStartupChannel(parser.positionalArguments().first());
+    }
 
     if (parser.isSet(quietOption)) {
         qInstallMessageHandler(&msgHandler<QtSystemMsg+1>);
@@ -278,6 +316,7 @@ int main(int argc, char *argv[])
     rootContext->setContextProperty("g_results", ChannelManager::getInstance()->getResultsModel());
     rootContext->setContextProperty("g_games", ChannelManager::getInstance()->getGamesModel());
     rootContext->setContextProperty("vodsModel", VodManager::getInstance()->getModel());
+    rootContext->setContextProperty("g_startupChannel", startupChannel);
     
     
     rootContext->setContextProperty("g_instance", "main");
