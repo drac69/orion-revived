@@ -180,6 +180,12 @@ Page {
                         }
                     }
 
+                    Switch {
+                        text: "Remember quality per channel"
+                        checked: Settings.rememberChannelQuality
+                        onClicked: Settings.rememberChannelQuality = checked
+                    }
+
                     OptionCombo {
                         width: parent.width
                         id: playerOption

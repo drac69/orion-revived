@@ -4,6 +4,13 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
 
+namespace {
+QString channelQualityKey(const QString &channel)
+{
+    return channel.trimmed().toLower();
+}
+}
+
 SettingsManager::SettingsManager(QObject *parent) :
     QObject(parent), settings(QCoreApplication::organizationName(), QCoreApplication::applicationName(), this)
 {
@@ -27,6 +34,7 @@ void SettingsManager::load()
     setMinimizeOnStartup(settings.value("minimizeOnStartup", mMinimizeOnStartup).toBool());
     setOpengl(settings.value("opengl", mOpengl).toString());
     setQuality(settings.value("quality", mQuality).toString());
+    setRememberChannelQuality(settings.value("rememberChannelQuality", mRememberChannelQuality).toBool());
     const QString savedDecoder = settings.value("decoder", mDecoder).toString();
     setDecoder(savedDecoder == "auto" ? mDecoder : savedDecoder);
     setAudioCompressor(settings.value("audioCompressor", mAudioCompressor).toBool());
@@ -206,6 +214,45 @@ void SettingsManager::setQuality(const QString &quality)
         settings.setValue("quality", quality);
         emit qualityChanged();
     }
+}
+
+bool SettingsManager::rememberChannelQuality() const
+{
+    return mRememberChannelQuality;
+}
+
+void SettingsManager::setRememberChannelQuality(bool rememberChannelQuality)
+{
+    if (mRememberChannelQuality != rememberChannelQuality) {
+        mRememberChannelQuality = rememberChannelQuality;
+        settings.setValue("rememberChannelQuality", rememberChannelQuality);
+        emit rememberChannelQualityChanged();
+    }
+}
+
+QString SettingsManager::channelQuality(const QString &channel)
+{
+    const QString key = channelQualityKey(channel);
+    if (key.isEmpty()) {
+        return "";
+    }
+
+    settings.beginGroup("channelQualities");
+    const QString quality = settings.value(key).toString();
+    settings.endGroup();
+    return quality;
+}
+
+void SettingsManager::setChannelQuality(const QString &channel, const QString &quality)
+{
+    const QString key = channelQualityKey(channel);
+    if (key.isEmpty()) {
+        return;
+    }
+
+    settings.beginGroup("channelQualities");
+    settings.setValue(key, quality);
+    settings.endGroup();
 }
 
 QString SettingsManager::decoder() const

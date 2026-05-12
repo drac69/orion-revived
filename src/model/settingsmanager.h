@@ -20,6 +20,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(double textScaleFactor READ textScaleFactor WRITE setTextScaleFactor NOTIFY textScaleFactorChanged)
     Q_PROPERTY(QString opengl READ opengl WRITE setOpengl NOTIFY openglChanged)
     Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY qualityChanged)
+    Q_PROPERTY(bool rememberChannelQuality READ rememberChannelQuality WRITE setRememberChannelQuality NOTIFY rememberChannelQualityChanged)
     Q_PROPERTY(QString decoder READ decoder WRITE setDecoder NOTIFY decoderChanged)
     Q_PROPERTY(bool audioCompressor READ audioCompressor WRITE setAudioCompressor NOTIFY audioCompressorChanged)
     Q_PROPERTY(QString backend READ backend WRITE setBackend NOTIFY backendChanged)
@@ -52,6 +53,7 @@ class SettingsManager : public QObject
     QString mOpengl = "opengl es";
 #endif
     QString mQuality = "source";
+    bool mRememberChannelQuality = false;
     QString mDecoder = "auto-copy";
     bool mAudioCompressor = false;
 
@@ -124,6 +126,9 @@ public:
     QString quality() const;
     void setQuality(const QString &quality);
 
+    bool rememberChannelQuality() const;
+    void setRememberChannelQuality(bool rememberChannelQuality);
+
     QString decoder() const;
     void setDecoder(const QString &decoder);
 
@@ -172,6 +177,8 @@ public:
     void setChatOpacity(double chatOpacity);
 
     Q_INVOKABLE void copyToClipboard(const QString &text) const;
+    Q_INVOKABLE QString channelQuality(const QString &channel);
+    Q_INVOKABLE void setChannelQuality(const QString &channel, const QString &quality);
 
 signals:
     void alertChanged();
@@ -184,6 +191,7 @@ signals:
     void textScaleFactorChanged();
     void openglChanged();
     void qualityChanged();
+    void rememberChannelQualityChanged();
     void decoderChanged();
     void audioCompressorChanged();
     void backendChanged();

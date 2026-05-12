@@ -146,7 +146,7 @@ Page {
 
         var start = !isVod ? -1 : seekBar.value
 
-        var quality = selectStreamQuality(Settings.quality);
+        var quality = selectStreamQuality(preferredStreamQuality());
         if (!quality) {
             console.error("did not find a usable stream quality");
             return;
@@ -162,6 +162,32 @@ Page {
 
         renderer.load(url, start, description)
         renderer.setVolume(volumeSlider.value)
+    }
+
+    function channelQualityKey() {
+        return currentChannel && currentChannel.name ? currentChannel.name : ""
+    }
+
+    function preferredStreamQuality() {
+        var channel = channelQualityKey()
+        if (Settings.rememberChannelQuality && channel) {
+            var channelQuality = Settings.channelQuality(channel)
+            if (channelQuality) {
+                return channelQuality
+            }
+        }
+
+        return Settings.quality
+    }
+
+    function setPreferredStreamQuality(quality) {
+        var channel = channelQualityKey()
+        if (Settings.rememberChannelQuality && channel) {
+            Settings.setChannelQuality(channel, quality)
+            return
+        }
+
+        Settings.quality = quality
     }
 
     function streamQualityHeight(name) {
@@ -346,7 +372,7 @@ Page {
         streamMap = streams
         sourcesBox.model = sourceNames
 
-        sourcesBox.selectItem(selectStreamQuality(Settings.quality));
+        sourcesBox.selectItem(selectStreamQuality(preferredStreamQuality()));
         loadAndPlay()
     }
 
@@ -1162,8 +1188,9 @@ Page {
                     Layout.minimumWidth: 100
 
                     onActivated: {
-                        if (Settings.quality !== sourcesBox.model[currentIndex]) {
-                            Settings.quality = sourcesBox.model[currentIndex]
+                        var quality = sourcesBox.model[currentIndex]
+                        if (preferredStreamQuality() !== quality) {
+                            setPreferredStreamQuality(quality)
                             loadAndPlay()
                             pArea.refreshHeaders()
                         }
