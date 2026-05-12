@@ -1719,6 +1719,13 @@ void NetworkManager::streamExtractReply()
         break;
     }
 
+    if (url.isEmpty()) {
+        qWarning() << "Could not extract Twitch playlist URL";
+        emit error("token_error");
+        reply->deleteLater();
+        return;
+    }
+
     getM3U8Data(url, type);
 
     reply->deleteLater();

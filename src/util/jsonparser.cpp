@@ -14,6 +14,15 @@
 
 #include "jsonparser.h"
 #include "../model/settingsmanager.h"
+#include <QRandomGenerator>
+#include <QUrlQuery>
+
+namespace {
+QString playlistNonce()
+{
+    return QString::number(QRandomGenerator::global()->bounded(1000000));
+}
+}
 
 PagedResult<Channel*> JsonParser::parseStreams(const QByteArray &data)
 {
@@ -530,11 +539,21 @@ QString JsonParser::parseChannelStreamExtractionInfo(const QByteArray &data)
 
         QString sig = json["sig"].toString();
 
-        url = QString("http://usher.twitch.tv/api/channel/hls/%1").arg(channel + QString(".m3u8"))
-                + QString("?player=twitchweb")
-                + QString("&token=") + QUrl::toPercentEncoding(tokenData)
-                + QString("&sig=%1").arg(sig)
-                + QString("&allow_source=true&$allow_audio_only=true");
+        if (channel.isEmpty() || tokenData.isEmpty() || sig.isEmpty()) {
+            return url;
+        }
+
+        QUrl playlistUrl(QString("https://usher.ttvnw.net/api/channel/hls/%1.m3u8").arg(channel));
+        QUrlQuery query;
+        query.addQueryItem("player", "twitchweb");
+        query.addQueryItem("token", tokenData);
+        query.addQueryItem("sig", sig);
+        query.addQueryItem("allow_source", "true");
+        query.addQueryItem("allow_audio_only", "true");
+        query.addQueryItem("type", "any");
+        query.addQueryItem("p", playlistNonce());
+        playlistUrl.setQuery(query);
+        url = playlistUrl.toString(QUrl::FullyEncoded);
     }
 
     return url;
@@ -563,14 +582,21 @@ QString JsonParser::parseVodExtractionInfo(const QByteArray &data)
             vod = QString::number(tokenJson["vod_id"].toInt());
         }
 
-        url = QString("http://usher.twitch.tv/vod/%1").arg(vod)
-                + QString("?nauth=%1").arg(tokenData)
-                + QString("&nauthsig=%1").arg(sig)
-                + QString("&p=%1").arg(qrand() * 999999)
-                + "&type=any"
-                  "&player=twitchweb"
-                  "&allow_source=true"
-                  "&allow_audio_only=true";
+        if (vod.isEmpty() || tokenData.isEmpty() || sig.isEmpty()) {
+            return url;
+        }
+
+        QUrl playlistUrl(QString("https://usher.ttvnw.net/vod/%1.m3u8").arg(vod));
+        QUrlQuery query;
+        query.addQueryItem("nauth", tokenData);
+        query.addQueryItem("nauthsig", sig);
+        query.addQueryItem("p", playlistNonce());
+        query.addQueryItem("type", "any");
+        query.addQueryItem("player", "twitchweb");
+        query.addQueryItem("allow_source", "true");
+        query.addQueryItem("allow_audio_only", "true");
+        playlistUrl.setQuery(query);
+        url = playlistUrl.toString(QUrl::FullyEncoded);
     }
 
     return url;
