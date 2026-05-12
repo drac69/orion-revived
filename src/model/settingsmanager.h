@@ -28,6 +28,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(bool lightTheme READ lightTheme WRITE setLightTheme NOTIFY lightThemeChanged)
     Q_PROPERTY(bool pastelColors READ pastelColors WRITE setPastelColors NOTIFY pastelColorsChanged)
     Q_PROPERTY(bool clickTogglePause READ clickTogglePause WRITE setClickTogglePause NOTIFY clickTogglePauseChanged)
+    Q_PROPERTY(bool inhibitScreensaver READ inhibitScreensaver WRITE setInhibitScreensaver NOTIFY inhibitScreensaverChanged)
     Q_PROPERTY(bool autoScrollSmoothing READ autoScrollSmoothing WRITE setAutoScrollSmoothing NOTIFY autoScrollSmoothingChanged)
     Q_PROPERTY(QString font READ font WRITE setFont NOTIFY fontChanged)
     Q_PROPERTY(bool versionCheckEnabled READ versionCheckEnabled)
@@ -47,7 +48,7 @@ class SettingsManager : public QObject
     QString mOpengl = "opengl es";
 #endif
     QString mQuality = "source";
-    QString mDecoder = "auto";
+    QString mDecoder = "auto-copy";
 
 #ifdef MPV_PLAYER
     QString mBackend = "mpv";
@@ -74,6 +75,7 @@ class SettingsManager : public QObject
     bool mLightTheme = false;
     bool mPastelColors = true;
     bool mClickTogglePause = true;
+    bool mInhibitScreensaver = true;
     bool mAutoScrollSmoothing = true;
     QString mFont = "";
 
@@ -143,6 +145,9 @@ public:
     bool clickTogglePause() const;
     void setClickTogglePause(bool clickTogglePause);
 
+    bool inhibitScreensaver() const;
+    void setInhibitScreensaver(bool inhibitScreensaver);
+
     bool autoScrollSmoothing() const;
     void setAutoScrollSmoothing(bool autoScrollSmoothing);
 
@@ -166,6 +171,7 @@ signals:
     void keepOnTopChanged();
     void pastelColorsChanged();
     void clickTogglePauseChanged();
+    void inhibitScreensaverChanged();
     void autoScrollSmoothingChanged();
 
 public slots:

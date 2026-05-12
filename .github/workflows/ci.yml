@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - modernize-maintenance
+  pull_request:
+
+jobs:
+  linux-mpv:
+    name: Linux Qt5/mpv
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            libmpv-dev \
+            qt5-qmake \
+            qtbase5-dev \
+            qtdeclarative5-dev \
+            qml-module-qtgraphicaleffects \
+            qml-module-qtquick-controls \
+            qml-module-qtquick-controls2 \
+            qml-module-qtquick-layouts \
+            qml-module-qtquick-window2 \
+            qml-module-qtquick2
+
+      - name: Configure
+        run: qmake orion.pro CONFIG+=mpv
+
+      - name: Build
+        run: make -j"$(nproc)"

@@ -110,6 +110,12 @@ ApplicationWindow {
         Qt.quit()
     }
 
+    Shortcut {
+        sequence: "Ctrl+Q"
+        context: Qt.ApplicationShortcut
+        onActivated: Qt.quit()
+    }
+
     property alias view: view
     Views {
         id: view
@@ -282,4 +288,3 @@ ApplicationWindow {
         }
     }
 }
-

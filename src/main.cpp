@@ -49,6 +49,17 @@
 #pragma comment(lib, "User32.lib")
 #endif
 
+void configureHighDpiScaling()
+{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    if (!qEnvironmentVariableIsSet("QT_ENABLE_HIGHDPI_SCALING")
+            || qEnvironmentVariableIntValue("QT_ENABLE_HIGHDPI_SCALING") != 0) {
+        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    }
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
+}
+
 #ifdef Q_OS_WIN
 void showConsole() {
     if (GetConsoleWindow()) { return; }
@@ -161,9 +172,7 @@ int main(int argc, char *argv[])
     //Override QT_QUICK_CONTROLS_STYLE environment variable
     qputenv("QT_QUICK_CONTROLS_STYLE", "material");
 
-    if (!qEnvironmentVariableIsEmpty("QT_AUTO_SCREEN_SCALE_FACTOR")) {
-        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    }
+    configureHighDpiScaling();
 
     auto opengl = SettingsManager::getInstance()->opengl().toLower();
 

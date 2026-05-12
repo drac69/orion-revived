@@ -1,12 +1,17 @@
 
 # Orion
 
-[![Build status](https://ci.appveyor.com/api/projects/status/u8vstv96djis8twq/branch/master?svg=true)](https://ci.appveyor.com/project/alamminsalo/orion/branch/master)
-[![Build Status](https://travis-ci.org/alamminsalo/orion.svg?branch=master)](https://travis-ci.org/alamminsalo/orion)
+[![CI](https://github.com/belagrf/orion/actions/workflows/ci.yml/badge.svg)](https://github.com/belagrf/orion/actions/workflows/ci.yml)
 
-[Webpage](https://alamminsalo.github.io/orion)
+Maintained fork of [alamminsalo/orion](https://github.com/alamminsalo/orion), which was archived by its original author in May 2020.
 
 QML/C++-written desktop client for Twitch.tv
+
+## Fork status
+
+This fork starts from the final upstream `master` state and focuses on keeping the desktop build usable on current Linux/Qt5 systems. It includes the unmerged upstream crash fix from PR #303, safer mpv hardware decoding defaults, dynamic search pagination for large windows, VOD resume persistence fixes, modern high-DPI setup, and GitHub Actions CI.
+
+Some old upstream issues are broad feature requests or depend on Twitch API behavior that has changed since the original project was archived. See `docs/upstream-issue-triage.md` for the current issue audit.
 
 ## Features: 
 
@@ -16,15 +21,15 @@ QML/C++-written desktop client for Twitch.tv
 * Chat support
 * Support for live streams and vods
 
-Available on [Play Store](https://play.google.com/store/apps/details?id=app.orion.android)
-
 ## Screencaptures
 
 <img src="https://user-images.githubusercontent.com/5585454/27839943-cc1834ae-60fd-11e7-9b87-d3aaf5f7483c.png" width="128">	<img src="https://user-images.githubusercontent.com/5585454/27839974-fb7a6d3e-60fd-11e7-8638-9214fe5a1355.png" width="128">	<img src="https://user-images.githubusercontent.com/5585454/27840060-adef907a-60fe-11e7-88c5-72c83ec60d1d.png" width="128">	<img src="https://user-images.githubusercontent.com/5585454/27840062-b2f14eba-60fe-11e7-9e04-7d12477519d7.png" width="128">	<img src="https://user-images.githubusercontent.com/5585454/27840063-b6429fce-60fe-11e7-9e96-54d6d0657953.png" width="128">
 
 ## Dependencies
 
-* `mpv` (default), `qtav` or `qt5-multimedia`
+* Qt 5.15 development tools and QML modules
+* `mpv` and `libmpv` development headers
+* Optional legacy backends: `qtav` or `qt5-multimedia`
 
 ## Building on linux
 
@@ -34,6 +39,12 @@ Available on [Play Store](https://play.google.com/store/apps/details?id=app.orio
 
 ```
 sudo pacman -S git gcc qt5-base qt5-quickcontrols qt5-svg qt5-quickcontrols2 qt5-graphicaleffects mpv
+```
+
+Ubuntu/Linux Mint:
+
+```
+sudo apt install build-essential libmpv-dev qt5-qmake qtbase5-dev qtdeclarative5-dev qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtgraphicaleffects
 ```
 
 If using backend other than mpv, install those packages instead.
@@ -50,7 +61,7 @@ As default, mpv is used (if nothing is passed)
 #### Get orion from github and install
 
 ```
-git clone https://github.com/alamminsalo/orion
+git clone https://github.com/belagrf/orion
 cd orion
 mkdir build && cd build
 qmake ../
@@ -59,13 +70,14 @@ make && sudo make install
 
 ## Building on MacOS
 
+macOS packaging has not been revalidated in this fork.
+
 #### Install needed libraries and software
 
 ```
-brew install qt mpv
-brew link --force qt
+brew install qt@5 mpv
 ```
-You need to force link qt to get qmake. Note that this can cause problems with other make tools. For more information see `brew info qt`.
+Make sure the Qt 5 `qmake` is on `PATH`.
 
 #### Get orion from github and install
 
@@ -81,7 +93,7 @@ There will now be an orion.app application in the build directory.
 
 ## Qt version
 
-Minimum supported Qt version is currently 5.8
+Minimum supported Qt version for this fork is currently 5.15.
 
 
 ## Misc
@@ -113,4 +125,3 @@ Installer can be found in the application's install directory (I'll make it inst
 * If network goes down while Orion is running, the images stop loading until application restart. Otherwise the application should work fine after network is back up
 * Sometimes the stream hangs and doesn't load on start. Restarting the stream should work
 * Vods are sometimes having issues, skipping some parts of the video. Needs further investigating
-

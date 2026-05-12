@@ -17,7 +17,7 @@ isEmpty(PREFIX){
     PREFIX = /usr
 }
 
-VERSION = 1.6.7
+VERSION = 1.6.8
 DEFINES += APP_VERSION=\\\"v$$VERSION\\\"
 DEFINES += APP_NAME=\\\"Orion\\\"
 
@@ -211,4 +211,3 @@ ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 enableVersionCheck {
     DEFINES += VERSION_CHECK_ENABLED
 }
-

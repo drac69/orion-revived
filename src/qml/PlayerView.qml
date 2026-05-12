@@ -45,6 +45,10 @@ Page {
     //Renderer interface
     property alias renderer: loader.item
 
+    function updateScreensaverState() {
+        if (renderer)
+            PowerManager.screensaver = !Settings.inhibitScreensaver || (renderer.status !== "PLAYING")
+    }
 
     //Fix minimode header bar
     clip: true
@@ -290,6 +294,11 @@ Page {
     }
 
     Connections {
+        target: Settings
+        onInhibitScreensaverChanged: root.updateScreensaverState()
+    }
+
+    Connections {
         target: renderer
 
         onPositionChanged: {
@@ -319,7 +328,7 @@ Page {
         }
 
         onStatusChanged: {
-            PowerManager.screensaver = (renderer.status !== "PLAYING")
+            root.updateScreensaverState()
         }
     }
 

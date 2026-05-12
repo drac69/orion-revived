@@ -150,9 +150,10 @@ void VodManager::setVodLastPlaybackPosition(const QString & channel, const QStri
     auto & vodMap = channelEntry.value();
     auto vodEntry = vodMap.find(vod);
     if (vodEntry != vodMap.end()) {
+        const auto previousPosition = vodEntry.value().lastPosition;
         vodEntry.value().lastPosition = position;
         vodEntry.value().modified = true;
-        if (std::fabs(static_cast<double>(vodEntry.value().lastPosition) - static_cast<double>(position)) >= 10) {
+        if (std::fabs(static_cast<double>(previousPosition) - static_cast<double>(position)) >= 10) {
             saveSettings();
         }
     } else {

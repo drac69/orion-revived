@@ -62,9 +62,9 @@ Page {
                         onClicked: {
                             if (!loggedIn) {
                                 LoginService.start();
-                                var url = "https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=" + Network.getClientId()
+                                var url = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + Network.getClientId()
                                         + "&redirect_uri=http://localhost:8979"
-                                        + "&scope=user_read%20user_subscriptions%20user_follows_edit%20chat_login%20user_blocks_read%20user_blocks_edit"
+                                        + "&scope=user%3Aread%3Afollows%20user%3Aread%3Asubscriptions%20user%3Aread%3Ablocked_users%20user%3Amanage%3Ablocked_users%20chat%3Aread%20chat%3Aedit"
                                         + "&force_verify=true";
                                 Qt.openUrlExternally(url);
                             }
@@ -144,6 +144,12 @@ Page {
                         text: "Toggle pause by clicking"
                         checked: Settings.clickTogglePause
                         onClicked: Settings.clickTogglePause = checked
+                    }
+
+                    Switch {
+                        text: "Prevent screensaver while playing"
+                        checked: Settings.inhibitScreensaver
+                        onClicked: Settings.inhibitScreensaver = checked
                     }
 
                     OptionCombo {

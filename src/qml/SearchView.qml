@@ -23,6 +23,7 @@ import app.orion 1.0
 Page {
     id: root
     property int itemCount: 0
+    property int lastFetchLimit: 25
     property bool checked: false
     property string query: searchBar.text
 
@@ -40,7 +41,8 @@ Page {
         console.log("Searching channels: " + str)
 
         offset = offset || 0
-        limit = limit || 25
+        limit = limit || channels.fetchLimit()
+        lastFetchLimit = limit
 
         if (typeof clear === 'undefined'){
             clear = true
@@ -88,25 +90,47 @@ Page {
 
         model: g_results
 
+        function fetchLimit() {
+            if (cellWidth <= 0 || cellHeight <= 0)
+                return 25
+
+            var columns = Math.max(1, Math.floor(width / cellWidth))
+            var visibleRows = Math.max(1, Math.ceil(height / cellHeight))
+            var rowsToFetch = visibleRows + 2
+            return Math.max(25, Math.min(100, columns * rowsToFetch))
+        }
+
+        function shouldFetchMore() {
+            return contentY + height >= contentHeight - (cellHeight * 2)
+        }
+
         function checkScrolled(total){
             if (total != null && itemCount >= total) {
                 return;
             }
-            if (atYEnd && model.count() === itemCount && itemCount > 0){
-                search(query, itemCount, 25, false);
-                itemCount += 25
+            if (shouldFetchMore() && model.count() === itemCount && itemCount > 0){
+                var limit = fetchLimit()
+                search(query, itemCount, limit, false);
+                itemCount += limit
             }
         }
 
         function adjustItemCount(numAdded) {
             // we pre-increased itemCount by the expected size of the result but it's possible that
             // some results were not included due to duplicates filtering
-            if (numAdded !== 25) {
-                itemCount += numAdded - 25;
+            if (numAdded < 0)
+                return
+
+            if (numAdded !== root.lastFetchLimit) {
+                itemCount = model.count()
             }
         }
 
         onAtYEndChanged: {
+            if (visible)
+                checkScrolled()
+        }
+        onContentYChanged: {
             if (visible)
                 checkScrolled()
         }

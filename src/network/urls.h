@@ -16,6 +16,7 @@
 #define URLS_H
 
 #define KRAKEN_API "https://api.twitch.tv/kraken"
+#define HELIX_API "https://api.twitch.tv/helix"
 #define TWITCH_API "https://api.twitch.tv/api"
 #define TWITCH_TMI_USER_API "https://tmi.twitch.tv/group/user/"
 //#define TWITCH_EMOTES "http://static-cdn.jtvnw.net/emoticons/v1/"

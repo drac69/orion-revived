@@ -54,8 +54,11 @@ Channel* JsonParser::parseStreamJson(const QJsonObject &json, const bool expectC
 
     QJsonObject jsonObj;
 
-    if (!jsonObj["stream"].isNull()) {
-        jsonObj = jsonObj["stream"].toObject();
+    if (json.contains("stream")) {
+        if (json["stream"].isNull()) {
+            return channel;
+        }
+        jsonObj = json["stream"].toObject();
     } else {
         jsonObj = json;
     }
@@ -409,9 +412,20 @@ QPair<QString, quint64> JsonParser::parseUser(const QByteArray &data)
 
     if (error.error == QJsonParseError::NoError){
         QJsonObject json = doc.object();
-        if (!json["name"].isNull())
+
+        if (json["data"].isArray() && !json["data"].toArray().isEmpty()) {
+            json = json["data"].toArray().first().toObject();
+        }
+
+        if (!json["display_name"].isNull())
+            displayName = json["display_name"].toString();
+        else if (!json["name"].isNull())
             displayName = json["name"].toString();
-        userId = json["_id"].toString().toULongLong();
+
+        if (!json["id"].isNull())
+            userId = json["id"].toString().toULongLong();
+        else
+            userId = json["_id"].toString().toULongLong();
     }
 
     return qMakePair(displayName, userId);

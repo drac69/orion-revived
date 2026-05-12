@@ -133,8 +133,10 @@ MpvObject::MpvObject(QQuickItem * parent)
     if (mpv_initialize(mpv) < 0)
         throw std::runtime_error("could not initialize mpv context");
 
-    // Request hw decoding, just for testing.
-    mpv_set_option_string(mpv, "hwdec", "auto");
+    // Use copy-back hardware decoding by default. Plain "auto" can hand native
+    // decoder surfaces to the embedded renderer and has caused runaway GPU
+    // memory allocations on some Windows drivers.
+    mpv_set_option_string(mpv, "hwdec", "auto-copy");
 
 #ifdef USE_OPENGL_CB
     // Setup the callback that will make QtQuick update and redraw if there

@@ -25,7 +25,8 @@ void SettingsManager::load()
     setMinimizeOnStartup(settings.value("minimizeOnStartup", mMinimizeOnStartup).toBool());
     setOpengl(settings.value("opengl", mOpengl).toString());
     setQuality(settings.value("quality", mQuality).toString());
-    setDecoder(settings.value("decoder", mDecoder).toString());
+    const QString savedDecoder = settings.value("decoder", mDecoder).toString();
+    setDecoder(savedDecoder == "auto" ? mDecoder : savedDecoder);
     setBackend(settings.value("backend", mBackend).toString());
     setVolumeLevel(settings.value("volumeLevel", mVolumeLevel).toInt());
     setChatEdge(settings.value("chatEdge", mChatEdge).toInt());
@@ -37,6 +38,7 @@ void SettingsManager::load()
     setKeepOnTop(settings.value("keepOnTop", mKeepOnTop).toBool());
     setPastelColors(settings.value("pastelColors", mPastelColors).toBool());
     setClickTogglePause(settings.value("clickTogglePause", mClickTogglePause).toBool());
+    setInhibitScreensaver(settings.value("inhibitScreensaver", mInhibitScreensaver).toBool());
 }
 
 bool SettingsManager::alert() const
@@ -303,6 +305,20 @@ void SettingsManager::setClickTogglePause(bool clickTogglePause)
         mClickTogglePause = clickTogglePause;
         settings.setValue("clickTogglePause", clickTogglePause);
         emit clickTogglePauseChanged();
+    }
+}
+
+bool SettingsManager::inhibitScreensaver() const
+{
+    return mInhibitScreensaver;
+}
+
+void SettingsManager::setInhibitScreensaver(bool inhibitScreensaver)
+{
+    if (mInhibitScreensaver != inhibitScreensaver) {
+        mInhibitScreensaver = inhibitScreensaver;
+        settings.setValue("inhibitScreensaver", inhibitScreensaver);
+        emit inhibitScreensaverChanged();
     }
 }
 

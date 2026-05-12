@@ -152,9 +152,7 @@ bool NetworkManager::networkAccess() {
 void NetworkManager::testConnection()
 {
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(KRAKEN_API));
+    request.setUrl(QUrl("https://www.twitch.tv"));
 
     QNetworkReply *reply = operation->get(request);
 
@@ -178,7 +176,7 @@ void NetworkManager::checkVersion()
     QNetworkRequest req;
     req.setRawHeader("User-Agent", "Orion");
     req.setRawHeader("Accept", "application/vnd.github.v3+json");
-    req.setUrl(QUrl("https://api.github.com/repos/alamminsalo/orion/releases/latest"));
+    req.setUrl(QUrl("https://api.github.com/repos/belagrf/orion/releases/latest"));
 
     QNetworkReply *reply = operation->get(req);
     connect(reply, &QNetworkReply::finished, this, [reply, this](){
@@ -355,11 +353,11 @@ void NetworkManager::getBroadcastPlaybackStream(const QString &vod)
 
 void NetworkManager::getUser()
 {
-    QString url = QString(KRAKEN_API) + "/user";
-    QString auth = "OAuth " + access_token;
+    QString url = QString(HELIX_API) + "/users";
+    QString auth = "Bearer " + access_token;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(QUrl(url));
     request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
@@ -396,7 +394,7 @@ void NetworkManager::getEmoteSets(const QList<int> &emoteSetIDs) {
 
     QString url = QString(KRAKEN_API) + "/chat/emoticon_images"
         + QString("?emotesets=") + emoteSetsIDsStr.join(',');
-    QString auth = "OAuth " + access_token;
+    QString auth = "Bearer " + access_token;
 
     qDebug() << "Requesting" << url;
 
@@ -438,7 +436,7 @@ void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offs
     int nextOffset = offset + limit;
     request.setAttribute(QNetworkRequest::User, nextOffset);
 
-    QString auth = "OAuth " + access_token;
+    QString auth = "Bearer " + access_token;
     request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
@@ -502,7 +500,7 @@ void NetworkManager::editUserBlockWithId(const quint64 myUserId, const QString &
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), blockUsername);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), isBlock);
 
-    QString auth = "OAuth " + access_token;
+    QString auth = "Bearer " + access_token;
     request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply;
@@ -688,7 +686,7 @@ const QString NetworkManager::CHANNEL_BADGES_URL_SUFFIX = "/badges";
 
 void NetworkManager::getChannelBadgeUrls(const quint64 channelId) {
     QString url = CHANNEL_BADGES_URL_PREFIX + QString::number(channelId) + CHANNEL_BADGES_URL_SUFFIX;
-    QString auth = "OAuth " + access_token;
+    QString auth = "Bearer " + access_token;
 
     qDebug() << "Requesting" << url;
 
@@ -883,7 +881,7 @@ void NetworkManager::editUserFavourite(const quint64 userId, const quint64 chann
     QString url = QString(KRAKEN_API) + "/users/" + QString::number(userId)
             + "/follows/channels/" + QString::number(channelId);
 
-    QString auth = "OAuth " + access_token;
+    QString auth = "Bearer " + access_token;
 
     QNetworkRequest request;
     request.setRawHeader("Accept", QString("application/vnd.twitchtv.v5+json").toUtf8());
@@ -1330,4 +1328,3 @@ void NetworkManager::globalBadgeUrlsBetaReply()
 
     reply->deleteLater();
 }
-

@@ -104,7 +104,7 @@ Item {
         } else if (Qt.platform.os == "linux") {
             defaultDecoders = [ "vaapi-copy", "vdpau-copy", "cuda-copy", "nvdec-copy", "no" ]
         }
-        return [ "auto" ].concat(defaultDecoders)
+        return [ "auto-copy" ].concat(defaultDecoders)
     }
 
     function setDecoder(idx) {
