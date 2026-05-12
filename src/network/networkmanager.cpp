@@ -1075,14 +1075,28 @@ void NetworkManager::getGlobalBadgesUrlsBeta() {
 }
 
 void NetworkManager::getChannelBitsUrls(const int channelID) {
-    QString url = QString(KRAKEN_API) + QString("/bits/actions?channel_id=") + QString::number(channelID);
+    QUrl url;
+    QString auth = "Bearer " + access_token;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/bits/cheermotes");
+        QUrlQuery query;
+        query.addQueryItem("broadcaster_id", QString::number(channelID));
+        url.setQuery(query);
+    }
+    else {
+        url = QUrl(QString(KRAKEN_API) + QString("/bits/actions?channel_id=") + QString::number(channelID));
+    }
 
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setRawHeader("Accept", QString("application/vnd.twitchtv.v5+json").toUtf8());
-    request.setUrl(QUrl(url));
+    request.setRawHeader("Accept", access_token.isEmpty() ? QString("application/vnd.twitchtv.v5+json").toUtf8() : QString("application/json").toUtf8());
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, channelID);
+    if (!access_token.isEmpty()) {
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1097,15 +1111,19 @@ void NetworkManager::channelBitsUrlsReply() {
     }
     QByteArray data = reply->readAll();
 
-    QString urlString = reply->url().toString();
+    int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+    if (channelID == 0) {
+        QString urlString = reply->url().toString();
+        qDebug() << "url was" << urlString;
 
-    qDebug() << "url was" << urlString;
+        int eqPos = urlString.lastIndexOf('=');
+        if (eqPos != -1) {
+            QString channelIDStr = urlString.mid(eqPos + 1);
+            channelID = channelIDStr.toInt();
+        }
+    }
 
-    int eqPos = urlString.lastIndexOf('=');
-
-    if (eqPos != -1) {
-        QString channelIDStr = urlString.mid(eqPos + 1);
-        int channelID = channelIDStr.toInt();
+    if (channelID != 0) {
         qDebug() << "bits urls for channel" << channelID << "loaded";
         BitsQStringsMap urls;
         BitsQStringsMap colors;
@@ -1121,14 +1139,24 @@ void NetworkManager::channelBitsUrlsReply() {
 }
 
 void NetworkManager::getGlobalBitsUrls() {
-    QString url = QString(KRAKEN_API) + QString("/bits/actions");
+    QUrl url;
+    QString auth = "Bearer " + access_token;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/bits/cheermotes");
+    }
+    else {
+        url = QUrl(QString(KRAKEN_API) + QString("/bits/actions"));
+    }
 
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", QString("application/vnd.twitchtv.v5+json").toUtf8());
+    request.setRawHeader("Accept", access_token.isEmpty() ? QString("application/vnd.twitchtv.v5+json").toUtf8() : QString("application/json").toUtf8());
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
+    request.setUrl(url);
+    if (!access_token.isEmpty()) {
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
 
     QNetworkReply *reply = operation->get(request);
 

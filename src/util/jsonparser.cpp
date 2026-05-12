@@ -776,7 +776,7 @@ void JsonParser::parseBitsData(const QByteArray &data, QMap<QString, QMap<QStrin
     if (error.error == QJsonParseError::NoError) {
         QJsonObject json = doc.object();
 
-        auto actions = json["actions"].toArray();
+        QJsonArray actions = json["data"].isArray() ? json["data"].toArray() : json["actions"].toArray();
         for (const auto & actionEntry : actions) {
             
             QMap<QString, QString> actionUrlsMap;
