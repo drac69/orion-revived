@@ -72,6 +72,7 @@ CommonGrid {
         preview: model.preview
         online: model.online
         game: model.game
+        language: model.language
         favourite: model.favourite
         showFavIcon: showFavIcons
         width: root.cellWidth
@@ -131,4 +132,3 @@ CommonGrid {
         }
     }
 }
-

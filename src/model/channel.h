@@ -37,6 +37,7 @@ class Channel: public QObject{
     QString info;
     bool alert;
     QString game;
+    QString language;
     qint32 viewers;
 	bool online;
     bool favourite;
@@ -77,6 +78,8 @@ class Channel: public QObject{
 
         const QString getGame() const;
         void setGame(const QString&);
+        const QString getLanguage() const;
+        void setLanguage(const QString&);
 
         static bool greaterThan(Channel*, Channel*);
 

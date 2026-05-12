@@ -60,7 +60,8 @@ public:
         ServiceNameRole =   Qt::UserRole + 7,
         GameRole =          Qt::UserRole + 8,
         IdRole =            Qt::UserRole + 9,
-        FavouriteRole =     Qt::UserRole + 10
+        FavouriteRole =     Qt::UserRole + 10,
+        LanguageRole =      Qt::UserRole + 11
     };
 
     QList<Channel *> getChannels() const;

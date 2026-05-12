@@ -124,6 +124,7 @@ Item {
         text += "<b>" + channel.title + "</b><br/>";
         text += channel.game + "<br/>"
         text += channel.viewers + " viewers"
+        if (channel.language) text += "<br/>Language " + channel.language.toUpperCase()
         img.source = channel.preview
 
         display(channel, getPosition)

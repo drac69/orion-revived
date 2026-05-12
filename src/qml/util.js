@@ -23,6 +23,7 @@ function copyChannel(channel) {
         logo: channel.logo,
         preview: channel.preview,
         game: channel.game,
+        language: channel.language,
         viewers: channel.viewers,
         online: channel.online,
         favourite: channel.favourite

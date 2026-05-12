@@ -30,6 +30,7 @@ Item {
     property bool favourite
     property int viewers
     property string game
+    property string language
     property int containerSize: width - 10
     property int imageSize: containerSize - 20
     property bool showFavIcon: true

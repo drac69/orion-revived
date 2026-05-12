@@ -35,7 +35,7 @@ SidePanel {
             title.text = "<b>" + item.title + "</b>"
             if (item.game) title.text += " playing " + item.game
             viewerCount.visible = item.viewers >= 0
-            viewerCount.text = item.viewers + " viewers"
+            viewerCount.text = item.viewers + " viewers" + (item.language ? " / " + item.language.toUpperCase() : "")
             description.text = item.info
         }
 

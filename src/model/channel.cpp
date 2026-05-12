@@ -28,6 +28,9 @@ void Channel::updateWith(const Channel &other)
         this->setInfo(other.getInfo());
         this->setViewers(other.getViewers());
         this->setGame(other.getGame());
+        if (!other.getLanguage().isEmpty()) {
+            this->setLanguage(other.getLanguage());
+        }
     }
 }
 
@@ -75,6 +78,7 @@ Channel::Channel(const Channel &channel){
     this->logouri = channel.logouri;
     this->previewuri = channel.previewuri;
     this->game = channel.game;
+    this->language = channel.language;
     this->viewers = channel.viewers;
     this->favourite = channel.favourite;
 }
@@ -234,4 +238,14 @@ const QString Channel::getGame() const
 void Channel::setGame(const QString &value)
 {
     game = value;
+}
+
+const QString Channel::getLanguage() const
+{
+    return language;
+}
+
+void Channel::setLanguage(const QString &value)
+{
+    language = value;
 }

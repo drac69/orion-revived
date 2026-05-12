@@ -79,6 +79,7 @@ public:
     void searchChannels(const QString&, const quint32&, const quint32&);
     void searchGames(const QString&);
     void getFeaturedStreams();
+    void getStreamsForLanguage(const QString&, const quint32&, const quint32&);
     void getStreamsForGame(const QString&, const quint32&, const quint32&);
     void getChannelPlaybackStream(const QString&);
     void getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit);
@@ -222,6 +223,8 @@ private:
     QString lastGameStreamsQuery;
     QMap<QString, QString> gameStreamsGameIds;
     QMap<quint32, QString> gameStreamsPageCursors;
+    QString lastLanguageStreamsQuery;
+    QMap<quint32, QString> languageStreamsPageCursors;
     quint64 lastBroadcastsChannelId = 0;
     QMap<quint32, QString> broadcastsPageCursors;
     QMap<int, QMap<int, QString>> pendingEmoteSets;

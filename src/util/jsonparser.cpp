@@ -91,6 +91,7 @@ Channel* JsonParser::parseStreamJson(const QJsonObject &json, const bool expectC
         channel->setName(jsonObj["user_name"].toString());
         channel->setInfo(jsonObj["title"].toString());
         channel->setGame(jsonObj["game_name"].toString());
+        channel->setLanguage(jsonObj["language"].toString());
         channel->setViewers(jsonObj["viewer_count"].toInt());
 
         QString previewUrl = jsonObj["thumbnail_url"].toString();
@@ -119,6 +120,13 @@ Channel* JsonParser::parseStreamJson(const QJsonObject &json, const bool expectC
         channel->setGame(jsonObj["game"].toString());
     }
 
+    if (!jsonObj["broadcaster_language"].isNull()){
+        channel->setLanguage(jsonObj["broadcaster_language"].toString());
+    }
+    else if (!jsonObj["language"].isNull()){
+        channel->setLanguage(jsonObj["language"].toString());
+    }
+
     if (!jsonObj["channel"].isNull()){
 
         Channel *c = parseChannelJson(jsonObj["channel"].toObject());
@@ -127,6 +135,7 @@ Channel* JsonParser::parseStreamJson(const QJsonObject &json, const bool expectC
         channel->setName(c->getName());
         channel->setLogourl(c->getLogourl());
         channel->setInfo(c->getInfo());
+        channel->setLanguage(c->getLanguage());
 
         delete c;
     }
@@ -247,6 +256,7 @@ Channel* JsonParser::parseChannelJson(const QJsonObject &json)
         channel->setName(json["display_name"].toString());
         channel->setInfo(json["title"].toString());
         channel->setGame(json["game_name"].toString());
+        channel->setLanguage(json["broadcaster_language"].toString());
 
         QString thumbnailUrl = json["thumbnail_url"].toString();
         thumbnailUrl.replace("{width}", "300");
@@ -275,6 +285,13 @@ Channel* JsonParser::parseChannelJson(const QJsonObject &json)
 
         if (!json["logo"].isNull()){
             channel->setLogourl(json["logo"].toString());
+        }
+
+        if (!json["broadcaster_language"].isNull()){
+            channel->setLanguage(json["broadcaster_language"].toString());
+        }
+        else if (!json["language"].isNull()){
+            channel->setLanguage(json["language"].toString());
         }
 
         if (!json["_id"].isNull()){

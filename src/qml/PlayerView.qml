@@ -292,6 +292,7 @@ Page {
             "_id": channel._id,
             "name": channel.name,
             "game": isVod ? vod.game : channel.game,
+            "language": channel.language || "",
             "title": isVod ? vod.title : channel.title,
             "online": channel.online,
             "favourite": channel.favourite || ChannelManager.containsFavourite(channel._id),

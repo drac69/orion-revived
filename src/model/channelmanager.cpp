@@ -344,6 +344,10 @@ void ChannelManager::searchChannels(QString q, const quint32 &offset, const quin
         q.replace("/game ", "");
         netman->getStreamsForGame(q, offset, limit);
 
+    } else if (q.startsWith("/language ") || q.startsWith("/lang ")) {
+        const QString language = q.section(' ', 1).trimmed();
+        netman->getStreamsForLanguage(language, offset, limit);
+
     } else {
         netman->searchChannels(q, offset, limit);
     }

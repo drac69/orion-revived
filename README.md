@@ -84,6 +84,13 @@ orion --channel channelname
 orion https://www.twitch.tv/channelname
 ```
 
+Search commands:
+
+```
+/game Just Chatting
+/language en
+```
+
 Useful logging options:
 
 ```

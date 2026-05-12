@@ -83,6 +83,10 @@ QVariant ChannelListModel::data(const QModelIndex &index, int role) const
         case FavouriteRole:
             var.setValue(channel->isFavourite());
             break;
+
+        case LanguageRole:
+            var.setValue(channel->getLanguage());
+            break;
         }
     }
 
@@ -95,7 +99,7 @@ int ChannelListModel::rowCount(const QModelIndex &/*parent*/) const
 }
 
 void debugChannel(const QString prefix, const Channel * c) {
-    qDebug() << prefix << ":" << c->getId() << c->getName() << "game" << c->getGame() << "serviceName" << c->getServiceName() << "time" << c->getTime() << "viewers" << c->getViewers();
+    qDebug() << prefix << ":" << c->getId() << c->getName() << "game" << c->getGame() << "language" << c->getLanguage() << "serviceName" << c->getServiceName() << "time" << c->getTime() << "viewers" << c->getViewers();
 }
 
 void ChannelListModel::addChannelInternal(Channel *channel) {
@@ -265,6 +269,7 @@ QHash<int, QByteArray> ChannelListModel::roleNames() const
     roles[GameRole] = "game";
     roles[IdRole] = "id";
     roles[FavouriteRole] = "favourite";
+    roles[LanguageRole] = "language";
 
     return roles;
 }
@@ -304,6 +309,9 @@ bool ChannelListModel::updateStream(Channel *item)
             if (item->isOnline()){
                 channel->setViewers(item->getViewers());
                 channel->setGame(item->getGame());
+                if (!item->getLanguage().isEmpty()) {
+                    channel->setLanguage(item->getLanguage());
+                }
                 channel->setPreviewurl(item->getPreviewurl());
 
                 if (!item->getName().isEmpty()){
@@ -377,6 +385,3 @@ void ChannelListModel::updateStreams(const QList<Channel *> &list)
 
     //emit channelsUpdated();
 }
-
-
-

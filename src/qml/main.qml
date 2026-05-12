@@ -112,6 +112,7 @@ ApplicationWindow {
             "_id": 0,
             "name": channelName,
             "game": "",
+            "language": "",
             "title": channelName,
             "online": true,
             "favourite": false,

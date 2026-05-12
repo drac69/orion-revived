@@ -44,10 +44,11 @@ The upstream repository is archived and had 79 open issues at the time this fork
 
 ## Partially addressed
 
-* #288 / #300: the OAuth login URL and scopes now use the current Twitch authorization host, the logged-in user response parser handles Helix `Get Users` responses, chat block/unblock plus blocked-user list calls now use Helix, the followed-channel list now uses Helix `Get Followed Channels`, authenticated stream-status checks now use Helix `Get Streams`, authenticated channel search now uses Helix `Search Channels`, authenticated game/category browsing now uses Helix `Get Top Games`, `Search Categories`, `Get Games`, and game-filtered `Get Streams`, authenticated VOD listing now uses Helix `Get Videos`, authenticated chat badge metadata now uses Helix `Get Channel Chat Badges` and `Get Global Chat Badges`, authenticated emote-set loading now uses Helix `Get Emote Sets`, and authenticated Bits/Cheermote metadata now uses Helix `Get Cheermotes`. Follow/unfollow mutations, unauthenticated app-token handling, VOD playback/chat, legacy badge compatibility calls, and any remaining browsing calls still need a full Helix migration.
+* #288 / #300: the OAuth login URL and scopes now use the current Twitch authorization host, the logged-in user response parser handles Helix `Get Users` responses, chat block/unblock plus blocked-user list calls now use Helix, the followed-channel list now uses Helix `Get Followed Channels`, authenticated stream-status checks now use Helix `Get Streams`, authenticated channel search now uses Helix `Search Channels`, authenticated game/category browsing now uses Helix `Get Top Games`, `Search Categories`, `Get Games`, and game/language-filtered `Get Streams`, authenticated VOD listing now uses Helix `Get Videos`, authenticated chat badge metadata now uses Helix `Get Channel Chat Badges` and `Get Global Chat Badges`, authenticated emote-set loading now uses Helix `Get Emote Sets`, and authenticated Bits/Cheermote metadata now uses Helix `Get Cheermotes`. Follow/unfollow mutations, unauthenticated app-token handling, VOD playback/chat, legacy badge compatibility calls, and any remaining browsing calls still need a full Helix migration.
 * #101: added configurable command-line log levels, optional file logging, and optional Linux systemd journal output when built with `libsystemd`; no in-app log viewer was added.
 * #108: hidden live chat now sends desktop notifications for incoming whispers and `@username` mentions; a dedicated private-message inbox is still not implemented.
 * #187: the existing player selector is limited to backends compiled into the binary, and saved backend settings are now validated against that compiled list at startup; runtime detection of separately installed backend plugins is still not implemented.
+* #240: Helix stream and channel language fields are parsed and shown in stream details, and authenticated searches support `/language <code>` using Helix `Get Streams`; no dedicated language picker UI was added.
 
 ## Already covered by the final upstream code
 
@@ -77,7 +78,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #240, #226, #212, #210, #74, #45.
+* #278, #271, #226, #212, #210, #74, #45.
 
 ## Administrative
 

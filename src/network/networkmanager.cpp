@@ -399,6 +399,60 @@ void NetworkManager::getFeaturedStreams()
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::featuredStreamsReply);
 }
 
+void NetworkManager::getStreamsForLanguage(const QString &language, const quint32 &offset, const quint32 &limit)
+{
+    const QString normalizedLanguage = language.trimmed().toLower();
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+
+    if (normalizedLanguage.isEmpty()) {
+        QList<Channel *> empty;
+        emit gameStreamsOperationFinished(empty, offset);
+        return;
+    }
+
+    if (access_token.isEmpty()) {
+        QList<Channel *> empty;
+        emit error("Language stream search requires Twitch login");
+        emit gameStreamsOperationFinished(empty, offset);
+        return;
+    }
+
+    if (offset == 0 || normalizedLanguage != lastLanguageStreamsQuery) {
+        languageStreamsPageCursors.clear();
+        lastLanguageStreamsQuery = normalizedLanguage;
+    }
+    else if (!languageStreamsPageCursors.contains(offset)) {
+        QList<Channel *> empty;
+        emit gameStreamsOperationFinished(empty, offset);
+        return;
+    }
+
+    QUrl url(QString(HELIX_API) + "/streams");
+    QUrlQuery query;
+    query.addQueryItem("language", normalizedLanguage);
+    query.addQueryItem("first", QString::number(pageSize));
+
+    const QString cursor = languageStreamsPageCursors.value(offset);
+    if (!cursor.isEmpty()) {
+        query.addQueryItem("after", cursor);
+    }
+    url.setQuery(query);
+
+    QNetworkRequest request;
+    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    request.setRawHeader("Accept", "application/json");
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+
+    QNetworkReply *reply = operation->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsReply);
+}
+
 void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offset, const quint32 &limit)
 {
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
@@ -1523,8 +1577,10 @@ void NetworkManager::gameStreamsReply()
 
     addOfflineChannels(out.items, queriedChannelIds);
 
-    const bool isHelixGameStreams = reply->url().path() == "/helix/streams" && query.hasQueryItem("game_id");
-    if (isHelixGameStreams) {
+    const bool isHelixStreams = reply->url().path() == "/helix/streams";
+    const bool isHelixGameStreams = isHelixStreams && query.hasQueryItem("game_id");
+    const bool isHelixLanguageStreams = isHelixStreams && query.hasQueryItem("language") && !query.hasQueryItem("game_id");
+    if (isHelixGameStreams || isHelixLanguageStreams) {
         const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
         const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
         const quint32 returnedCount = static_cast<quint32>(out.items.size());
@@ -1532,7 +1588,12 @@ void NetworkManager::gameStreamsReply()
         const quint32 total = out.cursor.isEmpty() ? nextOffset : nextOffset + 1;
 
         if (!out.cursor.isEmpty()) {
-            gameStreamsPageCursors.insert(nextOffset, out.cursor);
+            if (isHelixLanguageStreams) {
+                languageStreamsPageCursors.insert(nextOffset, out.cursor);
+            }
+            else {
+                gameStreamsPageCursors.insert(nextOffset, out.cursor);
+            }
         }
 
         emit gameStreamsOperationFinished(out.items, total);
