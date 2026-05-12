@@ -2,6 +2,7 @@
 #include "../network/httpserver.h"
 #include <QClipboard>
 #include <QCoreApplication>
+#include <QDebug>
 #include <QGuiApplication>
 
 namespace {
@@ -306,10 +307,19 @@ QString SettingsManager::backend() const
 
 void SettingsManager::setBackend(const QString &backend)
 {
-    if (mBackend != backend) {
-        mBackend = backend;
-        settings.setValue("backend", backend);
-        emit backendChanged();
+    const bool validBackend = mBackends.contains(backend);
+    const QString selectedBackend = validBackend ? backend : mBackends.first();
+
+    if (mBackend != selectedBackend || !validBackend) {
+        const bool changed = mBackend != selectedBackend;
+        mBackend = selectedBackend;
+        settings.setValue("backend", selectedBackend);
+        if (!validBackend) {
+            qWarning() << "Ignoring unavailable player backend" << backend << "and using" << selectedBackend;
+        }
+        if (changed) {
+            emit backendChanged();
+        }
     }
 }
 
