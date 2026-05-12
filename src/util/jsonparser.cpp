@@ -222,7 +222,22 @@ Channel* JsonParser::parseChannelJson(const QJsonObject &json)
 {
     Channel* channel = new Channel();
 
-    if (!json["name"].isNull()){
+    if (json.contains("broadcaster_login")) {
+        const quint64 channelId = json["id"].toString().toULongLong();
+        channel->setId(static_cast<quint32>(channelId));
+        channel->setServiceName(json["broadcaster_login"].toString());
+        channel->setName(json["display_name"].toString());
+        channel->setInfo(json["title"].toString());
+        channel->setGame(json["game_name"].toString());
+
+        QString thumbnailUrl = json["thumbnail_url"].toString();
+        thumbnailUrl.replace("{width}", "300");
+        thumbnailUrl.replace("{height}", "300");
+        channel->setLogourl(thumbnailUrl);
+
+        channel->setOnline(json["is_live"].toBool());
+    }
+    else if (!json["name"].isNull()){
 
         channel->setServiceName(json["name"].toString());
 
@@ -303,12 +318,23 @@ PagedResult<Channel*> JsonParser::parseChannels(const QByteArray &data)
     if (error.error == QJsonParseError::NoError){
         QJsonObject json = doc.object();
 
-        QJsonArray arr = json["channels"].toArray();
-        foreach (const QJsonValue &item, arr){
-            out.items.append(JsonParser::parseChannelJson(item.toObject()));
-        }
+        if (json.contains("data")) {
+            QJsonArray arr = json["data"].toArray();
+            foreach (const QJsonValue &item, arr){
+                out.items.append(JsonParser::parseChannelJson(item.toObject()));
+            }
 
-        out.total = json["_total"].toInt();
+            out.cursor = json["pagination"].toObject()["cursor"].toString();
+            out.total = out.items.size();
+        }
+        else {
+            QJsonArray arr = json["channels"].toArray();
+            foreach (const QJsonValue &item, arr){
+                out.items.append(JsonParser::parseChannelJson(item.toObject()));
+            }
+
+            out.total = json["_total"].toInt();
+        }
     }
 
     return out;

@@ -43,7 +43,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 
 ## Partially addressed
 
-* #288 / #300: the OAuth login URL and scopes now use the current Twitch authorization host, the logged-in user response parser handles Helix `Get Users` responses, chat block/unblock plus blocked-user list calls now use Helix, the followed-channel list now uses Helix `Get Followed Channels`, and authenticated stream-status checks now use Helix `Get Streams`. Follow/unfollow mutations, unauthenticated app-token handling, and browsing calls still need a full Helix migration.
+* #288 / #300: the OAuth login URL and scopes now use the current Twitch authorization host, the logged-in user response parser handles Helix `Get Users` responses, chat block/unblock plus blocked-user list calls now use Helix, the followed-channel list now uses Helix `Get Followed Channels`, authenticated stream-status checks now use Helix `Get Streams`, and authenticated channel search now uses Helix `Search Channels`. Follow/unfollow mutations, unauthenticated app-token handling, and remaining browsing calls still need a full Helix migration.
 * #101: added configurable command-line log levels, optional file logging, and optional Linux systemd journal output when built with `libsystemd`; no in-app log viewer was added.
 * #108: hidden live chat now sends desktop notifications for incoming whispers and `@username` mentions; a dedicated private-message inbox is still not implemented.
 

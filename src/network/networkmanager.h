@@ -215,6 +215,8 @@ private:
 
     QSet<QString> * curChatReplayDedupeBatch;
     QSet<QString> * prevChatReplayDedupeBatch;
+    QString lastSearchChannelsQuery;
+    QMap<quint32, QString> searchChannelsPageCursors;
     QMap<quint32, QString> userFavouritesPageCursors;
     QMap<quint32, QString> blockedUserListPageCursors;
 

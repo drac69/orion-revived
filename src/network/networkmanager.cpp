@@ -258,16 +258,46 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
 
 void NetworkManager::searchChannels(const QString &query, const quint32 &offset, const quint32 &limit)
 {
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    QString url = QString(KRAKEN_API)
-            + QString("/search/channels?query=") + QUrl::toPercentEncoding(query)
-            + QString("&offset=%1").arg(offset)
-            + QString("&limit=%1").arg(limit);
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+
+    QUrl url;
+    if (!access_token.isEmpty()) {
+        if (offset == 0 || query != lastSearchChannelsQuery) {
+            searchChannelsPageCursors.clear();
+            lastSearchChannelsQuery = query;
+        }
+
+        url = QUrl(QString(HELIX_API) + "/search/channels");
+        QUrlQuery urlQuery;
+        urlQuery.addQueryItem("query", query);
+        urlQuery.addQueryItem("first", QString::number(pageSize));
+
+        const QString cursor = searchChannelsPageCursors.value(offset);
+        if (!cursor.isEmpty()) {
+            urlQuery.addQueryItem("after", cursor);
+        }
+        url.setQuery(urlQuery);
+
+        request.setRawHeader("Accept", "application/json");
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
+    else {
+        url = QUrl(QString(KRAKEN_API)
+                + QString("/search/channels?query=") + QUrl::toPercentEncoding(query)
+                + QString("&offset=%1").arg(offset)
+                + QString("&limit=%1").arg(pageSize));
+
+        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    }
 
     qDebug() << "requesting" << url;
-    request.setUrl(QUrl(url));
+    request.setUrl(url);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1257,7 +1287,23 @@ void NetworkManager::searchChannelsReply()
     //qDebug() << data;
 
     auto result = JsonParser::parseChannels(data);
-    emit searchChannelsOperationFinished(result.items, result.total);
+    const bool isHelix = reply->url().path() == "/helix/search/channels";
+    if (isHelix) {
+        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 returnedCount = static_cast<quint32>(result.items.size());
+        const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
+        const quint32 total = result.cursor.isEmpty() ? nextOffset : nextOffset + 1;
+
+        if (!result.cursor.isEmpty()) {
+            searchChannelsPageCursors.insert(nextOffset, result.cursor);
+        }
+
+        emit searchChannelsOperationFinished(result.items, total);
+    }
+    else {
+        emit searchChannelsOperationFinished(result.items, result.total);
+    }
 
     reply->deleteLater();
 }
