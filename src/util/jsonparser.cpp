@@ -698,7 +698,27 @@ QMap<QString, QMap<QString, QMap<QString, QString>>> JsonParser::parseBadgeUrlsB
 
     if (error.error == QJsonParseError::NoError) {
         QJsonObject json = doc.object();
-        if (!json["badge_sets"].isNull()) {
+        if (json["data"].isArray()) {
+            for (const auto &badgeSetEntry : json["data"].toArray()) {
+                const QJsonObject badgeSetJson = badgeSetEntry.toObject();
+                const QString badgeSetName = badgeSetJson["set_id"].toString();
+                if (badgeSetName.isEmpty()) {
+                    continue;
+                }
+
+                QMap<QString, QMap<QString, QString>> loadedBadgeSet;
+                for (const auto &versionEntry : badgeSetJson["versions"].toArray()) {
+                    const QJsonObject versionJson = versionEntry.toObject();
+                    const QString version = versionJson["id"].toString();
+                    if (!version.isEmpty()) {
+                        loadedBadgeSet.insert(version, convertJsonStringMap(versionJson));
+                    }
+                }
+
+                out.insert(badgeSetName, loadedBadgeSet);
+            }
+        }
+        else if (!json["badge_sets"].isNull()) {
             auto badge_sets = json["badge_sets"].toObject();
             for (auto badge_set_entry = badge_sets.constBegin(); badge_set_entry != badge_sets.end(); badge_set_entry++) {
                 QString badge_set_name = badge_set_entry.key();

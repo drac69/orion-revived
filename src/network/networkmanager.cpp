@@ -988,14 +988,28 @@ const QString NetworkManager::CHANNEL_BADGES_BETA_URL_SUFFIX = "/display?languag
 const QString NetworkManager::GLOBAL_BADGES_BETA_URL = "https://badges.twitch.tv/v1/badges/global/display?language=en";
 
 void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
-    QString url = CHANNEL_BADGES_BETA_URL_PREFIX + QString::number(channelID) + CHANNEL_BADGES_BETA_URL_SUFFIX;
+    QUrl url;
+    QString auth = "Bearer " + access_token;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/chat/badges");
+        QUrlQuery query;
+        query.addQueryItem("broadcaster_id", QString::number(channelID));
+        url.setQuery(query);
+    }
+    else {
+        url = QUrl(CHANNEL_BADGES_BETA_URL_PREFIX + QString::number(channelID) + CHANNEL_BADGES_BETA_URL_SUFFIX);
+    }
 
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", access_token.isEmpty() ? "application/vnd.twitchtv.v5+json" : "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, channelID);
+    if (!access_token.isEmpty()) {
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1003,14 +1017,24 @@ void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
 }
 
 void NetworkManager::getGlobalBadgesUrlsBeta() {
-    QString url = GLOBAL_BADGES_BETA_URL;
+    QUrl url;
+    QString auth = "Bearer " + access_token;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/chat/badges/global");
+    }
+    else {
+        url = QUrl(GLOBAL_BADGES_BETA_URL);
+    }
 
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", access_token.isEmpty() ? "application/vnd.twitchtv.v5+json" : "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
+    request.setUrl(url);
+    if (!access_token.isEmpty()) {
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1744,7 +1768,14 @@ void NetworkManager::channelBadgeUrlsBetaReply()
 
     qDebug() << "url was" << urlString;
 
-    if (urlString.startsWith(CHANNEL_BADGES_BETA_URL_PREFIX) && urlString.endsWith(CHANNEL_BADGES_BETA_URL_SUFFIX)) {
+    if (reply->url().path() == "/helix/chat/badges") {
+        int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+        qDebug() << "beta badges for channel" << channelID << "loaded";
+        auto badges = JsonParser::parseBadgeUrlsBetaFormat(data);
+
+        emit getChannelBadgeBetaUrlsOperationFinished(channelID, badges);
+    }
+    else if (urlString.startsWith(CHANNEL_BADGES_BETA_URL_PREFIX) && urlString.endsWith(CHANNEL_BADGES_BETA_URL_SUFFIX)) {
         QString channelIDStr = urlString.mid(CHANNEL_BADGES_BETA_URL_PREFIX.length(), urlString.length() - CHANNEL_BADGES_BETA_URL_PREFIX.length() - CHANNEL_BADGES_BETA_URL_SUFFIX.length());
         int channelID = channelIDStr.toInt();
         qDebug() << "beta badges for channel" << channelID << "loaded";
