@@ -158,7 +158,7 @@ SidePanel {
                 }
                 Label {
                     visible: labelsVisible
-                    text: item && !item.favourite ? "Follow" : "Unfollow"
+                    text: Settings.hasAccessToken ? "Open on Twitch" : (item && !item.favourite ? "Follow" : "Unfollow")
                     style: textStyle
                 }
             }

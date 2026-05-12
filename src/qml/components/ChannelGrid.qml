@@ -108,7 +108,7 @@ CommonGrid {
             }
         }
         MenuItem {
-            text: menu.channel !== undefined && !menu.channel.favourite ? "Follow" : "Unfollow"
+            text: Settings.hasAccessToken ? "Open on Twitch" : (menu.channel !== undefined && !menu.channel.favourite ? "Follow" : "Unfollow")
             onTriggered: {
                 if (menu.channel !== undefined) {
                     if (menu.channel.favourite === false)

@@ -88,7 +88,6 @@ public:
     //Methods using oauth
     void getUser();
     void getUserFavourites(const quint64 userId, quint32 offset, quint32 limit);
-    void editUserFavourite(const quint64 userId, const quint64 channelId, bool add);
     void getEmoteSets(const QList<int> &emoteSetIDs);
     void getChannelBadgeUrls(const quint64 channelId);
     void getChannelBadgeUrlsBeta(const int channelID);
@@ -134,7 +133,6 @@ signals:
 
     //oauth
     void userOperationFinished(const QString&, const quint64);
-    void userEditFollowsOperationFinished();
     void getEmoteSetsOperationFinished(const QMap<int, QMap<int, QString>>);
     void getChannelBadgeUrlsOperationFinished(const quint64, const QMap<QString, QMap<QString, QString>>);
     void getChannelBadgeBetaUrlsOperationFinished(const int, const QMap<QString, QMap<QString, QMap<QString, QString>>>);
@@ -178,7 +176,6 @@ private slots:
     void m3u8Reply();
     void broadcastsReply();
     void favouritesReply();
-    void editUserFavouritesReply();
     void streamReply();
     void vodChatPieceReply();
     void chatterListReply();

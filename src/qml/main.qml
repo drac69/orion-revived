@@ -290,7 +290,25 @@ ApplicationWindow {
 
     }
 
+    function channelPageUrl(channel) {
+        var name = channel ? (channel.name || channel.title || "") : ""
+        return name ? "https://www.twitch.tv/" + encodeURIComponent(name) : "https://www.twitch.tv"
+    }
+
+    function showTwitchFollowUnavailable(channel) {
+        dialog.showMessage("Twitch no longer allows third-party apps to follow or unfollow channels. Open "
+                           + (channel && (channel.name || channel.title) ? (channel.name || channel.title) : "this channel")
+                           + " on twitch.tv?", function() {
+            Qt.openUrlExternally(channelPageUrl(channel))
+        })
+    }
+
     function addToFavourites(channel, callback) {
+        if (Settings.hasAccessToken) {
+            showTwitchFollowUnavailable(channel)
+            return
+        }
+
         dialog.showMessage("Do you want to follow " + (channel.name || "this channel") + "?", function() {
             ChannelManager.addToFavourites(channel._id, channel.name,
                                                        channel.title, channel.info,
@@ -303,6 +321,11 @@ ApplicationWindow {
     }
 
     function removeFromFavourites(channel, callback) {
+        if (Settings.hasAccessToken) {
+            showTwitchFollowUnavailable(channel)
+            return
+        }
+
         dialog.showMessage("Do you want to stop following " + (channel.name || "this channel") + "?", function() {
             ChannelManager.removeFromFavourites(channel._id)
             channel.favourite = false

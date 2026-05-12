@@ -14,6 +14,7 @@
 
 #include "channelmanager.h"
 #include <QCoreApplication>
+#include <QDebug>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -82,6 +83,11 @@ void ChannelManager::addToFavourites(const quint32 &id, const QString &serviceNa
                                      const QString &info, const QString &logo, const QString &preview,
                                      const QString &game, const qint32 &viewers, bool online)
 {
+    if (isAccessTokenAvailable()) {
+        qWarning() << "Twitch follow API is no longer available; not editing remote followed channels";
+        return;
+    }
+
     if (!favouritesModel->find(id)){
         Channel *channel = new Channel();
         channel->setId(id);
@@ -95,10 +101,6 @@ void ChannelManager::addToFavourites(const quint32 &id, const QString &serviceNa
         channel->setViewers(viewers);
         channel->setFavourite(true);
 
-        if (isAccessTokenAvailable() && user_id != 0) {
-            netman->editUserFavourite(user_id, channel->getId(), true);
-        }
-
         favouritesModel->addChannel(channel);
 
         emit addedChannel(channel->getId());
@@ -109,8 +111,7 @@ void ChannelManager::addToFavourites(const quint32 &id, const QString &serviceNa
             resultsModel->updateChannelForView(chan);
         }
 
-        if (!isAccessTokenAvailable())
-            save();
+        save();
     }
 }
 
@@ -239,14 +240,14 @@ void ChannelManager::save()
 
 
 void ChannelManager::addToFavourites(const quint32 &id){
+    if (isAccessTokenAvailable()) {
+        qWarning() << "Twitch follow API is no longer available; not editing remote followed channels";
+        return;
+    }
+
     Channel *channel = resultsModel->find(id);
 
     if (channel){
-
-        if (isAccessTokenAvailable() && user_id != 0) {
-            netman->editUserFavourite(user_id, channel->getId(), true);
-        }
-
         channel->setFavourite(true);
         favouritesModel->addChannel(new Channel(*channel));
 
@@ -254,19 +255,21 @@ void ChannelManager::addToFavourites(const quint32 &id){
 
         resultsModel->updateChannelForView(channel);
 
-        if (!isAccessTokenAvailable())
-            save();
+        save();
     }
 }
 
 void ChannelManager::removeFromFavourites(const quint32 &id){
+    if (isAccessTokenAvailable()) {
+        qWarning() << "Twitch unfollow API is no longer available; not editing remote followed channels";
+        return;
+    }
+
     Channel *chan = favouritesModel->find(id);
+    if (!chan)
+        return;
 
     emit deletedChannel(chan->getId());
-
-    if (isAccessTokenAvailable() && user_id != 0) {
-        netman->editUserFavourite(user_id, chan->getId(), false);
-    }
 
     favouritesModel->removeChannel(chan);
 
@@ -280,8 +283,7 @@ void ChannelManager::removeFromFavourites(const quint32 &id){
         resultsModel->updateChannelForView(channel);
     }
 
-    if (!isAccessTokenAvailable())
-        save();
+    save();
 }
 
 QString commaSeparatedChannelIds(const QList<Channel *> & channels) {

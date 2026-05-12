@@ -1357,29 +1357,6 @@ void NetworkManager::globalFfzEmotesReply() {
     reply->deleteLater();
 }
 
-void NetworkManager::editUserFavourite(const quint64 userId, const quint64 channelId, bool add)
-{
-    QString url = QString(KRAKEN_API) + "/users/" + QString::number(userId)
-            + "/follows/channels/" + QString::number(channelId);
-
-    QString auth = "Bearer " + access_token;
-
-    QNetworkRequest request;
-    request.setRawHeader("Accept", QString("application/vnd.twitchtv.v5+json").toUtf8());
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
-    QNetworkReply *reply = 0;
-
-    if (add)
-        reply = operation->put(request, QByteArray());
-    else
-        reply = operation->deleteResource(request);
-
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::editUserFavouritesReply);
-}
-
 QNetworkAccessManager *NetworkManager::getManager() const
 {
     return operation;
@@ -1809,20 +1786,6 @@ void NetworkManager::favouritesReply()
     }
 
     emit favouritesReplyFinished(result.items, nextOffset, total);
-
-    reply->deleteLater();
-}
-
-void NetworkManager::editUserFavouritesReply()
-{
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
-
-    if (!handleNetworkError(reply)) {
-        return;
-    }
-
-    //Nothing to do
-    emit userEditFollowsOperationFinished();
 
     reply->deleteLater();
 }
