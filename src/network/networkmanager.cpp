@@ -425,16 +425,30 @@ void NetworkManager::loadChatterList(const QString channel) {
 
 void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offset, const quint32 limit) {
     qDebug() << "Loading blocked user list for user" << userId;
-    const QString url = QString(KRAKEN_API) + QString("/users/") + QString::number(userId) + QString("/blocks?offset=" + QString::number(offset) + "&limit=" + QString::number(limit) );
+    if (offset == 0) {
+        blockedUserListPageCursors.clear();
+    }
+
+    QUrl url(QString(HELIX_API) + "/users/blocks");
+    QUrlQuery query;
+    query.addQueryItem("broadcaster_id", QString::number(userId));
+    query.addQueryItem("first", QString::number(qMin<quint32>(limit, 100)));
+
+    const QString cursor = blockedUserListPageCursors.value(offset);
+    if (!cursor.isEmpty()) {
+        query.addQueryItem("after", cursor);
+    }
+    url.setQuery(query);
+
     qDebug() << "Request" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(url);
 
-    int nextOffset = offset + limit;
-    request.setAttribute(QNetworkRequest::User, nextOffset);
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), limit);
 
     QString auth = "Bearer " + access_token;
     request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
@@ -445,17 +459,21 @@ void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offs
 }
 
 void NetworkManager::editUserBlock(const quint64 myUserId, const QString & blockUsername, const bool isBlock) {
-    const QString url = QString(KRAKEN_API) + QString("/users?login=") + QUrl::toPercentEncoding(blockUsername);
+    QUrl url(QString(HELIX_API) + "/users");
+    QUrlQuery query;
+    query.addQueryItem("login", blockUsername);
+    url.setQuery(query);
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, myUserId);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), blockUsername);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), isBlock);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3), access_token);
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -472,27 +490,36 @@ void NetworkManager::blockUserLookupReply() {
     quint64 myUserId = reply->request().attribute(QNetworkRequest::User).toULongLong();
     QString blockUsername = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toString();
     bool isBlock = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2)).toBool();
-    //QString access_token = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3)).toString();
 
     QByteArray data = reply->readAll();
     const auto & userIds = JsonParser::parseUsers(data);
 
     if (userIds.length() == 0 || userIds[0] == 0) {
-        qDebug() << "userId lookup failed for" << blockUsername;
+        qWarning() << "userId lookup failed for" << blockUsername;
+        reply->deleteLater();
+        return;
     }
 
     quint64 blockUserId = userIds[0];
 
     editUserBlockWithId(myUserId, blockUsername, blockUserId, isBlock);
+    reply->deleteLater();
 }
 
 void NetworkManager::editUserBlockWithId(const quint64 myUserId, const QString & blockUsername, const quint64 blockUserId, const bool isBlock) {
     qDebug() << "Setting block for user" << blockUserId << "to" << isBlock << "for user" << myUserId;
-    const QString url = QString(KRAKEN_API) + QString("/users/") + QString::number(myUserId) + QString("/blocks/") + QString::number(blockUserId);
+    QUrl url(QString(HELIX_API) + "/users/blocks");
+    QUrlQuery query;
+    query.addQueryItem("target_user_id", QString::number(blockUserId));
+    if (isBlock) {
+        query.addQueryItem("source_context", "chat");
+        query.addQueryItem("reason", "other");
+    }
+    url.setQuery(query);
     qDebug() << "Request" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(url);
 
@@ -535,6 +562,8 @@ void NetworkManager::blockUserReply() {
     else {
         emit userUnblocked(myUserId, blockUsername);
     }
+
+    reply->deleteLater();
 }
 
 void NetworkManager::chatterListReply() {
@@ -570,9 +599,16 @@ void NetworkManager::blockedUserListReply() {
 
     auto result = JsonParser::parseBlockList(data);
 
-    int nextOffset = reply->request().attribute(QNetworkRequest::User).toInt();
+    const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+    const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+    const quint32 nextOffset = offset + limit;
+    const quint32 total = result.cursor.isEmpty() ? nextOffset : nextOffset + 1;
 
-    emit blockedUserListLoadOperationFinished(result.items, nextOffset, result.total);
+    if (!result.cursor.isEmpty()) {
+        blockedUserListPageCursors.insert(nextOffset, result.cursor);
+    }
+
+    emit blockedUserListLoadOperationFinished(result.items, nextOffset, total);
 
     reply->deleteLater();
 }

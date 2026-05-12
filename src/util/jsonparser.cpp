@@ -440,13 +440,25 @@ QList<quint64> JsonParser::parseUsers(const QByteArray &data)
 
     if (error.error == QJsonParseError::NoError) {
         QJsonObject json = doc.object();
-        for (const auto & user : json["users"].toArray()) {
-            auto userId = user.toObject()["_id"];
-            if (userId.isDouble()) {
-                out.append(static_cast<quint64>(userId.toDouble()));
+
+        const QJsonArray helixUsers = json["data"].toArray();
+        if (!helixUsers.isEmpty()) {
+            for (const auto &user : helixUsers) {
+                const auto userId = user.toObject()["id"].toString().toULongLong();
+                if (userId != 0) {
+                    out.append(userId);
+                }
             }
-            else {
-                out.append(userId.toString().toULongLong());
+        }
+        else {
+            for (const auto & user : json["users"].toArray()) {
+                auto userId = user.toObject()["_id"];
+                if (userId.isDouble()) {
+                    out.append(static_cast<quint64>(userId.toDouble()));
+                }
+                else {
+                    out.append(userId.toString().toULongLong());
+                }
             }
         }
     }
@@ -799,15 +811,33 @@ PagedResult<QString> JsonParser::parseBlockList(const QByteArray &data)
     if (error.error == QJsonParseError::NoError) {
         QJsonObject json = doc.object();
 
-        out.total = json["_total"].toInt();
+        const QJsonArray helixBlocks = json["data"].toArray();
+        if (!helixBlocks.isEmpty() || json.contains("pagination")) {
+            for (const auto & block : helixBlocks) {
+                const auto blockObj = block.toObject();
+                const QString login = blockObj["user_login"].toString();
+                const QString displayName = blockObj["display_name"].toString();
+                if (!login.isEmpty()) {
+                    out.items.append(login);
+                } else if (!displayName.isEmpty()) {
+                    out.items.append(displayName);
+                }
+            }
 
-        QJsonArray blocks = json["blocks"].toArray();
+            out.cursor = json["pagination"].toObject()["cursor"].toString();
+            out.total = out.items.size();
+        }
+        else {
+            out.total = json["_total"].toInt();
 
-        for (const auto & block : blocks) {
-            const auto & blockObj = block.toObject();
-            const auto & name = blockObj["user"].toObject()["name"].toString();
-            if (!name.isEmpty()) {
-                out.items.append(name);
+            QJsonArray blocks = json["blocks"].toArray();
+
+            for (const auto & block : blocks) {
+                const auto & blockObj = block.toObject();
+                const auto & name = blockObj["user"].toObject()["name"].toString();
+                if (!name.isEmpty()) {
+                    out.items.append(name);
+                }
             }
         }
     }

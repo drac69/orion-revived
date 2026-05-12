@@ -35,6 +35,7 @@ template <typename U>
 struct PagedResult {
     QList<U> items;
     int total;
+    QString cursor;
 };
 
 class JsonParser
