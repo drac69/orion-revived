@@ -222,6 +222,8 @@ private:
     QString lastGameStreamsQuery;
     QMap<QString, QString> gameStreamsGameIds;
     QMap<quint32, QString> gameStreamsPageCursors;
+    quint64 lastBroadcastsChannelId = 0;
+    QMap<quint32, QString> broadcastsPageCursors;
     QMap<quint32, QString> userFavouritesPageCursors;
     QMap<quint32, QString> blockedUserListPageCursors;
 

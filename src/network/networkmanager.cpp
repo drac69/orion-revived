@@ -502,21 +502,62 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
 
 void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit)
 {
-    QString url = QString(KRAKEN_API)
-            + QString("/channels/%1/videos").arg(channelId)
-            + QString("?offset=%1").arg(offset)
-            + QString("&limit=%1").arg(limit);
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
-    if (ONLY_BROADCASTS)
-        url += "&broadcast_type=archive";
+    if (!access_token.isEmpty()) {
+        if (offset == 0 || channelId != lastBroadcastsChannelId) {
+            broadcastsPageCursors.clear();
+            lastBroadcastsChannelId = channelId;
+        }
+        else if (!broadcastsPageCursors.contains(offset)) {
+            QList<Vod *> empty;
+            emit broadcastsOperationFinished(empty);
+            return;
+        }
+    }
 
-    //if (USE_HLS)
-        //url += "&hls=true";
-
+    QUrl url;
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/videos");
+        QUrlQuery query;
+        query.addQueryItem("user_id", QString::number(channelId));
+        query.addQueryItem("first", QString::number(pageSize));
+        if (ONLY_BROADCASTS) {
+            query.addQueryItem("type", "archive");
+        }
+
+        const QString cursor = broadcastsPageCursors.value(offset);
+        if (!cursor.isEmpty()) {
+            query.addQueryItem("after", cursor);
+        }
+        url.setQuery(query);
+
+        request.setRawHeader("Accept", "application/json");
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
+    else {
+        QString legacyUrl = QString(KRAKEN_API)
+                + QString("/channels/%1/videos").arg(channelId)
+                + QString("?offset=%1").arg(offset)
+                + QString("&limit=%1").arg(pageSize);
+
+        if (ONLY_BROADCASTS)
+            legacyUrl += "&broadcast_type=archive";
+
+        //if (USE_HLS)
+            //legacyUrl += "&hls=true";
+
+        url = QUrl(legacyUrl);
+        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    }
+
+    request.setUrl(url);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1574,7 +1615,17 @@ void NetworkManager::broadcastsReply()
 
     QByteArray data = reply->readAll();
 
-    emit broadcastsOperationFinished(JsonParser::parseVods(data));
+    auto result = JsonParser::parseVodResults(data);
+    const bool isHelix = reply->url().path() == "/helix/videos";
+    if (isHelix && !result.cursor.isEmpty()) {
+        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 returnedCount = static_cast<quint32>(result.items.size());
+        const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
+        broadcastsPageCursors.insert(nextOffset, result.cursor);
+    }
+
+    emit broadcastsOperationFinished(result.items);
 
     reply->deleteLater();
 }

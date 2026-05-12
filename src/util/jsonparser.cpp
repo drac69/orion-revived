@@ -290,10 +290,18 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
 {
     Vod *vod = new Vod();
 
-    if (!json["_id"].isNull())
+    if (!json["id"].isNull())
+        vod->setId(json["id"].toString());
+    else if (!json["_id"].isNull())
         vod->setId(json["_id"].toString());
 
-    if (!json["preview"].isNull()) {
+    if (!json["thumbnail_url"].isNull()) {
+        QString thumbnailUrl = json["thumbnail_url"].toString();
+        thumbnailUrl.replace("%{width}", "320");
+        thumbnailUrl.replace("%{height}", "180");
+        vod->setPreview(thumbnailUrl);
+    }
+    else if (!json["preview"].isNull()) {
         const QJsonValue & preview = json["preview"];
         if (preview.isString()) {
             vod->setPreview(preview.toString());
@@ -312,13 +320,41 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
     if (!json["title"].isNull())
         vod->setTitle(json["title"].toString());
 
-    if (!json["length"].isNull())
+    if (!json["duration"].isNull()) {
+        quint32 totalSeconds = 0;
+        QString number;
+        const QString duration = json["duration"].toString();
+        for (const QChar &ch : duration) {
+            if (ch.isDigit()) {
+                number.append(ch);
+                continue;
+            }
+
+            const quint32 value = number.toUInt();
+            number.clear();
+            if (ch == QLatin1Char('h')) {
+                totalSeconds += value * 3600;
+            }
+            else if (ch == QLatin1Char('m')) {
+                totalSeconds += value * 60;
+            }
+            else if (ch == QLatin1Char('s')) {
+                totalSeconds += value;
+            }
+        }
+        vod->setDuration(totalSeconds);
+    }
+    else if (!json["length"].isNull())
         vod->setDuration(json["length"].toInt());
 
-    if (!json["game"].isNull())
+    if (!json["game_name"].isNull())
+        vod->setGame(json["game_name"].toString());
+    else if (!json["game"].isNull())
         vod->setGame(json["game"].toString());
 
-    if (!json["views"].isNull())
+    if (!json["view_count"].isNull())
+        vod->setViews(json["view_count"].toInt());
+    else if (!json["views"].isNull())
         vod->setViews(json["views"].toInt());
 
     if (!json["created_at"].isNull())
@@ -423,21 +459,34 @@ QList<Channel *> JsonParser::parseFeatured(const QByteArray &data)
 
 QList<Vod *> JsonParser::parseVods(const QByteArray &data)
 {
-    QList<Vod *> vods;
+    return parseVodResults(data).items;
+}
+
+PagedResult<Vod *> JsonParser::parseVodResults(const QByteArray &data)
+{
+    PagedResult<Vod *> out;
 
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(data,&error);
     if (error.error == QJsonParseError::NoError){
         QJsonObject json = doc.object();
 
-        if (!json["videos"].isNull()){
+        if (json.contains("data")) {
+            foreach (const QJsonValue &item, json["data"].toArray()){
+                out.items.append(JsonParser::parseVod(item.toObject()));
+            }
+
+            out.cursor = json["pagination"].toObject()["cursor"].toString();
+            out.total = out.items.size();
+        }
+        else if (!json["videos"].isNull()){
             foreach (const QJsonValue &item, json["videos"].toArray()){
-                vods.append(JsonParser::parseVod(item.toObject()));
+                out.items.append(JsonParser::parseVod(item.toObject()));
             }
         }
     }
 
-    return vods;
+    return out;
 }
 
 QString JsonParser::parseChannelStreamExtractionInfo(const QByteArray &data)

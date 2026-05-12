@@ -47,6 +47,7 @@ public:
     static PagedResult<Channel*> parseChannels(const QByteArray&);
     static PagedResult<Channel*> parseFavourites(const QByteArray&);
     static QList<Channel*> parseFeatured(const QByteArray&);
+    static PagedResult<Vod*> parseVodResults(const QByteArray&);
     static QList<Vod *> parseVods(const QByteArray&);
     static Game* parseGame(const QJsonObject&);
     static Channel* parseStream(const QByteArray&);
