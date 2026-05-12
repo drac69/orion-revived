@@ -464,12 +464,20 @@ bool IrcChat::connected() {
     }
 }
 
-QVariantMap createImageEntry(QString imageProvider, QString imageId, QString originalText) {
+QVariantMap createImageEntry(QString imageProvider, QString imageId, QString originalText, QString sourceUrl = QString()) {
     QVariantMap imageObj;
     imageObj.insert("imageProvider", imageProvider);
     imageObj.insert("imageId", imageId);
     imageObj.insert("originalText", originalText);
+    if (!sourceUrl.isEmpty()) {
+        imageObj.insert("sourceUrl", sourceUrl);
+    }
     return imageObj;
+}
+
+QString IrcChat::bttvEmoteUrl(const QString &id) const
+{
+    return (settings->hiDpi() ? BTTV_EMOTES_URL_FORMAT_HIDPI : BTTV_EMOTES_URL_FORMAT_LODPI).arg(id);
 }
 
 QVariantList IrcChat::substituteEmotesInMessage(const QVariantList & message, const QVariantMap &relevantEmotes) {
@@ -499,7 +507,10 @@ QVariantList IrcChat::substituteEmotesInMessage(const QVariantList & message, co
                 if (spacePrefix) {
                     output.append(" ");
                 }
-                output.append(createImageEntry(_bttvEmoteProvider.getImageProviderName(), emoteId, possibleEmoteText));
+                output.append(createImageEntry(_bttvEmoteProvider.getImageProviderName(),
+                                               emoteId,
+                                               possibleEmoteText,
+                                               bttvEmoteUrl(emoteId)));
                 isEmote = true;
                 break;
             }
@@ -1007,7 +1018,10 @@ void IrcChat::createMessageList(const QMap<int, QPair<int, int>> & emotePosition
             imgEntry = createImageEntry(_emoteProvider.getImageProviderName(), imageId, originalText);
             break;
         case ImageEntryKind::bttvEmote:
-            imgEntry = createImageEntry(_bttvEmoteProvider.getImageProviderName(), imageId, originalText);
+            imgEntry = createImageEntry(_bttvEmoteProvider.getImageProviderName(),
+                                        imageId,
+                                        originalText,
+                                        bttvEmoteUrl(imageId));
             break;
         case ImageEntryKind::bits:
             if (_bitsProvider) {

@@ -252,6 +252,7 @@ private:
     void checkBitsRegex(const QRegExp & regex, const QString & prefix, const QString & message, ImagePositionsMap & mapToUpdate);
 
     void handleBttvEmote(const QString & id, ImagePositionsMap & mapToUpdate, int pos, int end);
+    QString bttvEmoteUrl(const QString &id) const;
 
     void roomInitCommon(const QString channel, const QString channelId);
 

@@ -247,7 +247,7 @@ Item {
                 return msgText;
               }
             } else {
-              if (msg[index].imageProvider == "bits") {
+              if (msg[index].sourceUrl) {
                   return bitsImgThing;
               } else {
                   return imgThing;
@@ -367,8 +367,9 @@ Item {
 
               Label {
                   id: _animatedImgSuffixText
-                  text: msgItem.textSuffix
-                  color: msgItem.textSuffixColor
+                  visible: !!msgItem.textSuffix
+                  text: msgItem.textSuffix || ""
+                  color: msgItem.textSuffixColor || Material.foreground
                   font.bold: true
                   font.pointSize: fontSize
                   verticalAlignment: Text.AlignVCenter

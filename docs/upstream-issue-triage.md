@@ -25,6 +25,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #270: added a persisted chat blacklist for hiding messages containing configured terms.
 * #263: the emote picker now follows the selected light/dark theme.
 * #241: added a highlighted-user list for chat styling of specific chatters.
+* #234: BTTV emotes now carry direct source URLs and render through `AnimatedImage`, allowing animated formats to move.
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.
 * #190: Escape is handled as an application shortcut while the emote picker is open.
@@ -66,7 +67,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #295, #278, #271, #254, #240, #234, #226, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
+* #295, #278, #271, #254, #240, #226, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
 
 ## Administrative
 
