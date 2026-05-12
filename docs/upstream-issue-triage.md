@@ -9,6 +9,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 ## Addressed in this fork
 
 * #302 / #303: merged the unmerged QObject lifetime crash fix from upstream PR #303.
+* #18: added an mpv playback-stats overlay with codec, resolution, FPS, bitrate, dropped frame, sync, cache, and hardware-decoder data.
 * #295: added an optional mpv audio-compressor filter for reducing stream volume swings.
 * #306: changed the mpv default hardware decoder from `auto` to `auto-copy` to avoid unsafe native-surface handling in the embedded renderer.
 * #305: search result pages now size their initial and follow-up fetches from the visible grid capacity, with a small row buffer instead of a hard-coded 25 items.
@@ -68,7 +69,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #254, #240, #226, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
+* #278, #271, #254, #240, #226, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26.
 
 ## Administrative
 

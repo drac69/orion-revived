@@ -39,11 +39,16 @@ Page {
     property string curVodId
     property int lastSetPosition
     property bool headersVisible: true
+    property bool showPlaybackStats: false
 
     Material.theme: rootWindow.Material.theme
 
     //Renderer interface
     property alias renderer: loader.item
+
+    function playbackStatsAvailable() {
+        return renderer && typeof renderer.getPlaybackStats === "function"
+    }
 
     function updateScreensaverState() {
         if (renderer)
@@ -515,6 +520,9 @@ Page {
 
             onLoaded: {
                 console.log("Loaded renderer")
+                if (root.showPlaybackStats) {
+                    statsPanel.refresh()
+                }
             }
         }
 
@@ -672,13 +680,55 @@ Page {
                 if (renderer.status === "PAUSED" || renderer.status === "STOPPED") return
 
                 // Bug?: MouseArea doesn't work over Controls
-                var controls = [ favBtn, chatBtn, playBtn, resetBtn, volumeBtn, volumeSlider, seekBar, sourcesBox, cropBtn, fsBtn];
+                var controls = [ favBtn, chatBtn, playBtn, resetBtn, volumeBtn, volumeSlider, seekBar, sourcesBox, cropBtn, statsBtn, fsBtn];
                 for (var i = 0; i < controls.length; i++) {
                     if (controls[i].hovered || controls[i].pressed || controls[i].down)
                         return;
                 }
 
                 root.headersVisible = false
+            }
+        }
+
+        Rectangle {
+            id: statsPanel
+            visible: root.showPlaybackStats && root.playbackStatsAvailable()
+            color: Qt.rgba(0, 0, 0, 0.72)
+            border.color: Qt.rgba(1, 1, 1, 0.18)
+            radius: 4
+            z: 10
+            width: Math.max(1, Math.min(parent.width - 20, 430))
+            height: statsText.implicitHeight + 20
+            x: parent.width - width - 10
+            y: (headerBar.visible ? headerBar.height : 0) + 10
+
+            function refresh() {
+                if (root.playbackStatsAvailable()) {
+                    statsText.text = renderer.getPlaybackStats()
+                } else {
+                    statsText.text = ""
+                }
+            }
+
+            onVisibleChanged: if (visible) refresh()
+
+            Timer {
+                interval: 1000
+                repeat: true
+                running: statsPanel.visible
+                onTriggered: statsPanel.refresh()
+            }
+
+            Label {
+                id: statsText
+                anchors.fill: parent
+                anchors.margins: 10
+                color: "white"
+                font.family: "monospace"
+                font.pointSize: 9
+                lineHeight: 1.15
+                textFormat: Text.PlainText
+                wrapMode: Text.NoWrap
             }
         }
 
@@ -1082,6 +1132,19 @@ Page {
                     visible: !appFullScreen && !isMobile() && !chatdrawer.visible && parent.width > 440
                     text: "\ue3bc"
                     onClicked: fitToAspectRatio()
+                }
+
+                IconButtonFlat {
+                    id: statsBtn
+                    visible: !isMobile() && root.playbackStatsAvailable()
+                    highlighted: root.showPlaybackStats
+                    text: "\ue88e"
+                    onClicked: {
+                        root.showPlaybackStats = !root.showPlaybackStats
+                        if (root.showPlaybackStats) {
+                            statsPanel.refresh()
+                        }
+                    }
                 }
 
                 IconButtonFlat {

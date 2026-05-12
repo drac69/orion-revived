@@ -122,6 +122,45 @@ Item {
         renderer.setProperty("af", Settings.audioCompressor ? audioCompressorFilter() : "")
     }
 
+    function formatStatValue(value, suffix, precision) {
+        if (value === undefined || value === null || value === "" || isNaN(value)) {
+            return "n/a"
+        }
+        return Number(value).toFixed(precision) + suffix
+    }
+
+    function formatBitrate(value) {
+        if (value === undefined || value === null || value <= 0 || isNaN(value)) {
+            return "n/a"
+        }
+        if (value >= 1000000) {
+            return (value / 1000000).toFixed(2) + " Mbps"
+        }
+        return Math.round(value / 1000) + " Kbps"
+    }
+
+    function getPlaybackStats() {
+        var width = renderer.getProperty("width") || renderer.getProperty("dwidth") || 0
+        var height = renderer.getProperty("height") || renderer.getProperty("dheight") || 0
+        var fps = renderer.getProperty("estimated-vf-fps") || renderer.getProperty("container-fps")
+        var displayFps = renderer.getProperty("estimated-display-fps") || renderer.getProperty("display-fps")
+        var videoBitrate = renderer.getProperty("packet-video-bitrate") || renderer.getProperty("video-bitrate")
+        var audioBitrate = renderer.getProperty("packet-audio-bitrate") || renderer.getProperty("audio-bitrate")
+        var cacheDuration = renderer.getProperty("demuxer-cache-duration")
+        var avsync = renderer.getProperty("avsync")
+
+        return [
+            "Video: " + (width && height ? (width + "x" + height) : "n/a") + " / " + (renderer.getProperty("video-codec") || "n/a"),
+            "Audio: " + (renderer.getProperty("audio-codec") || "n/a"),
+            "FPS: " + formatStatValue(fps, "", 2) + " / display " + formatStatValue(displayFps, "", 2),
+            "Bitrate: V " + formatBitrate(videoBitrate) + " / A " + formatBitrate(audioBitrate),
+            "Dropped: " + (renderer.getProperty("frame-drop-count") || 0) + " / decoder " + (renderer.getProperty("decoder-frame-drop-count") || 0),
+            "A/V sync: " + formatStatValue(avsync * 1000, " ms", 0),
+            "Cache: " + formatStatValue(cacheDuration, " s", 1),
+            "HW decode: " + (renderer.getProperty("hwdec-current") || "no")
+        ].join("\n")
+    }
+
     signal playingResumed()
     signal playingPaused()
     signal playingStopped()
