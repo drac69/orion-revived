@@ -92,6 +92,12 @@ orion --log-level debug --log-file /tmp/orion.log
 orion --journal
 ```
 
+Load an mpv config file when using the mpv backend:
+
+```
+orion --libmpv-config ~/.config/orion/mpv.conf
+```
+
 ## Building on MacOS
 
 macOS packaging has not been revalidated in this fork.

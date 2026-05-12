@@ -109,8 +109,21 @@ Item {
         return [ "auto-copy" ].concat(defaultDecoders)
     }
 
+    function decoderIndex(name) {
+        var decoders = getDecoder()
+        for (var i = 0; i < decoders.length; i++) {
+            if (decoders[i] === name) return i
+        }
+        return 0
+    }
+
+    function setDecoderByName(name) {
+        setDecoder(decoderIndex(name))
+    }
+
     function setDecoder(idx) {
         var decoderName = getDecoder()[idx]
+        if (!decoderName) return
         renderer.setProperty("hwdec", decoderName)
     }
 
@@ -188,11 +201,15 @@ Item {
         renderer.setProperty("volume", volume)
     }
 
-    Component.onCompleted: updateAudioFilters()
+    Component.onCompleted: {
+        setDecoderByName(Settings.decoder)
+        updateAudioFilters()
+    }
 
     Connections {
         target: Settings
         onAudioCompressorChanged: updateAudioFilters()
+        onDecoderChanged: setDecoderByName(Settings.decoder)
     }
 
     MpvObject {

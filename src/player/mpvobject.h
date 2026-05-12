@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <QtQuick/QQuickFramebufferObject>
+#include <QString>
 
 
 #include <mpv/client.h>
@@ -37,6 +38,8 @@ class MpvObject : public QQuickFramebufferObject
 
 public:
     static void on_update(void *ctx);
+    static void setConfigFile(const QString &path);
+    static QString configFile();
 
     MpvObject(QQuickItem * parent = 0);
     virtual ~MpvObject();

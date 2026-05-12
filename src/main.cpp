@@ -25,6 +25,8 @@
 #include <QRegularExpression>
 #include <QUrl>
 #include <QDateTime>
+#include <QDir>
+#include <QFileInfo>
 
 #include <cstdlib>
 #include <cstdio>
@@ -94,6 +96,21 @@ QString normalizedStartupChannel(QString value)
     value.remove(QRegularExpression("^[#@/]+"));
     value.remove(QRegularExpression("[/?#].*$"));
     return value.trimmed();
+}
+
+QString normalizedLocalFilePath(QString value)
+{
+    value = value.trimmed();
+    if (value.isEmpty()) {
+        return value;
+    }
+    if (value == "~") {
+        value = QDir::homePath();
+    } else if (value.startsWith("~/") || value.startsWith("~\\")) {
+        value = QDir::homePath() + value.mid(1);
+    }
+
+    return QFileInfo(value).absoluteFilePath();
 }
 
 #ifdef Q_OS_WIN
@@ -377,6 +394,7 @@ int main(int argc, char *argv[])
     app.setWindowIcon(appIcon);
 
     QString startupChannel;
+    QString mpvConfigFile;
 
 #ifndef Q_OS_ANDROID
     QCommandLineParser parser;
@@ -410,6 +428,13 @@ int main(int argc, char *argv[])
                                      "path");
     parser.addOption(logFileOption);
 
+#ifdef MPV_PLAYER
+    QCommandLineOption mpvConfigOption(QStringList() << "libmpv-config" << "mpv-config",
+                                       "load an mpv config file for the libmpv backend",
+                                       "path");
+    parser.addOption(mpvConfigOption);
+#endif
+
 #ifdef Q_OS_LINUX
     QCommandLineOption journalOption(QStringList() << "journal",
                                      "send log output to the systemd journal when supported by this build");
@@ -423,6 +448,12 @@ int main(int argc, char *argv[])
     } else if (!parser.positionalArguments().isEmpty()) {
         startupChannel = normalizedStartupChannel(parser.positionalArguments().first());
     }
+
+#ifdef MPV_PLAYER
+    if (parser.isSet(mpvConfigOption)) {
+        mpvConfigFile = normalizedLocalFilePath(parser.value(mpvConfigOption));
+    }
+#endif
 
     LogLevel minLogLevel = LogLevel::Warning;
     if (parser.isSet(debugOption)) {
@@ -456,6 +487,12 @@ int main(int argc, char *argv[])
             qWarning().noquote() << "Could not open log file" << path;
         }
     }
+
+#ifdef MPV_PLAYER
+    if (!mpvConfigFile.isEmpty()) {
+        MpvObject::setConfigFile(mpvConfigFile);
+    }
+#endif
 
 #ifdef Q_OS_WIN
     if (logConfig.console && (parser.isSet(debugOption) || logConfig.minLevel <= LogLevel::Info)) {

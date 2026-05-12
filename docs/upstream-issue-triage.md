@@ -1,6 +1,6 @@
 # Upstream Issue Triage
 
-Audit date: 2026-05-12
+Audit date: 2026-05-13
 
 Upstream repository: <https://github.com/alamminsalo/orion>
 
@@ -31,6 +31,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #241: added a highlighted-user list for chat styling of specific chatters.
 * #234: BTTV emotes now carry direct source URLs and render through `AnimatedImage`, allowing animated formats to move.
 * #141: added FrankerFaceZ global and channel emote loading, rendering, and picker entries.
+* #123: added `--libmpv-config` / `--mpv-config` for loading an explicit mpv config file with the mpv backend, and the saved mpv hardware-decoder preference is now applied when the backend loads.
 * #254: added an optional per-channel stream quality memory on top of the global default quality preset.
 * #178: stopped VOD playback now preserves the last position when replaying/reloading, including the Qt Multimedia stopped-state reset path.
 * #199: chat input focus is restored after sending a message.
@@ -63,7 +64,7 @@ These issues remained open upstream but the final `master` code already contains
 
 These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VOD endpoints and should be handled as a dedicated Helix/EventSub/chat migration rather than one-off fixes:
 
-* #285, #283, #277, #268, #257, #243, #239, #224, #167, #142, #123, #47, #42, #34.
+* #285, #283, #277, #268, #257, #243, #239, #224, #167, #142, #47, #42, #34.
 
 ## Platform, packaging, and distribution follow-up
 

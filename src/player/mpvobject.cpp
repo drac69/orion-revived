@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QtGlobal>
 #include <QDateTime>
+#include <QDebug>
 #include <QOpenGLContext>
 #include <QGuiApplication>
 
@@ -17,6 +18,8 @@
 
 namespace
 {
+QString configuredMpvConfigFile;
+
 static void wakeup(void *ctx)
 {
     MpvObject *mpvhandler = (MpvObject*)ctx;
@@ -38,6 +41,16 @@ static void *get_proc_address_mpv(void *ctx, const char *name)
     return reinterpret_cast<void *>(glctx->getProcAddress(QByteArray(name)));
 }
 
+}
+
+void MpvObject::setConfigFile(const QString &path)
+{
+    configuredMpvConfigFile = path;
+}
+
+QString MpvObject::configFile()
+{
+    return configuredMpvConfigFile;
 }
 
 class MpvRenderer : public QQuickFramebufferObject::Renderer
@@ -120,6 +133,18 @@ MpvObject::MpvObject(QQuickItem * parent)
     mpv = mpv_create();
     if (!mpv)
         throw std::runtime_error("could not create mpv context");
+
+    if (!configuredMpvConfigFile.isEmpty()) {
+        const QByteArray configPath = configuredMpvConfigFile.toLocal8Bit();
+        const int result = mpv_load_config_file(mpv, configPath.constData());
+        if (result < 0) {
+            qWarning().noquote() << "Could not load libmpv config file"
+                                 << configuredMpvConfigFile << "-"
+                                 << mpv_error_string(result);
+        } else {
+            qInfo().noquote() << "Loaded libmpv config file" << configuredMpvConfigFile;
+        }
+    }
 
 #ifdef DEBUG_LIBMPV
     mpv_set_option_string(mpv, "terminal", "yes");
