@@ -139,6 +139,7 @@ Page {
     Menu {
         id: menu
         property var item
+        onAboutToShow: rootWindow.preparePopupMenu()
 
         MenuItem {
             text: "Live channels"

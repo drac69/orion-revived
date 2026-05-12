@@ -26,6 +26,7 @@ Menu {
     }
 
     onAboutToShow: {
+        rootWindow.preparePopupMenu()
         g_contextMenuVisible = true
     }
     onAboutToHide: {

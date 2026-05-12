@@ -158,6 +158,7 @@ Item {
 
     Menu {
         id: chatMessageMenu
+        onAboutToShow: rootWindow.preparePopupMenu()
         MenuItem {
             text: "Copy Message"
             onTriggered: Settings.copyToClipboard(root.copyText())

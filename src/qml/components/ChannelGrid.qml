@@ -90,6 +90,7 @@ CommonGrid {
 
         property var channel: undefined
         onAboutToShow: {
+            rootWindow.preparePopupMenu()
             g_contextMenuVisible = true
         }
         onAboutToHide: {

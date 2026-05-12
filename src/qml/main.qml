@@ -94,9 +94,18 @@ ApplicationWindow {
     property variant rootWindow: root
     property variant g_tooltip
     property bool g_contextMenuVisible: false
+    property bool popupScreenFixApplied: false
     property bool appFullScreen: isMobile() ? (view.playerVisible && !isPortraitMode) : false
     property bool isPortraitMode: Screen.primaryOrientation === Qt.PortraitOrientation
                                   || Screen.primaryOrientation === Qt.InvertedPortraitOrientation
+
+    function preparePopupMenu() {
+        if (!popupScreenFixApplied && !isMobile()) {
+            root.x += 1
+            root.x -= 1
+            popupScreenFixApplied = true
+        }
+    }
 
     function fitToAspectRatio() {
         height = Math.floor(view.width * 0.5625)

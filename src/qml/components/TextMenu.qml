@@ -53,7 +53,10 @@ MouseArea {
     Menu {
         id: contextMenu
 
-        onAboutToShow: d.restoreSelection()
+        onAboutToShow: {
+            rootWindow.preparePopupMenu()
+            d.restoreSelection()
+        }
         onOpened: d.restoreSelection()
         MenuItem {
             text: "Cut"
