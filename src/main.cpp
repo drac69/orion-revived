@@ -29,6 +29,7 @@
 #include "network/networkmanager.h"
 #include "model/vodmanager.h"
 #include "model/ircchat.h"
+#include "model/mprismanager.h"
 #include "network/httpserver.h"
 #include "model/viewersmodel.h"
 #include "power/power.h"
@@ -169,6 +170,7 @@ void registerQmlComponents(QObject *parent)
     qmlRegisterSingletonType<BadgeContainer>("app.orion", 1, 0, "Emotes", &BadgeContainer::provider);
     qmlRegisterSingletonType<ViewersModel>("app.orion", 1, 0, "Viewers", &ViewersModel::provider);
     qmlRegisterSingletonType<VodManager>("app.orion", 1, 0, "VodManager", &VodManager::provider);
+    qmlRegisterSingletonType<MprisManager>("app.orion", 1, 0, "MprisManager", &MprisManager::provider);
     qmlRegisterSingletonType<SettingsManager>("app.orion", 1, 0, "Settings", &SettingsManager::provider);
     qmlRegisterSingletonType<HttpServer>("app.orion", 1, 0, "LoginService", &HttpServer::provider);
     qmlRegisterSingletonType<NetworkManager>("app.orion", 1, 0, "Network", &NetworkManager::provider);
@@ -184,6 +186,7 @@ void registerQmlComponents(QObject *parent)
     BadgeContainer::getInstance()->setParent(parent);
     ViewersModel::getInstance()->setParent(parent);
     VodManager::getInstance()->setParent(parent);
+    MprisManager::getInstance()->setParent(parent);
     SettingsManager::getInstance()->setParent(parent);
     HttpServer::getInstance()->setParent(parent);
 }

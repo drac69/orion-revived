@@ -314,6 +314,27 @@ Page {
 
     function setWatchingTitle() {
         setHeaderText(getWatchingTitle());
+        updateMprisMetadata();
+    }
+
+    function updateMprisMetadata() {
+        if (!MprisManager.available()) return;
+        var titleText = currentChannel ? (currentChannel.title || currentChannel.name || "Orion") : "Orion"
+        var artistText = currentChannel ? (currentChannel.name || "") : ""
+        var artUrl = currentChannel ? (currentChannel.logo || "") : ""
+        var length = isVod && duration > 0 ? Math.round(duration * 1000000) : 0
+        MprisManager.setMetadata(titleText, artistText, length, artUrl)
+    }
+
+    function updateMprisPlaybackStatus() {
+        if (!MprisManager.available() || !renderer) return;
+        if (renderer.status === "PLAYING") {
+            MprisManager.setPlaybackStatus("Playing")
+        } else if (renderer.status === "PAUSED" || renderer.status === "BUFFERING") {
+            MprisManager.setPlaybackStatus("Paused")
+        } else {
+            MprisManager.setPlaybackStatus("Stopped")
+        }
     }
 
     function loadStreams(streams) {
@@ -366,6 +387,9 @@ Page {
 
         onPositionChanged: {
             var newPos = renderer.position;
+            if (MprisManager.available()) {
+                MprisManager.setPosition(Math.round(newPos * 1000000))
+            }
             chatdrawer.chat.playerPositionUpdate(newPos);
             if (root.isVod) {
                 if (Math.abs(newPos - root.lastSetPosition) > 10) {
@@ -392,6 +416,33 @@ Page {
 
         onStatusChanged: {
             root.updateScreensaverState()
+            root.updateMprisPlaybackStatus()
+        }
+    }
+
+    Connections {
+        target: MprisManager
+
+        onPlayRequested: if (renderer) renderer.resume()
+        onPauseRequested: if (renderer) renderer.pause()
+        onPlayPauseRequested: if (renderer) renderer.togglePause()
+        onStopRequested: if (renderer) renderer.stop()
+        onSeekRequested: {
+            if (renderer && root.isVod) {
+                root.seekTo(Math.max(0, renderer.position + offset / 1000000))
+            }
+        }
+        onSetPositionRequested: {
+            if (renderer && root.isVod) {
+                root.seekTo(Math.max(0, position / 1000000))
+            }
+        }
+        onVolumeRequested: {
+            volumeSlider.value = Math.max(0, Math.min(100, volume * 100))
+        }
+        onRaiseRequested: {
+            rootWindow.raise()
+            rootWindow.requestActivate()
         }
     }
 
@@ -1068,6 +1119,9 @@ Page {
                     onValueChanged: {
                         renderer.setVolume(value)
                         Settings.volumeLevel = value;
+                        if (MprisManager.available()) {
+                            MprisManager.setVolume(value / 100)
+                        }
                     }
                 }
 

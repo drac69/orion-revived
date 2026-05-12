@@ -38,6 +38,7 @@ SOURCES += src/main.cpp\
     src/model/badgeimageprovider.cpp \
     src/model/badgecontainer.cpp \
     src/model/viewersmodel.cpp \
+    src/model/mprismanager.cpp \
     src/model/settingsmanager.cpp \
     src/network/httpserver.cpp \
     src/power/power.cpp
@@ -62,6 +63,7 @@ HEADERS  += src/model/channel.h \
     src/model/badgeimageprovider.h \
     src/model/badgecontainer.h \
     src/model/viewersmodel.h \
+    src/model/mprismanager.h \
     src/model/settingsmanager.h \
     src/model/singletonprovider.h \
     src/power/power.h
