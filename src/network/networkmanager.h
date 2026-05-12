@@ -169,6 +169,7 @@ private slots:
     void allStreamsReply();
     void gamesReply();
     void gameStreamsReply();
+    void gameStreamsGameLookupReply();
     void featuredStreamsReply();
     void searchChannelsReply();
     void searchGamesReply();
@@ -218,6 +219,9 @@ private:
     QString lastSearchChannelsQuery;
     QMap<quint32, QString> searchChannelsPageCursors;
     QMap<quint32, QString> topGamesPageCursors;
+    QString lastGameStreamsQuery;
+    QMap<QString, QString> gameStreamsGameIds;
+    QMap<quint32, QString> gameStreamsPageCursors;
     QMap<quint32, QString> userFavouritesPageCursors;
     QMap<quint32, QString> blockedUserListPageCursors;
 
@@ -227,6 +231,7 @@ private:
 
     QNetworkReply *lastVodChatRequest;
 
+    void getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit);
     void editUserBlockWithId(const quint64 myUserId, const QString & blockUsername, const quint64 blockUserId, const bool isBlock);
 };
 

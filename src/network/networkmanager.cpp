@@ -387,14 +387,83 @@ void NetworkManager::getFeaturedStreams()
 
 void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offset, const quint32 &limit)
 {
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+
+    if (!access_token.isEmpty()) {
+        if (offset == 0 || game != lastGameStreamsQuery) {
+            gameStreamsPageCursors.clear();
+            lastGameStreamsQuery = game;
+        }
+        else if (!gameStreamsPageCursors.contains(offset)) {
+            QList<Channel *> empty;
+            emit gameStreamsOperationFinished(empty, offset);
+            return;
+        }
+
+        const QString gameId = gameStreamsGameIds.value(game);
+        if (!gameId.isEmpty()) {
+            getStreamsForGameId(gameId, offset, pageSize);
+            return;
+        }
+
+        QUrl url(QString(HELIX_API) + "/games");
+        QUrlQuery query;
+        query.addQueryItem("name", game);
+        url.setQuery(query);
+
+        QNetworkRequest request;
+        request.setRawHeader("Client-ID", getClientId().toUtf8());
+        request.setRawHeader("Accept", "application/json");
+        request.setUrl(url);
+        request.setAttribute(QNetworkRequest::User, offset);
+        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), game);
+
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+
+        QNetworkReply *reply = operation->get(request);
+
+        connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsGameLookupReply);
+        return;
+    }
+
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
     QString url = QString(KRAKEN_API)
             + QString("/streams?game=") + QUrl::toPercentEncoding(game)
             + QString("&offset=%1").arg(offset)
-            + QString("&limit=%1").arg(limit);
+            + QString("&limit=%1").arg(pageSize);
     request.setUrl(QUrl(url));
+
+    QNetworkReply *reply = operation->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsReply);
+}
+
+void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit)
+{
+    QUrl url(QString(HELIX_API) + "/streams");
+    QUrlQuery query;
+    query.addQueryItem("game_id", gameId);
+    query.addQueryItem("first", QString::number(limit));
+
+    const QString cursor = gameStreamsPageCursors.value(offset);
+    if (!cursor.isEmpty()) {
+        query.addQueryItem("after", cursor);
+    }
+    url.setQuery(query);
+
+    QNetworkRequest request;
+    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    request.setRawHeader("Accept", "application/json");
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), limit);
+
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1314,9 +1383,57 @@ void NetworkManager::gameStreamsReply()
 
     addOfflineChannels(out.items, queriedChannelIds);
 
-    emit gameStreamsOperationFinished(out.items, out.total);
+    const bool isHelixGameStreams = reply->url().path() == "/helix/streams" && query.hasQueryItem("game_id");
+    if (isHelixGameStreams) {
+        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 returnedCount = static_cast<quint32>(out.items.size());
+        const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
+        const quint32 total = out.cursor.isEmpty() ? nextOffset : nextOffset + 1;
+
+        if (!out.cursor.isEmpty()) {
+            gameStreamsPageCursors.insert(nextOffset, out.cursor);
+        }
+
+        emit gameStreamsOperationFinished(out.items, total);
+    }
+    else {
+        emit gameStreamsOperationFinished(out.items, out.total);
+    }
 
     reply->deleteLater();
+}
+
+void NetworkManager::gameStreamsGameLookupReply()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+
+    if (!handleNetworkError(reply)) {
+        return;
+    }
+
+    const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+    const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+    const QString game = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2)).toString();
+
+    QByteArray data = reply->readAll();
+    auto result = JsonParser::parseGameResults(data);
+
+    if (result.items.isEmpty() || result.items.first()->getId() == 0) {
+        QList<Channel *> empty;
+        emit gameStreamsOperationFinished(empty, offset);
+        qDeleteAll(result.items);
+        reply->deleteLater();
+        return;
+    }
+
+    const QString gameId = QString::number(result.items.first()->getId());
+    gameStreamsGameIds.insert(game, gameId);
+
+    qDeleteAll(result.items);
+    reply->deleteLater();
+
+    getStreamsForGameId(gameId, offset, limit);
 }
 
 void NetworkManager::featuredStreamsReply()
