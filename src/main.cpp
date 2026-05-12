@@ -27,6 +27,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFileInfo>
+#include <QStandardPaths>
 
 #include <cstdlib>
 #include <cstdio>
@@ -87,6 +88,28 @@ void registerBundledFonts()
 {
     registerBundledFont(":/fonts/MaterialIcons-Regular.ttf");
     registerBundledFont(":/fonts/NotoSans-Regular.ttf");
+}
+
+QString singleInstanceLockPath()
+{
+    QString basePath = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
+    if (basePath.isEmpty()) {
+        basePath = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    }
+    if (basePath.isEmpty()) {
+        basePath = QDir::tempPath();
+    }
+
+    QDir baseDir(basePath);
+    const QString lockDirName = QCoreApplication::organizationName()
+            + "/" + QCoreApplication::applicationName();
+    if (!baseDir.mkpath(lockDirName)) {
+        qWarning().noquote() << "Could not create lock directory under" << basePath
+                             << "- using temp directory";
+        return QDir::temp().absoluteFilePath("orion.lock");
+    }
+
+    return baseDir.absoluteFilePath(lockDirName + "/orion.lock");
 }
 
 QString normalizedStartupChannel(QString value)
@@ -562,10 +585,13 @@ int main(int argc, char *argv[])
     
 #ifndef Q_OS_ANDROID
     //Single application solution
-    QLockFile lockfile(QDir::temp().absoluteFilePath("wz0dPKqHv3vX0BBsUFZt.lock"));
+    const QString lockPath = singleInstanceLockPath();
+    QLockFile lockfile(lockPath);
     const bool primaryInstance = lockfile.tryLock(100);
     if (!primaryInstance && !SettingsManager::getInstance()->multipleInstances()) {
-        qWarning() << "Another Orion instance is already running; enable multiple instances in settings to allow this.";
+        qWarning().noquote() << "Another Orion instance is already running;"
+                             << "enable multiple instances in settings to allow this."
+                             << "Lock file:" << lockPath;
         return 0;
     }
     rootContext->setContextProperty("g_instance", primaryInstance ? "main" : "child");

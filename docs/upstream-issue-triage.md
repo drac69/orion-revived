@@ -38,6 +38,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #195: chat input text now follows the chat text scaling setting.
 * #190: Escape is handled as an application shortcut while the emote picker is open.
 * #40: chat text segments are selectable and copyable, and whole messages can still be copied from the row context menu.
+* #232: the single-instance lock now uses an app-specific runtime/temp path instead of an opaque fixed temp filename, and startup warnings include the lock path.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
 * #284: kept the upstream localhost OAuth response fix from #272.
@@ -74,7 +75,7 @@ These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VO
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
 * #276: added FreeBSD dependency notes to the README.
-* #267, #261, #236, #235, #232, #219, #216, #202, #119, #90.
+* #267, #261, #236, #235, #219, #216, #202, #119, #90.
 
 ## Feature requests not implemented here
 
