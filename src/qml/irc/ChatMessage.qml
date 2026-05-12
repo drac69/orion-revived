@@ -38,6 +38,7 @@ Item {
 
     property var visibleBadgeEntries: showUsernameLine? badgeEntries : []
     property bool mentionedCurrentUser: mentionsCurrentUser()
+    property bool highlightedUser: userHighlighted()
 
     height: childrenRect.height
 
@@ -116,11 +117,30 @@ Item {
         return pattern.test(messageText())
     }
 
+    function userHighlighted() {
+        var highlightUsers = Settings.chatHighlightUsers
+        if (!highlightUsers) {
+            return false
+        }
+
+        var currentUser = user.toLowerCase()
+        var entries = highlightUsers.split(/[\r\n,]+/)
+        for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i].trim().replace(/^@+/, "").toLowerCase()
+            if (entry !== "" && entry === currentUser) {
+                return true
+            }
+        }
+        return false
+    }
+
     Rectangle {
         anchors.fill: parent
         z: -2
-        visible: mentionedCurrentUser
-        color: Settings.lightTheme ? Qt.rgba(1.0, 0.78, 0.18, 0.18) : Qt.rgba(1.0, 0.78, 0.18, 0.14)
+        visible: mentionedCurrentUser || highlightedUser
+        color: mentionedCurrentUser
+               ? (Settings.lightTheme ? Qt.rgba(1.0, 0.78, 0.18, 0.18) : Qt.rgba(1.0, 0.78, 0.18, 0.14))
+               : (Settings.lightTheme ? Qt.rgba(0.15, 0.55, 1.0, 0.16) : Qt.rgba(0.25, 0.65, 1.0, 0.14))
     }
 
     MouseArea {

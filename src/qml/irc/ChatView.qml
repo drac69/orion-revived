@@ -26,6 +26,10 @@ Page {
     id: root
 
     anchors.fill: parent
+    background: Rectangle {
+        color: Material.background
+        opacity: Settings.chatOpacity
+    }
     property bool pinned: pinBtn.checked && chatdrawer.position > 0
     property alias hasUnreadMessages: chatList.hasUnreadMessages
 

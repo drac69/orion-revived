@@ -26,6 +26,9 @@ SidePanel {
     modal: interactive
     Material.elevation: chat.pinned ? 0 : 12
     dim: false
+    background: Rectangle {
+        color: "transparent"
+    }
     edge: {
         switch (Settings.chatEdge) {
         case 0:

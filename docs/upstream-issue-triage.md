@@ -24,6 +24,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #273: chat lines mentioning the logged-in username are highlighted.
 * #270: added a persisted chat blacklist for hiding messages containing configured terms.
 * #263: the emote picker now follows the selected light/dark theme.
+* #241: added a highlighted-user list for chat styling of specific chatters.
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.
 * #190: Escape is handled as an application shortcut while the emote picker is open.
@@ -44,6 +45,7 @@ These issues remained open upstream but the final `master` code already contains
 * #205: multiple-instance setting, now exposed in the options view.
 * #223: UI/text scaling and font selection settings.
 * #220: VOD timestamp/position display is present in the player controls.
+* #217: chat background opacity is configurable in the chat settings.
 * #215: VOD seek/open paths no longer emit duplicate online notifications in the current channel model update flow.
 * #275: Linux `make install` target in `orion.pro`.
 
@@ -64,7 +66,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #295, #278, #271, #254, #241, #240, #234, #226, #217, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
+* #295, #278, #271, #254, #240, #234, #226, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
 
 ## Administrative
 

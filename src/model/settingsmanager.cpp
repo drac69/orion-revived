@@ -42,6 +42,8 @@ void SettingsManager::load()
     setClickTogglePause(settings.value("clickTogglePause", mClickTogglePause).toBool());
     setInhibitScreensaver(settings.value("inhibitScreensaver", mInhibitScreensaver).toBool());
     setChatBlacklist(settings.value("chatBlacklist", mChatBlacklist).toString());
+    setChatHighlightUsers(settings.value("chatHighlightUsers", mChatHighlightUsers).toString());
+    setChatOpacity(settings.value("chatOpacity", mChatOpacity).toDouble());
 }
 
 bool SettingsManager::alert() const
@@ -350,6 +352,38 @@ void SettingsManager::setChatBlacklist(const QString &chatBlacklist)
         mChatBlacklist = chatBlacklist;
         settings.setValue("chatBlacklist", chatBlacklist);
         emit chatBlacklistChanged();
+    }
+}
+
+QString SettingsManager::chatHighlightUsers() const
+{
+    return mChatHighlightUsers;
+}
+
+void SettingsManager::setChatHighlightUsers(const QString &chatHighlightUsers)
+{
+    if (mChatHighlightUsers != chatHighlightUsers) {
+        mChatHighlightUsers = chatHighlightUsers;
+        settings.setValue("chatHighlightUsers", chatHighlightUsers);
+        emit chatHighlightUsersChanged();
+    }
+}
+
+double SettingsManager::chatOpacity() const
+{
+    return mChatOpacity;
+}
+
+void SettingsManager::setChatOpacity(double chatOpacity)
+{
+    if (chatOpacity < 0.0 || chatOpacity > 1.0) {
+        return;
+    }
+
+    if (mChatOpacity != chatOpacity) {
+        mChatOpacity = chatOpacity;
+        settings.setValue("chatOpacity", chatOpacity);
+        emit chatOpacityChanged();
     }
 }
 

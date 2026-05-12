@@ -31,6 +31,8 @@ class SettingsManager : public QObject
     Q_PROPERTY(bool inhibitScreensaver READ inhibitScreensaver WRITE setInhibitScreensaver NOTIFY inhibitScreensaverChanged)
     Q_PROPERTY(bool autoScrollSmoothing READ autoScrollSmoothing WRITE setAutoScrollSmoothing NOTIFY autoScrollSmoothingChanged)
     Q_PROPERTY(QString chatBlacklist READ chatBlacklist WRITE setChatBlacklist NOTIFY chatBlacklistChanged)
+    Q_PROPERTY(QString chatHighlightUsers READ chatHighlightUsers WRITE setChatHighlightUsers NOTIFY chatHighlightUsersChanged)
+    Q_PROPERTY(double chatOpacity READ chatOpacity WRITE setChatOpacity NOTIFY chatOpacityChanged)
     Q_PROPERTY(QString font READ font WRITE setFont NOTIFY fontChanged)
     Q_PROPERTY(bool versionCheckEnabled READ versionCheckEnabled)
     Q_PROPERTY(bool keepOnTop READ keepOnTop WRITE setKeepOnTop NOTIFY keepOnTopChanged)
@@ -79,6 +81,8 @@ class SettingsManager : public QObject
     bool mInhibitScreensaver = true;
     bool mAutoScrollSmoothing = true;
     QString mChatBlacklist = "";
+    QString mChatHighlightUsers = "";
+    double mChatOpacity = 1.0;
     QString mFont = "";
 
     bool mHiDpi = false;
@@ -156,6 +160,12 @@ public:
     QString chatBlacklist() const;
     void setChatBlacklist(const QString &chatBlacklist);
 
+    QString chatHighlightUsers() const;
+    void setChatHighlightUsers(const QString &chatHighlightUsers);
+
+    double chatOpacity() const;
+    void setChatOpacity(double chatOpacity);
+
     Q_INVOKABLE void copyToClipboard(const QString &text) const;
 
 signals:
@@ -181,6 +191,8 @@ signals:
     void inhibitScreensaverChanged();
     void autoScrollSmoothingChanged();
     void chatBlacklistChanged();
+    void chatHighlightUsersChanged();
+    void chatOpacityChanged();
 
 public slots:
     void setAccessToken(const QString accessToken);

@@ -401,6 +401,38 @@ Page {
                     }
 
                     Label {
+                        text: "Chat background opacity"
+                        font.bold: true
+                    }
+
+                    Slider {
+                        width: parent.width
+                        from: 0.0
+                        to: 1.0
+                        stepSize: 0.05
+                        value: Settings.chatOpacity
+                        onValueChanged: Settings.chatOpacity = value
+                    }
+
+                    Label {
+                        text: "Highlighted chat users"
+                        font.bold: true
+                    }
+
+                    TextArea {
+                        width: parent.width
+                        height: 90
+                        text: Settings.chatHighlightUsers
+                        selectByMouse: true
+                        wrapMode: TextEdit.Wrap
+                        onTextChanged: {
+                            if (Settings.chatHighlightUsers !== text) {
+                                Settings.chatHighlightUsers = text
+                            }
+                        }
+                    }
+
+                    Label {
                         text: "Filtered chat terms"
                         font.bold: true
                     }
