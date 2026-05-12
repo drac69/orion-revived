@@ -372,11 +372,25 @@ void NetworkManager::searchGames(const QString &query)
 void NetworkManager::getFeaturedStreams()
 {
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    QString url = QString(KRAKEN_API)
-            + "/streams/featured?limit=25&offset=0";
-    request.setUrl(QUrl(url));
+
+    QUrl url;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/streams");
+        QUrlQuery query;
+        query.addQueryItem("first", "25");
+        url.setQuery(query);
+
+        request.setRawHeader("Accept", "application/json");
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
+    else {
+        url = QUrl(QString(KRAKEN_API) + "/streams/featured?limit=25&offset=0");
+        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    }
+
+    request.setUrl(url);
 
     //qDebug() << url;
 
@@ -1447,7 +1461,13 @@ void NetworkManager::featuredStreamsReply()
 
     //qDebug() << data;
 
-    QList<Channel *> channels = JsonParser::parseFeatured(data);
+    QList<Channel *> channels;
+    if (reply->url().path() == "/helix/streams") {
+        channels = JsonParser::parseStreams(data).items;
+    }
+    else {
+        channels = JsonParser::parseFeatured(data);
+    }
     emit featuredStreamsOperationFinished(channels, channels.count());
 
     reply->deleteLater();
