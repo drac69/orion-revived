@@ -20,6 +20,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #242: QML startup warnings are now printed before the fatal startup error, which exposes missing QML modules directly.
 * #274: added a default stream-quality setting with lower-quality fallback when the exact variant is unavailable.
 * #282: added `--channel` and positional `twitch.tv` URL startup handling for opening a specific channel from a launcher.
+* #273: chat lines mentioning the logged-in username are highlighted.
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.
 * #190: Escape is handled as an application shortcut while the emote picker is open.
@@ -57,7 +58,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #295, #278, #273, #271, #270, #263, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
+* #295, #278, #271, #270, #263, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
 
 ## Administrative
 

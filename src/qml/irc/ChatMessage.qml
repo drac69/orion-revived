@@ -37,6 +37,7 @@ Item {
     property bool showSystemMessageLine: isChannelNotice && systemMessage != ""
 
     property var visibleBadgeEntries: showUsernameLine? badgeEntries : []
+    property bool mentionedCurrentUser: mentionsCurrentUser()
 
     height: childrenRect.height
 
@@ -99,6 +100,27 @@ Item {
             return user + " " + text
         }
         return user + ": " + text
+    }
+
+    function escapeRegExp(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    }
+
+    function mentionsCurrentUser() {
+        var currentUser = ChannelManager.username()
+        if (!currentUser) {
+            return false
+        }
+
+        var pattern = new RegExp("(^|\\W)@" + escapeRegExp(currentUser) + "\\b", "i")
+        return pattern.test(messageText())
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        z: -2
+        visible: mentionedCurrentUser
+        color: Settings.lightTheme ? Qt.rgba(1.0, 0.78, 0.18, 0.18) : Qt.rgba(1.0, 0.78, 0.18, 0.14)
     }
 
     MouseArea {
