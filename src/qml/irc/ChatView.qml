@@ -372,6 +372,47 @@ Page {
                 return text
             }
 
+            function escapeRegExp(str) {
+                return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+            }
+
+            function messageMentionsCurrentUser(message) {
+                var currentUser = ChannelManager.username()
+                if (!currentUser) {
+                    return false
+                }
+
+                var pattern = new RegExp("(^|\\W)@" + escapeRegExp(currentUser) + "\\b", "i")
+                return pattern.test(plainMessageText(message))
+            }
+
+            function chatNotificationContext() {
+                return chat.channel ? "#" + chat.channel : ""
+            }
+
+            function shouldNotifyHiddenChat() {
+                return Settings.chatNotifications
+                        && !chat.replayMode
+                        && (!chatdrawer.opened || chatdrawer.position <= 0)
+            }
+
+            function notifyHiddenChatMessage(user, message, isWhisper, isChannelNotice) {
+                if (!shouldNotifyHiddenChat()) {
+                    return
+                }
+
+                var currentUser = ChannelManager.username()
+                if (currentUser && user.toLowerCase() === currentUser.toLowerCase()) {
+                    return
+                }
+
+                if (isWhisper) {
+                    ChannelManager.notifyChatMessage(user + " sent you a whisper", chatNotificationContext(), "")
+                } else if (!isChannelNotice && messageMentionsCurrentUser(message)) {
+                    ChannelManager.notifyChatMessage(user + " mentioned you in chat", chatNotificationContext(), "")
+                }
+            }
+
             function messageBlocked(message) {
                 var blacklist = Settings.chatBlacklist
                 if (!blacklist) {
@@ -419,6 +460,8 @@ Page {
                 colors[u] = Settings.pastelColors ? convertToPastel(originalColors[u]) : originalColors[u]
 
                 if (debugOutput) console.log("onMessageReceived: passing: " + JSON.stringify(message));
+
+                notifyHiddenChatMessage(user, message, isWhisper, isChannelNotice)
 
                 var badgeEntries = [];
                 var imageFormatToUse = "image";

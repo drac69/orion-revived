@@ -408,6 +408,13 @@ void ChannelManager::notify(Channel *channel)
     }
 }
 
+void ChannelManager::notifyChatMessage(const QString &title, const QString &message, const QString &imgUrl)
+{
+    if (settingsManager->alert() && settingsManager->chatNotifications()) {
+        emit pushNotification(title, message, imgUrl);
+    }
+}
+
 void ChannelManager::notifyMultipleChannelsOnline(const QList<Channel*> &channels)
 {
     if (channels.size() == 1) {

@@ -43,6 +43,7 @@ void SettingsManager::load()
     setChatEdge(settings.value("chatEdge", mChatEdge).toInt());
     setTextScaleFactor(settings.value("textScaleFactor", mTextScaleFactor).toDouble());
     setOfflineNotifications(settings.value("offlineNotifications", mOfflineNotifications).toBool());
+    setChatNotifications(settings.value("chatNotifications", mChatNotifications).toBool());
     setLightTheme(settings.value("lightTheme", mLightTheme).toBool());
     setAccessToken(settings.value("accessToken", mAccessToken).toString());
     setFont(settings.value("font", mFont).toString());
@@ -165,6 +166,21 @@ void SettingsManager::setOfflineNotifications(bool offlineNotifications)
         settings.setValue("offlineNotifications", offlineNotifications);
         emit offlineNotificationsChanged();
         qDebug() << "offlineNotifications changed to" << offlineNotifications;
+    }
+}
+
+bool SettingsManager::chatNotifications() const
+{
+    return mChatNotifications;
+}
+
+void SettingsManager::setChatNotifications(bool chatNotifications)
+{
+    if (mChatNotifications != chatNotifications) {
+        mChatNotifications = chatNotifications;
+        settings.setValue("chatNotifications", chatNotifications);
+        emit chatNotificationsChanged();
+        qDebug() << "chatNotifications changed to" << chatNotifications;
     }
 }
 

@@ -116,6 +116,13 @@ Page {
                         }
                         text: "Show offline notifications"
                     }
+
+                    Switch {
+                        enabled: alertOption.checked
+                        checked: Settings.chatNotifications
+                        onClicked: Settings.chatNotifications = checked
+                        text: "Chat mention notifications"
+                    }
                     //                    OptionCombo {
                     //                        id: alertPosition
                     //                        width: parent.width

@@ -101,6 +101,7 @@ public slots:
     void removeFromFavourites(const quint32&);
     void searchChannels(QString, const quint32&, const quint32&, bool);
     void notify(Channel*);
+    void notifyChatMessage(const QString &title, const QString &message, const QString &imgUrl);
     void notifyMultipleChannelsOnline(const QList<Channel*> &);
     void findPlaybackStream(const QString&);
     void addToFavourites(const quint32 &id, const QString &serviceName, const QString &title,
