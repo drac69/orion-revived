@@ -389,6 +389,24 @@ Page {
         loadAndPlay()
     }
 
+    function resumePlayback() {
+        if (isVod && renderer.status === "STOPPED") {
+            reloadStream()
+            return
+        }
+
+        renderer.resume()
+    }
+
+    function togglePlayback() {
+        if (isVod && renderer.status === "STOPPED") {
+            reloadStream()
+            return
+        }
+
+        renderer.togglePause()
+    }
+
     Connections {
         target: VodManager
         onStreamsGetFinished: {
@@ -449,9 +467,9 @@ Page {
     Connections {
         target: MprisManager
 
-        onPlayRequested: if (renderer) renderer.resume()
+        onPlayRequested: if (renderer) resumePlayback()
         onPauseRequested: if (renderer) renderer.pause()
-        onPlayPauseRequested: if (renderer) renderer.togglePause()
+        onPlayPauseRequested: if (renderer) togglePlayback()
         onStopRequested: if (renderer) renderer.stop()
         onSeekRequested: {
             if (renderer && root.isVod) {
@@ -476,7 +494,7 @@ Page {
         sequence: "Space"
         context: Qt.ApplicationShortcut
         onActivated: {
-            renderer.togglePause()
+            togglePlayback()
             clickRect.run()
             pArea.refreshHeaders()
         }
@@ -742,7 +760,7 @@ Page {
             interval: 200
             repeat: false
             onTriggered: {
-                renderer.togglePause();
+                togglePlayback();
             }
         }
 
@@ -1069,7 +1087,7 @@ Page {
                 IconButtonFlat {
                     id: playBtn
                     text: renderer.status !== "PLAYING" && renderer.status !== "BUFFERING" ? "\ue037" : "\ue034"
-                    onClicked: renderer.togglePause()
+                    onClicked: togglePlayback()
                 }
 
                 IconButtonFlat {

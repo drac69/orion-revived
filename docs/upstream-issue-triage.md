@@ -32,6 +32,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #234: BTTV emotes now carry direct source URLs and render through `AnimatedImage`, allowing animated formats to move.
 * #141: added FrankerFaceZ global and channel emote loading, rendering, and picker entries.
 * #254: added an optional per-channel stream quality memory on top of the global default quality preset.
+* #178: stopped VOD playback now preserves the last position when replaying/reloading, including the Qt Multimedia stopped-state reset path.
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.
 * #190: Escape is handled as an application shortcut while the emote picker is open.
@@ -72,7 +73,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #240, #226, #212, #210, #187, #178, #108, #101, #74, #45.
+* #278, #271, #240, #226, #212, #210, #187, #108, #101, #74, #45.
 
 ## Administrative
 

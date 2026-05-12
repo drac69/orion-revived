@@ -168,14 +168,16 @@ Item {
         }
 
         onPositionChanged: {
-            if (root.status == "STOPPING" && position == 0) {
-                // suppress this position update; during a reload we want to resume from the previous playing position
+            var wasStopping = root.status == "STOPPING"
+            updateStatus()
+
+            if ((wasStopping || root.status == "STOPPING" || root.status == "STOPPED") && position == 0 && root.position > 0) {
+                // Suppress stopped-state resets so a VOD reload can resume from the previous position.
                 return;
             }
             var pos = position / 1000
             if (root.position !== pos) {
                 root.position = pos
-                updateStatus()
             }
         }
     }
