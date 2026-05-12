@@ -126,7 +126,13 @@ multimedia {
 DISTFILES += src/qml/icon/orion.svg
 
 linux:!android: {
+    CONFIG += link_pkgconfig
     QT += dbus
+
+    packagesExist(libsystemd) {
+        PKGCONFIG += libsystemd
+        DEFINES += SYSTEMD_JOURNAL
+    }
 
     HEADERS += src/notification/notificationsender.h
     SOURCES +=  src/notification/notificationsender.cpp

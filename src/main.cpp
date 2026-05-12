@@ -24,6 +24,11 @@
 #include <QLockFile>
 #include <QRegularExpression>
 #include <QUrl>
+#include <QDateTime>
+
+#include <cstdlib>
+#include <cstdio>
+#include <iostream>
 
 #include "model/channelmanager.h"
 #include "network/networkmanager.h"
@@ -45,6 +50,10 @@
 
 #ifdef MPV_PLAYER
 #include "player/mpvobject.h"
+#endif
+
+#ifdef SYSTEMD_JOURNAL
+#include <systemd/sd-journal.h>
 #endif
 
 #ifdef Q_OS_WIN
@@ -137,30 +146,161 @@ void showConsole() {
 }
 #endif
 
-template <unsigned int MIN_LEVEL=QtDebugMsg>
-void msgHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+enum class LogLevel {
+    Debug = 0,
+    Info,
+    Warning,
+    Critical,
+    Fatal,
+    Off
+};
+
+struct LogConfig {
+    LogLevel minLevel = LogLevel::Warning;
+    bool console = true;
+    bool journal = false;
+    FILE *file = nullptr;
+};
+
+LogConfig logConfig;
+
+LogLevel messageLogLevel(QtMsgType type)
 {
-    if (static_cast<unsigned int>(type) < MIN_LEVEL) {
-        return;
-    }
-    QByteArray localMsg = msg.toLocal8Bit();
     switch (type) {
     case QtDebugMsg:
-        fprintf(stdout, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
+        return LogLevel::Debug;
     case QtInfoMsg:
-        fprintf(stdout, "Info: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
+        return LogLevel::Info;
     case QtWarningMsg:
-        fprintf(stderr, "Warning: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
+        return LogLevel::Warning;
     case QtCriticalMsg:
-        fprintf(stderr, "Critical: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
+        return LogLevel::Critical;
     case QtFatalMsg:
-        fprintf(stderr, "Fatal: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
-        break;
+        return LogLevel::Fatal;
     }
+
+    return LogLevel::Warning;
+}
+
+QString messageLogLevelName(QtMsgType type)
+{
+    switch (type) {
+    case QtDebugMsg:
+        return "Debug";
+    case QtInfoMsg:
+        return "Info";
+    case QtWarningMsg:
+        return "Warning";
+    case QtCriticalMsg:
+        return "Critical";
+    case QtFatalMsg:
+        return "Fatal";
+    }
+
+    return "Log";
+}
+
+int journalPriority(QtMsgType type)
+{
+    switch (type) {
+    case QtDebugMsg:
+        return 7;
+    case QtInfoMsg:
+        return 6;
+    case QtWarningMsg:
+        return 4;
+    case QtCriticalMsg:
+        return 3;
+    case QtFatalMsg:
+        return 2;
+    }
+
+    return 4;
+}
+
+bool parseLogLevel(const QString &value, LogLevel &level)
+{
+    const QString normalized = value.trimmed().toLower();
+    if (normalized == "debug") {
+        level = LogLevel::Debug;
+    } else if (normalized == "info") {
+        level = LogLevel::Info;
+    } else if (normalized == "warning" || normalized == "warn") {
+        level = LogLevel::Warning;
+    } else if (normalized == "critical" || normalized == "error") {
+        level = LogLevel::Critical;
+    } else if (normalized == "fatal") {
+        level = LogLevel::Fatal;
+    } else if (normalized == "off" || normalized == "none") {
+        level = LogLevel::Off;
+    } else {
+        return false;
+    }
+
+    return true;
+}
+
+QString logContextText(const QMessageLogContext &context)
+{
+    if (!context.file) {
+        return "";
+    }
+
+    return QString(" (%1:%2, %3)")
+            .arg(QString::fromLocal8Bit(context.file))
+            .arg(context.line)
+            .arg(context.function ? QString::fromLocal8Bit(context.function) : QString());
+}
+
+QByteArray formatLogLine(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    return QString("%1 %2: %3%4\n")
+            .arg(QDateTime::currentDateTime().toString(Qt::ISODate))
+            .arg(messageLogLevelName(type))
+            .arg(msg)
+            .arg(logContextText(context))
+            .toLocal8Bit();
+}
+
+void closeLogFile()
+{
+    if (logConfig.file) {
+        fclose(logConfig.file);
+        logConfig.file = nullptr;
+    }
+}
+
+void msgHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    if (messageLogLevel(type) < logConfig.minLevel || logConfig.minLevel == LogLevel::Off) {
+        return;
+    }
+
+    const QByteArray line = formatLogLine(type, context, msg);
+
+    if (logConfig.console) {
+        FILE *stream = messageLogLevel(type) >= LogLevel::Warning ? stderr : stdout;
+        fputs(line.constData(), stream);
+        fflush(stream);
+    }
+
+    if (logConfig.file) {
+        fputs(line.constData(), logConfig.file);
+        fflush(logConfig.file);
+    }
+
+#ifdef SYSTEMD_JOURNAL
+    if (logConfig.journal) {
+        const QByteArray journalMsg = msg.toLocal8Bit();
+        sd_journal_send("MESSAGE=%s", journalMsg.constData(),
+                        "PRIORITY=%i", journalPriority(type),
+                        "SYSLOG_IDENTIFIER=orion",
+                        "CODE_FILE=%s", context.file ? context.file : "",
+                        "CODE_LINE=%i", context.line,
+                        "CODE_FUNC=%s", context.function ? context.function : "",
+                        NULL);
+    }
+#endif
 }
 
 
@@ -193,7 +333,7 @@ void registerQmlComponents(QObject *parent)
 
 int main(int argc, char *argv[])
 {
-    qInstallMessageHandler(&msgHandler<QtWarningMsg>);
+    qInstallMessageHandler(&msgHandler);
     QCoreApplication::setApplicationName("Orion");
     QCoreApplication::setOrganizationName("orion.application");
     QCoreApplication::setApplicationVersion(APP_VERSION);
@@ -260,6 +400,22 @@ int main(int argc, char *argv[])
     QCommandLineOption quietOption(QStringList() << "q" << "quiet", "disable console output");
     parser.addOption(quietOption);
 
+    QCommandLineOption logLevelOption(QStringList() << "log-level",
+                                      "set log level: debug, info, warning, critical, fatal, off",
+                                      "level");
+    parser.addOption(logLevelOption);
+
+    QCommandLineOption logFileOption(QStringList() << "log-file",
+                                     "append log output to a file",
+                                     "path");
+    parser.addOption(logFileOption);
+
+#ifdef Q_OS_LINUX
+    QCommandLineOption journalOption(QStringList() << "journal",
+                                     "send log output to the systemd journal when supported by this build");
+    parser.addOption(journalOption);
+#endif
+
     parser.process(QCoreApplication::arguments());
 
     if (parser.isSet(channelOption)) {
@@ -268,17 +424,47 @@ int main(int argc, char *argv[])
         startupChannel = normalizedStartupChannel(parser.positionalArguments().first());
     }
 
-    if (parser.isSet(quietOption)) {
-        qInstallMessageHandler(&msgHandler<QtSystemMsg+1>);
-    } else if (parser.isSet(debugOption)) {
+    LogLevel minLogLevel = LogLevel::Warning;
+    if (parser.isSet(debugOption)) {
+        minLogLevel = LogLevel::Debug;
+    }
+    if (parser.isSet(logLevelOption) && !parseLogLevel(parser.value(logLevelOption), minLogLevel)) {
+        qWarning().noquote() << "Invalid log level" << parser.value(logLevelOption) << "- using warning";
+        minLogLevel = LogLevel::Warning;
+    }
+
+    logConfig.minLevel = minLogLevel;
+    logConfig.console = !parser.isSet(quietOption);
+
+#ifdef Q_OS_LINUX
+    logConfig.journal = parser.isSet(journalOption);
+#ifndef SYSTEMD_JOURNAL
+    if (logConfig.journal) {
+        qWarning() << "--journal requested but this build was compiled without systemd journal support";
+        logConfig.journal = false;
+    }
+#endif
+#endif
+
+    if (parser.isSet(logFileOption)) {
+        const QString path = parser.value(logFileOption);
+        const QByteArray pathBytes = path.toLocal8Bit();
+        logConfig.file = fopen(pathBytes.constData(), "a");
+        if (logConfig.file) {
+            std::atexit(closeLogFile);
+        } else {
+            qWarning().noquote() << "Could not open log file" << path;
+        }
+    }
+
 #ifdef Q_OS_WIN
+    if (logConfig.console && (parser.isSet(debugOption) || logConfig.minLevel <= LogLevel::Info)) {
         // windows doesn't pass message strings to normal console, so open our own when -d is enabled
         if (!parser.isSet(noConsoleOption)) {
             showConsole();
         }
-#endif
-        qInstallMessageHandler(&msgHandler<QtDebugMsg>);
     }
+#endif
 #endif
 
     QQmlApplicationEngine engine;

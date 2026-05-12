@@ -44,6 +44,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 ## Partially addressed
 
 * #288 / #300: the OAuth login URL and scopes now use the current Twitch authorization host, and the logged-in user response parser handles Helix `Get Users` responses. Follow, block, and browsing calls still need a full Helix migration.
+* #101: added configurable command-line log levels, optional file logging, and optional Linux systemd journal output when built with `libsystemd`; no in-app log viewer was added.
 
 ## Already covered by the final upstream code
 
@@ -73,7 +74,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #240, #226, #212, #210, #187, #108, #101, #74, #45.
+* #278, #271, #240, #226, #212, #210, #187, #108, #74, #45.
 
 ## Administrative
 

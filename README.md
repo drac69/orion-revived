@@ -29,6 +29,8 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 
 * Qt 5.15 development tools and QML modules
 * `mpv` and `libmpv` development headers
+* `pkg-config`
+* Optional Linux journal logging: `libsystemd` development headers
 * Optional legacy backends: `qtav` or `qt5-multimedia`
 
 ## Building on linux
@@ -44,7 +46,7 @@ sudo pacman -S git gcc qt5-base qt5-quickcontrols qt5-svg qt5-quickcontrols2 qt5
 Ubuntu/Linux Mint:
 
 ```
-sudo apt install build-essential libmpv-dev qt5-qmake qtbase5-dev qtdeclarative5-dev qtquickcontrols2-5-dev qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtgraphicaleffects
+sudo apt install build-essential libmpv-dev libsystemd-dev pkg-config qt5-qmake qtbase5-dev qtdeclarative5-dev qtquickcontrols2-5-dev qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtgraphicaleffects
 ```
 
 FreeBSD:
@@ -80,6 +82,14 @@ Open a channel directly from a launcher or shell:
 ```
 orion --channel channelname
 orion https://www.twitch.tv/channelname
+```
+
+Useful logging options:
+
+```
+orion --debug
+orion --log-level debug --log-file /tmp/orion.log
+orion --journal
 ```
 
 ## Building on MacOS
