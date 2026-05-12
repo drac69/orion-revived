@@ -13,6 +13,7 @@
  */
 
 #include <QQmlApplicationEngine>
+#include <QQmlError>
 #include <QScreen>
 #include <QQmlContext>
 #include <QCommandLineParser>
@@ -240,6 +241,11 @@ int main(int argc, char *argv[])
 #endif
 
     QQmlApplicationEngine engine;
+    QObject::connect(&engine, &QQmlApplicationEngine::warnings, [](const QList<QQmlError> &warnings) {
+        for (const QQmlError &warning : warnings) {
+            qCritical().noquote() << warning.toString();
+        }
+    });
 
     //Prime network manager
     QNetworkProxyFactory::setUseSystemConfiguration(true);
@@ -297,7 +303,7 @@ int main(int argc, char *argv[])
         if (GetConsoleWindow())
             std::cin.ignore();
 #endif
-        qFatal("Main window was not opened.");
+        qFatal("Main window was not opened. Check the QML errors above for missing modules or startup failures.");
         return -1;
     }
 #endif

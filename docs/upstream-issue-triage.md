@@ -16,6 +16,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #264: added a setting to enable or disable screensaver inhibition during playback.
 * #134: added a Ctrl+Q application shortcut.
 * #44: the existing version checker now checks this fork's releases instead of the archived upstream repository.
+* #242: QML startup warnings are now printed before the fatal startup error, which exposes missing QML modules directly.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
 * #284: kept the upstream localhost OAuth response fix from #272.
@@ -49,7 +50,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #295, #282, #278, #274, #273, #271, #270, #263, #254, #242, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #199, #195, #187, #178, #141, #108, #101, #89, #74, #45, #40, #26, #18.
+* #295, #282, #278, #274, #273, #271, #270, #263, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #199, #195, #187, #178, #141, #108, #101, #89, #74, #45, #40, #26, #18.
 
 ## Administrative
 
