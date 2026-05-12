@@ -322,14 +322,17 @@ int main(int argc, char *argv[])
     rootContext->setContextProperty("g_startupChannel", startupChannel);
     
     
-    rootContext->setContextProperty("g_instance", "main");
-
 #ifndef Q_OS_ANDROID
     //Single application solution
     QLockFile lockfile(QDir::temp().absoluteFilePath("wz0dPKqHv3vX0BBsUFZt.lock"));
-    if (!lockfile.tryLock(100)) {
-        rootContext->setContextProperty("g_instance", "child");
+    const bool primaryInstance = lockfile.tryLock(100);
+    if (!primaryInstance && !SettingsManager::getInstance()->multipleInstances()) {
+        qWarning() << "Another Orion instance is already running; enable multiple instances in settings to allow this.";
+        return 0;
     }
+    rootContext->setContextProperty("g_instance", primaryInstance ? "main" : "child");
+#else
+    rootContext->setContextProperty("g_instance", "main");
 #endif
 
     // Register qml components

@@ -19,6 +19,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #265: fullscreen playback no longer toggles the main navigation header on top-edge hover, avoiding the repeated resize loop.
 * #264: added a setting to enable or disable screensaver inhibition during playback.
 * #260: Linux screensaver reset calls now only run while screensaver inhibition is active.
+* #89 / #205: multiple-stream use is supported through the persisted multiple-instance setting; second instances are blocked unless that setting is enabled.
 * #134: added a Ctrl+Q application shortcut.
 * #44: the existing version checker now checks this fork's releases instead of the archived upstream repository.
 * #242: QML startup warnings are now printed before the fatal startup error, which exposes missing QML modules directly.
@@ -46,7 +47,6 @@ The upstream repository is archived and had 79 open issues at the time this fork
 These issues remained open upstream but the final `master` code already contains the relevant setting, install rule, shortcut, or behavior:
 
 * #207: setting to disable click-video-to-pause.
-* #205: multiple-instance setting, now exposed in the options view.
 * #223: UI/text scaling and font selection settings.
 * #220: VOD timestamp/position display is present in the player controls.
 * #217: chat background opacity is configurable in the chat settings.
@@ -70,7 +70,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #254, #240, #226, #212, #210, #187, #178, #141, #108, #101, #89, #74, #45.
+* #278, #271, #254, #240, #226, #212, #210, #187, #178, #141, #108, #101, #74, #45.
 
 ## Administrative
 
