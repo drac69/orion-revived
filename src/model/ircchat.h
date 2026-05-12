@@ -125,6 +125,7 @@ signals:
     void bulkDownloadComplete();
 
     void bttvEmotesLoaded(QString channel, QVariantMap emotesByCode);
+    void ffzEmotesLoaded(QString channel, QVariantMap emotesByCode);
     void userBlocked(const QString & blockedUsername);
     void userUnblocked(const QString & unblockedUsername);
     
@@ -136,6 +137,8 @@ public slots:
     void bulkDownloadEmotes(QList<QString> keys);
     void downloadBttvEmotesGlobal();
     void downloadBttvEmotesChannel();
+    void downloadFfzEmotesGlobal();
+    void downloadFfzEmotesChannel();
 private slots:
     void receive();
     void processError(QAbstractSocket::SocketError socketError);
@@ -149,6 +152,7 @@ private slots:
     void userUnblockedSlot(quint64 myUserId, const QString & unblockedUsername);
 
     void handleChannelBttvEmotesLoaded(const QString & channelName, QMap<QString, QString> emotesByCode);
+    void handleChannelFfzEmotesLoaded(const QString & channelName, QMap<QString, QString> emotesByCode);
     void addBlockedUserResults(const QList<QString> & list, const quint32 nextOffset, const quint32 total);
     void innerUserBlocked(quint64 myUserId, const QString & blockedUsername);
     void innerUserUnblocked(quint64 myUserId, const QString & unblockedUsername);
@@ -166,11 +170,15 @@ private:
     static const QString IMAGE_PROVIDER_BTTV_EMOTE;
     static const QString BTTV_EMOTES_URL_FORMAT_HIDPI;
     static const QString BTTV_EMOTES_URL_FORMAT_LODPI;
+    static const QString IMAGE_PROVIDER_FFZ_EMOTE;
+    static const QString FFZ_EMOTES_URL_FORMAT_HIDPI;
+    static const QString FFZ_EMOTES_URL_FORMAT_LODPI;
     static const QString IMAGE_PROVIDER_BITS;
 
     SettingsManager *settings;
     URLFormatImageProvider _emoteProvider;
     URLFormatImageProvider _bttvEmoteProvider;
+    URLFormatImageProvider _ffzEmoteProvider;
     BitsImageProvider * _bitsProvider;
     BadgeImageProvider * _badgeProvider;
     
@@ -235,10 +243,12 @@ private:
 
     QMap<QString, QString> lastGlobalBttvEmoteFixedStrings;
     QMap<QString, QString> lastCurChannelBttvEmoteFixedStrings;
+    QMap<QString, QString> lastGlobalFfzEmoteFixedStrings;
+    QMap<QString, QString> lastCurChannelFfzEmoteFixedStrings;
 
     NetworkManager *netman;
 
-    enum ImageEntryKind { emote, bits, bttvEmote };
+    enum ImageEntryKind { emote, bits, bttvEmote, ffzEmote };
 
     struct InlineImageInfo {
         ImageEntryKind kind;
@@ -253,6 +263,7 @@ private:
 
     void handleBttvEmote(const QString & id, ImagePositionsMap & mapToUpdate, int pos, int end);
     QString bttvEmoteUrl(const QString &id) const;
+    void handleFfzEmote(const QString & id, ImagePositionsMap & mapToUpdate, int pos, int end);
 
     void roomInitCommon(const QString channel, const QString channelId);
 

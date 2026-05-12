@@ -96,6 +96,8 @@ public:
     void getGlobalBitsUrls();
     void getChannelBttvEmotes(const QString channel);
     void getGlobalBttvEmotes();
+    void getChannelFfzEmotes(const QString channel);
+    void getGlobalFfzEmotes();
 
     Q_INVOKABLE void getVodChatPiece(quint64 vodId, quint64 offset);
     Q_INVOKABLE void getNextVodChatPiece(quint64 vodId, QString cursor);
@@ -146,6 +148,8 @@ signals:
 
     void getChannelBttvEmotesOperationFinished(const QString channel, QMap<QString, QString> & emotesByCode);
     void getGlobalBttvEmotesOperationFinished(QMap<QString, QString> & emotesByCode);
+    void getChannelFfzEmotesOperationFinished(const QString channel, QMap<QString, QString> emotesByCode);
+    void getGlobalFfzEmotesOperationFinished(QMap<QString, QString> emotesByCode);
 
     void networkAccessChanged(bool up);
 
@@ -190,6 +194,8 @@ private slots:
     void blockUserLookupReply();
     void globalBttvEmotesReply();
     void channelBttvEmotesReply();
+    void globalFfzEmotesReply();
+    void channelFfzEmotesReply();
 
     void setAccessToken(const QString &accessToken);
 

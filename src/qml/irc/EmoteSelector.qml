@@ -48,6 +48,16 @@ RoundButton {
                 setsVisible.append({"imageUrl": "image://bttvemote/" + chat.lastBttvChannelEmotes[i], "emoteName": i});
             }
             break;
+        case "ffzGlobal":
+            for (var i in chat.lastFfzGlobalEmotes) {
+                setsVisible.append({"imageUrl": "image://ffzemote/" + chat.lastFfzGlobalEmotes[i], "emoteName": i});
+            }
+            break;
+        case "ffzChannel":
+            for (var i in chat.lastFfzChannelEmotes) {
+                setsVisible.append({"imageUrl": "image://ffzemote/" + chat.lastFfzChannelEmotes[i], "emoteName": i});
+            }
+            break;
         default:
             var lastSetMap = lastEmoteSets[lastSet];
             for (var i in lastSetMap) {
@@ -61,10 +71,12 @@ RoundButton {
     function clearChannelSpecificEmotes() {
         //console.log("clearChannelSpecificEmotes()")
         var channelEmotes = chat.lastBttvChannelEmotes;
-        if (channelEmotes != null) {
+        var ffzChannelEmotes = chat.lastFfzChannelEmotes;
+        if (channelEmotes != null || ffzChannelEmotes != null) {
             for (var i = 0; i < setsVisible.count; ) {
                 var obj = setsVisible.get(i);
-                if (channelEmotes.hasOwnProperty(obj.emoteName)) {
+                if ((channelEmotes != null && channelEmotes.hasOwnProperty(obj.emoteName)) ||
+                        (ffzChannelEmotes != null && ffzChannelEmotes.hasOwnProperty(obj.emoteName))) {
                     //console.log("remove channel emote", obj.emoteName, i);
                     setsVisible.remove(i);
                 } else {
@@ -86,6 +98,10 @@ RoundButton {
                     chat.downloadBttvEmotesGlobal();
                 } else if (curSetID == "bttvChannel") {
                     chat.downloadBttvEmotesChannel();
+                } else if (curSetID == "ffzGlobal") {
+                    chat.downloadFfzEmotesGlobal();
+                } else if (curSetID == "ffzChannel") {
+                    chat.downloadFfzEmotesChannel();
                 } else {
                     var curSetMap = lastEmoteSets[curSetID];
                     var curSetList = [];
@@ -111,9 +127,13 @@ RoundButton {
                 setsToDownload.push(i);
             }
             setsToDownload.push("bttvGlobal");
+            setsToDownload.push("ffzGlobal");
         }
         if (chat.lastBttvChannelEmotes != null) {
             setsToDownload.push("bttvChannel");
+        }
+        if (chat.lastFfzChannelEmotes != null) {
+            setsToDownload.push("ffzChannel");
         }
         //console.log("Starting download of emote sets", setsToDownload);
         emotePickerDownloadsInProgress = true;

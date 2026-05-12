@@ -42,6 +42,9 @@ const QString IrcChat::EMOTICONS_URL_FORMAT_HIDPI = "https://static-cdn.jtvnw.ne
 const QString IrcChat::IMAGE_PROVIDER_BTTV_EMOTE = "bttvemote";
 const QString IrcChat::BTTV_EMOTES_URL_FORMAT_LODPI = "https://cdn.betterttv.net/emote/%1/1x";
 const QString IrcChat::BTTV_EMOTES_URL_FORMAT_HIDPI = "https://cdn.betterttv.net/emote/%1/2x";
+const QString IrcChat::IMAGE_PROVIDER_FFZ_EMOTE = "ffzemote";
+const QString IrcChat::FFZ_EMOTES_URL_FORMAT_LODPI = "https://cdn.frankerfacez.com/emote/%1/1";
+const QString IrcChat::FFZ_EMOTES_URL_FORMAT_HIDPI = "https://cdn.frankerfacez.com/emote/%1/2";
 
 const qint16 IrcChat::PORT = 443;
 const QString IrcChat::HOST = "irc.chat.twitch.tv";
@@ -51,6 +54,7 @@ IrcChat::IrcChat(QObject *parent) :
     settings(SettingsManager::getInstance()),
     _emoteProvider(IMAGE_PROVIDER_EMOTE, settings->hiDpi() ? EMOTICONS_URL_FORMAT_HIDPI : EMOTICONS_URL_FORMAT_LODPI, ".png", settings->hiDpi() ? "emotes_2x" : "emotes"),
     _bttvEmoteProvider(IMAGE_PROVIDER_BTTV_EMOTE, settings->hiDpi() ? BTTV_EMOTES_URL_FORMAT_HIDPI : BTTV_EMOTES_URL_FORMAT_LODPI, ".png", settings->hiDpi() ? "bttv_emotes_2x" : "bttv_emotes"),
+    _ffzEmoteProvider(IMAGE_PROVIDER_FFZ_EMOTE, settings->hiDpi() ? FFZ_EMOTES_URL_FORMAT_HIDPI : FFZ_EMOTES_URL_FORMAT_LODPI, ".png", settings->hiDpi() ? "ffz_emotes_2x" : "ffz_emotes"),
     _bitsProvider(nullptr),
     _badgeProvider(nullptr),
     sock(nullptr),
@@ -60,7 +64,7 @@ IrcChat::IrcChat(QObject *parent) :
     logged_in = false;
 
 
-    for (const auto provider : { &_emoteProvider, &_bttvEmoteProvider }) {
+    for (const auto provider : { &_emoteProvider, &_bttvEmoteProvider, &_ffzEmoteProvider }) {
         connect(provider, &ImageProvider::downloadComplete, this, &IrcChat::handleDownloadComplete);
         connect(provider, &ImageProvider::bulkDownloadComplete, this, &IrcChat::bulkDownloadComplete);
     }
@@ -105,6 +109,7 @@ void IrcChat::initProviders() {
 void IrcChat::RegisterEngineProviders(QQmlEngine & engine) {
 	engine.addImageProvider(IMAGE_PROVIDER_EMOTE, _emoteProvider.getQMLImageProvider());
     engine.addImageProvider(IMAGE_PROVIDER_BTTV_EMOTE, _bttvEmoteProvider.getQMLImageProvider());
+    engine.addImageProvider(IMAGE_PROVIDER_FFZ_EMOTE, _ffzEmoteProvider.getQMLImageProvider());
     if (_badgeProvider) {
         engine.addImageProvider(_badgeProvider->getImageProviderName(), _badgeProvider->getQMLImageProvider());
     }
@@ -124,6 +129,7 @@ void IrcChat::hookupChannelProviders() {
     connect(NetworkManager::getInstance(), &NetworkManager::vodChatPieceGetOperationFinished, this, &IrcChat::handleDownloadedReplayChat);
     connect(BadgeContainer::getInstance(), &BadgeContainer::channelBitsUrlsLoaded, this, &IrcChat::handleChannelBitsUrlsLoaded);
     connect(BadgeContainer::getInstance(), &BadgeContainer::channelBttvEmotesLoaded, this, &IrcChat::handleChannelBttvEmotesLoaded);
+    connect(BadgeContainer::getInstance(), &BadgeContainer::channelFfzEmotesLoaded, this, &IrcChat::handleChannelFfzEmotesLoaded);
     //connect(BadgeContainer::getInstance(), &BadgeContainer::blockedUsersLoaded, this, &IrcChat::blockedUsersLoaded);
     connect(NetworkManager::getInstance(), &NetworkManager::userBlocked, this, &IrcChat::userBlockedSlot);
     connect(NetworkManager::getInstance(), &NetworkManager::userUnblocked, this, &IrcChat::userUnblockedSlot);
@@ -132,6 +138,7 @@ void IrcChat::hookupChannelProviders() {
 bool IrcChat::allDownloadsComplete() {
     return !_emoteProvider.downloadsInProgress() &&
         !_bttvEmoteProvider.downloadsInProgress() &&
+        !_ffzEmoteProvider.downloadsInProgress() &&
         _badgeProvider != nullptr && !_badgeProvider->downloadsInProgress() &&
         _bitsProvider != nullptr && !_bitsProvider->downloadsInProgress();
 }
@@ -160,6 +167,7 @@ void IrcChat::roomInitCommon(const QString channel, const QString channelId) {
     }
 
     lastCurChannelBttvEmoteFixedStrings.clear();
+    lastCurChannelFfzEmoteFixedStrings.clear();
 }
 
 void IrcChat::join(const QString channel, const QString channelId) {
@@ -511,6 +519,20 @@ QVariantList IrcChat::substituteEmotesInMessage(const QVariantList & message, co
                                                emoteId,
                                                possibleEmoteText,
                                                bttvEmoteUrl(emoteId)));
+                isEmote = true;
+                break;
+            }
+        }
+
+        for (const auto & emoteIndex : { lastCurChannelFfzEmoteFixedStrings, lastGlobalFfzEmoteFixedStrings }) {
+            auto entry = emoteIndex.constFind(possibleEmoteText);
+            if (!isEmote && entry != emoteIndex.constEnd()) {
+                QString emoteId = entry.value();
+                _ffzEmoteProvider.makeAvailable(emoteId);
+                if (spacePrefix) {
+                    output.append(" ");
+                }
+                output.append(createImageEntry(_ffzEmoteProvider.getImageProviderName(), emoteId, possibleEmoteText));
                 isEmote = true;
                 break;
             }
@@ -923,6 +945,15 @@ void IrcChat::handleBttvEmote(const QString & id, ImagePositionsMap & mapToUpdat
     _bttvEmoteProvider.makeAvailable(id);
 }
 
+void IrcChat::handleFfzEmote(const QString & id, ImagePositionsMap & mapToUpdate, int pos, int end) {
+    InlineImageInfo info;
+    info.kind = ImageEntryKind::ffzEmote;
+
+    info.key = _ffzEmoteProvider.getCanonicalKey(id);
+    mapToUpdate.insert(pos, qMakePair(end, info));
+    _ffzEmoteProvider.makeAvailable(id);
+}
+
 void updateBitsRegexes(const BitsQStringsMap & bitsUrls, QMap<QString, QRegExp> & mapToUpdate) {
     mapToUpdate.clear();
     
@@ -984,10 +1015,19 @@ void IrcChat::createMessageList(const QMap<int, QPair<int, int>> & emotePosition
         if (wordEnd > cur) {
             const auto word = message.mid(cur, wordEnd - cur);
             
+            bool foundThirdPartyEmote = false;
             for (const QMap<QString, QString> & bttvIndex : { lastCurChannelBttvEmoteFixedStrings, lastGlobalBttvEmoteFixedStrings }) {
                 const auto matchEntry = bttvIndex.constFind(word);
                 if (matchEntry != bttvIndex.constEnd()) {
                     handleBttvEmote(matchEntry.value(), imagePositionsMap, cur, wordEnd);
+                    foundThirdPartyEmote = true;
+                    break;
+                }
+            }
+            for (const QMap<QString, QString> & ffzIndex : { lastCurChannelFfzEmoteFixedStrings, lastGlobalFfzEmoteFixedStrings }) {
+                const auto matchEntry = ffzIndex.constFind(word);
+                if (!foundThirdPartyEmote && matchEntry != ffzIndex.constEnd()) {
+                    handleFfzEmote(matchEntry.value(), imagePositionsMap, cur, wordEnd);
                     break;
                 }
             }
@@ -1022,6 +1062,9 @@ void IrcChat::createMessageList(const QMap<int, QPair<int, int>> & emotePosition
                                         imageId,
                                         originalText,
                                         bttvEmoteUrl(imageId));
+            break;
+        case ImageEntryKind::ffzEmote:
+            imgEntry = createImageEntry(_ffzEmoteProvider.getImageProviderName(), imageId, originalText);
             break;
         case ImageEntryKind::bits:
             if (_bitsProvider) {
@@ -1397,6 +1440,14 @@ void IrcChat::downloadBttvEmotesChannel() {
     _bttvEmoteProvider.bulkDownload(valuesList(lastCurChannelBttvEmoteFixedStrings));
 }
 
+void IrcChat::downloadFfzEmotesGlobal() {
+    _ffzEmoteProvider.bulkDownload(valuesList(lastGlobalFfzEmoteFixedStrings));
+}
+
+void IrcChat::downloadFfzEmotesChannel() {
+    _ffzEmoteProvider.bulkDownload(valuesList(lastCurChannelFfzEmoteFixedStrings));
+}
+
 void IrcChat::blockedUsersLoaded(const QSet<QString> & newBlockedUsers) {
     blockedUsers = newBlockedUsers;
 }
@@ -1440,6 +1491,18 @@ void IrcChat::handleChannelBttvEmotesLoaded(const QString & channelName, QMap<QS
     }
 
     emit bttvEmotesLoaded(channelName, toVariantMap(emotesByCode));
+}
+
+void IrcChat::handleChannelFfzEmotesLoaded(const QString & channelName, QMap<QString, QString> emotesByCode) {
+    const QString GLOBAL_EMOTES_ID = "GLOBAL";
+    if (channelName == GLOBAL_EMOTES_ID) {
+        lastGlobalFfzEmoteFixedStrings = emotesByCode;
+    }
+    else if (channelName == room) {
+        lastCurChannelFfzEmoteFixedStrings = emotesByCode;
+    }
+
+    emit ffzEmotesLoaded(channelName, toVariantMap(emotesByCode));
 }
 
 void IrcChat::innerUserBlocked(quint64 myUserId, const QString & blockedUsername) {

@@ -841,6 +841,38 @@ QMap<QString, QString> JsonParser::parseBttvEmotesData(const QByteArray &data)
     return out;
 }
 
+QMap<QString, QString> JsonParser::parseFfzEmotesData(const QByteArray &data)
+{
+    QMap<QString, QString> out;
+
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
+
+    if (error.error == QJsonParseError::NoError) {
+        const QJsonObject json = doc.object();
+        const QJsonObject sets = json["sets"].toObject();
+
+        for (auto set = sets.constBegin(); set != sets.constEnd(); ++set) {
+            const QJsonArray emotes = set.value().toObject()["emoticons"].toArray();
+            for (const auto &emote : emotes) {
+                const QJsonObject emoteObj = emote.toObject();
+                if (emoteObj["hidden"].toBool()) {
+                    continue;
+                }
+
+                const QJsonValue idValue = emoteObj["id"];
+                const QString id = idValue.isString() ? idValue.toString() : QString::number(idValue.toInt());
+                const QString code = emoteObj["name"].toString();
+                if (!id.isEmpty() && !code.isEmpty()) {
+                    out.insert(code, id);
+                }
+            }
+        }
+    }
+
+    return out;
+}
+
 QPair<QString,QString> JsonParser::parseVersion(const QByteArray &data)
 {
     QJsonParseError error;

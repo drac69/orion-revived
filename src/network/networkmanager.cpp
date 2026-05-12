@@ -876,6 +876,66 @@ void NetworkManager::globalBttvEmotesReply() {
     reply->deleteLater();
 }
 
+void NetworkManager::getChannelFfzEmotes(const QString channel) {
+    QString url = QString(FFZ_API) + QString("/room/") + QUrl::toPercentEncoding(channel);
+
+    qDebug() << "Requesting" << url;
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(url));
+
+    QNetworkReply *reply = operation->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::channelFfzEmotesReply);
+}
+
+void NetworkManager::channelFfzEmotesReply() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+
+    if (!handleNetworkError(reply)) {
+        return;
+    }
+    QByteArray data = reply->readAll();
+
+    auto url = reply->url();
+    QString urlString = url.toString();
+    QString channel = QUrl::fromPercentEncoding(urlString.mid(urlString.lastIndexOf("/") + 1).toUtf8());
+
+    auto emotes = JsonParser::parseFfzEmotesData(data);
+
+    emit getChannelFfzEmotesOperationFinished(channel, emotes);
+
+    reply->deleteLater();
+}
+
+void NetworkManager::getGlobalFfzEmotes() {
+    QString url = QString(FFZ_API) + QString("/set/global");
+
+    qDebug() << "Requesting" << url;
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(url));
+
+    QNetworkReply *reply = operation->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::globalFfzEmotesReply);
+}
+
+void NetworkManager::globalFfzEmotesReply() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+
+    if (!handleNetworkError(reply)) {
+        return;
+    }
+    QByteArray data = reply->readAll();
+
+    auto emotes = JsonParser::parseFfzEmotesData(data);
+
+    emit getGlobalFfzEmotesOperationFinished(emotes);
+
+    reply->deleteLater();
+}
+
 void NetworkManager::editUserFavourite(const quint64 userId, const quint64 channelId, bool add)
 {
     QString url = QString(KRAKEN_API) + "/users/" + QString::number(userId)

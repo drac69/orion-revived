@@ -52,9 +52,10 @@ Page {
     }
 
     function cleanupPrevChannel() {
-        if (chat.lastBttvChannelEmotes != null) {
+        if (chat.lastBttvChannelEmotes != null || chat.lastFfzChannelEmotes != null) {
             _emoteButton.clearChannelSpecificEmotes()
             chat.lastBttvChannelEmotes = null;
+            chat.lastFfzChannelEmotes = null;
         }
         chatList.chatModel.clear()
     }
@@ -226,6 +227,8 @@ Page {
             property variant lastEmoteSets
             property variant lastBttvChannelEmotes
             property variant lastBttvGlobalEmotes
+            property variant lastFfzChannelEmotes
+            property variant lastFfzGlobalEmotes
 
             property variant _textEmotesMap
             property variant _regexEmotesList
@@ -255,6 +258,14 @@ Page {
                     chat.lastBttvChannelEmotes = emotesByCode;
                 } else {
                     //console.log("bttv emotes loaded for a different channel", channel);
+                }
+            }
+
+            onFfzEmotesLoaded: {
+                if (channel == "GLOBAL") {
+                    chat.lastFfzGlobalEmotes = emotesByCode;
+                } else if (channel == chat.channel) {
+                    chat.lastFfzChannelEmotes = emotesByCode;
                 }
             }
 

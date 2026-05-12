@@ -29,6 +29,7 @@ Item {
     signal channelBadgeUrlsLoaded(int channelId, var badgeUrls)
     signal channelBadgeBetaUrlsLoaded(string channel, var badgeSetData)
     signal bttvEmotesLoaded(string channel, var emotesByCode)
+    signal ffzEmotesLoaded(string channel, var emotesByCode)
 
     property alias isAnonymous: chat.anonymous
     property var channel: undefined
@@ -76,6 +77,7 @@ Item {
             Emotes.loadChannelBitsUrls(channelId);
         }
         Emotes.loadChannelBttvEmotes(channelName);
+        Emotes.loadChannelFfzEmotes(channelName);
     }
 
     function joinChannel(channelName, channelId) {
@@ -135,6 +137,14 @@ Item {
         return chat.downloadBttvEmotesChannel();
     }
 
+    function downloadFfzEmotesGlobal() {
+        return chat.downloadFfzEmotesGlobal();
+    }
+
+    function downloadFfzEmotesChannel() {
+        return chat.downloadFfzEmotesChannel();
+    }
+
     function reconnect() {
         leaveChannel()
         if (root.channel)
@@ -183,6 +193,10 @@ Item {
 
         onBttvEmotesLoaded: {
             root.bttvEmotesLoaded(channel, emotesByCode);
+        }
+
+        onFfzEmotesLoaded: {
+            root.ffzEmotesLoaded(channel, emotesByCode);
         }
     }
 }

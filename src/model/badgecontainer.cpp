@@ -13,6 +13,8 @@ BadgeContainer::BadgeContainer() : netman(NetworkManager::getInstance())
 
     connect(netman, &NetworkManager::getGlobalBttvEmotesOperationFinished, this, &BadgeContainer::innerGlobalBttvEmotesLoaded);
     connect(netman, &NetworkManager::getChannelBttvEmotesOperationFinished, this, &BadgeContainer::innerChannelBttvEmotesLoaded);
+    connect(netman, &NetworkManager::getGlobalFfzEmotesOperationFinished, this, &BadgeContainer::innerGlobalFfzEmotesLoaded);
+    connect(netman, &NetworkManager::getChannelFfzEmotesOperationFinished, this, &BadgeContainer::innerChannelFfzEmotesLoaded);
 }
 
 BadgeContainer *BadgeContainer::getInstance()
@@ -208,6 +210,31 @@ bool BadgeContainer::loadChannelBttvEmotes(const QString channel) {
     return out;
 }
 
+bool BadgeContainer::loadChannelFfzEmotes(const QString channel) {
+    bool out = false;
+
+    auto result = channelFfzEmotes.constFind(channel);
+    if (result != channelFfzEmotes.constEnd()) {
+        emit channelFfzEmotesLoaded(channel, result.value());
+    }
+    else {
+        netman->getChannelFfzEmotes(channel);
+        out = true;
+    }
+
+    const QString GLOBAL_EMOTES_IDENTIFIER = "GLOBAL";
+    result = channelFfzEmotes.constFind(GLOBAL_EMOTES_IDENTIFIER);
+    if (result != channelFfzEmotes.constEnd()) {
+        emit channelFfzEmotesLoaded(GLOBAL_EMOTES_IDENTIFIER, result.value());
+    }
+    else {
+        netman->getGlobalFfzEmotes();
+        out = true;
+    }
+
+    return out;
+}
+
 const QUrl BadgeContainer::getBitsUrlForKey(const QString & key) const {
     QString url;
 
@@ -327,4 +354,17 @@ void BadgeContainer::innerGlobalBttvEmotesLoaded(QMap<QString, QString> & emotes
     channelBttvEmotes.remove(GLOBAL_EMOTES_KEY);
     channelBttvEmotes.insert(GLOBAL_EMOTES_KEY, emotesByCode);
     emit channelBttvEmotesLoaded(GLOBAL_EMOTES_KEY, emotesByCode);
+}
+
+void BadgeContainer::innerChannelFfzEmotesLoaded(const QString channel, QMap<QString, QString> emotesByCode) {
+    channelFfzEmotes.remove(channel);
+    channelFfzEmotes.insert(channel, emotesByCode);
+    emit channelFfzEmotesLoaded(channel, emotesByCode);
+}
+
+void BadgeContainer::innerGlobalFfzEmotesLoaded(QMap<QString, QString> emotesByCode) {
+    const QString GLOBAL_EMOTES_KEY = "GLOBAL";
+    channelFfzEmotes.remove(GLOBAL_EMOTES_KEY);
+    channelFfzEmotes.insert(GLOBAL_EMOTES_KEY, emotesByCode);
+    emit channelFfzEmotesLoaded(GLOBAL_EMOTES_KEY, emotesByCode);
 }
