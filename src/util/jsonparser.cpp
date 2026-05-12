@@ -24,13 +24,25 @@ PagedResult<Channel*> JsonParser::parseStreams(const QByteArray &data)
     if (error.error == QJsonParseError::NoError){
         QJsonObject json = doc.object();
 
-        //Online streams
-        QJsonArray arr = json["streams"].toArray();
-        foreach (const QJsonValue &item, arr){
-            out.items.append(JsonParser::parseStreamJson(item.toObject(), true));
-        }
+        if (json.contains("data")) {
+            // Helix Get Streams response.
+            const QJsonArray arr = json["data"].toArray();
+            foreach (const QJsonValue &item, arr) {
+                out.items.append(JsonParser::parseStreamJson(item.toObject(), true));
+            }
 
-        out.total = json["_total"].toInt();
+            out.cursor = json["pagination"].toObject()["cursor"].toString();
+            out.total = out.items.size();
+        }
+        else {
+            //Online streams
+            QJsonArray arr = json["streams"].toArray();
+            foreach (const QJsonValue &item, arr){
+                out.items.append(JsonParser::parseStreamJson(item.toObject(), true));
+            }
+
+            out.total = json["_total"].toInt();
+        }
 
         //Caller must use request context to determine offline streams
     }
@@ -43,7 +55,16 @@ Channel *JsonParser::parseStream(const QByteArray &data)
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(data,&error);
     if (error.error == QJsonParseError::NoError){
-        return parseStreamJson(doc.object(), false);
+        QJsonObject json = doc.object();
+        if (json.contains("data")) {
+            const QJsonArray arr = json["data"].toArray();
+            if (arr.isEmpty()) {
+                return new Channel();
+            }
+            return parseStreamJson(arr.first().toObject(), true);
+        }
+
+        return parseStreamJson(json, false);
     }
     return new Channel();
 }
@@ -61,6 +82,24 @@ Channel* JsonParser::parseStreamJson(const QJsonObject &json, const bool expectC
         jsonObj = json["stream"].toObject();
     } else {
         jsonObj = json;
+    }
+
+    if (jsonObj.contains("user_id")) {
+        const quint64 channelId = jsonObj["user_id"].toString().toULongLong();
+        channel->setId(static_cast<quint32>(channelId));
+        channel->setServiceName(jsonObj["user_login"].toString());
+        channel->setName(jsonObj["user_name"].toString());
+        channel->setInfo(jsonObj["title"].toString());
+        channel->setGame(jsonObj["game_name"].toString());
+        channel->setViewers(jsonObj["viewer_count"].toInt());
+
+        QString previewUrl = jsonObj["thumbnail_url"].toString();
+        previewUrl.replace("{width}", "640");
+        previewUrl.replace("{height}", "360");
+        channel->setPreviewurl(previewUrl);
+
+        channel->setOnline(jsonObj["type"].toString() == "live");
+        return channel;
     }
 
     if (!jsonObj["preview"].isNull()){

@@ -192,11 +192,28 @@ void NetworkManager::checkVersion()
  */
 void NetworkManager::getStream(const quint64 channelId)
 {
-    QString url = KRAKEN_API + QString("/streams/%1").arg(channelId);
+    QUrl url;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/streams");
+        QUrlQuery query;
+        query.addQueryItem("user_id", QString::number(channelId));
+        query.addQueryItem("first", "1");
+        url.setQuery(query);
+    }
+    else {
+        url = QUrl(KRAKEN_API + QString("/streams/%1").arg(channelId));
+    }
+
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", access_token.isEmpty() ? "application/vnd.twitchtv.v5+json" : "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, channelId);
+
+    if (!access_token.isEmpty()) {
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
 
     QNetworkReply *reply = operation->get(request);
 
@@ -206,10 +223,18 @@ void NetworkManager::getStream(const quint64 channelId)
 void NetworkManager::getStreams(const QString &url)
 {
     //qDebug() << "GET: " << url;
+    const QUrl requestUrl(url);
+    const bool isHelix = requestUrl.path().startsWith("/helix/");
+
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", isHelix ? "application/json" : "application/vnd.twitchtv.v5+json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
+    request.setUrl(requestUrl);
+
+    if (isHelix && !access_token.isEmpty()) {
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1084,9 +1109,12 @@ void NetworkManager::streamReply()
 
     Channel *channel = JsonParser::parseStream(data);
 
-    QString channelIdStr = reply->url().toString();
-    channelIdStr.remove(0, channelIdStr.lastIndexOf('/') + 1);
-    const quint64 channelId = channelIdStr.toULongLong();
+    quint64 channelId = reply->request().attribute(QNetworkRequest::User).toULongLong();
+    if (channelId == 0) {
+        QString channelIdStr = reply->url().toString();
+        channelIdStr.remove(0, channelIdStr.lastIndexOf('/') + 1);
+        channelId = channelIdStr.toULongLong();
+    }
 
     emit streamGetOperationFinished(channelId, channel->isOnline());
 
@@ -1130,6 +1158,9 @@ void NetworkManager::allStreamsReply()
     const QUrlQuery query(reply->url().query());
     if (query.hasQueryItem("channel")) {
         addULongLongStringList(queriedChannelIds, query.queryItemValue("channel").split(","));
+    }
+    if (query.hasQueryItem("user_id")) {
+        addULongLongStringList(queriedChannelIds, query.allQueryItemValues("user_id"));
     }
 
     PagedResult<Channel *> out = JsonParser::parseStreams(data);

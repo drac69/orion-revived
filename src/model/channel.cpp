@@ -22,7 +22,9 @@ void Channel::updateWith(const Channel &other)
 {
     if (this->getId() == other.getId()) {
         this->setName(other.getName());
-        this->setLogourl(other.getLogourl());
+        if (!other.logouri.isEmpty()) {
+            this->setLogourl(other.logouri);
+        }
         this->setInfo(other.getInfo());
         this->setViewers(other.getViewers());
         this->setGame(other.getGame());

@@ -14,6 +14,8 @@
 
 #include "channelmanager.h"
 #include <QCoreApplication>
+#include <QUrl>
+#include <QUrlQuery>
 
 ChannelManager::ChannelManager() :
     netman(NetworkManager::getInstance()),
@@ -297,17 +299,30 @@ void ChannelManager::checkStreams(const QList<Channel *> &list)
 
     while(pos < list.length()) {
 
-        //Take sublist, max 50 items
-        QList<Channel*> sublist = list.mid(pos, 50);
+        const bool useHelix = isAccessTokenAvailable();
+        const int batchSize = useHelix ? 100 : 50;
+        QList<Channel*> sublist = list.mid(pos, batchSize);
 
-        //Fetch channels
-        QString url = KRAKEN_API
-                + QString("/streams?")
-                + QString("limit=%1").arg(50) //Important!
-                + QString("&channel=") + commaSeparatedChannelIds(sublist);
+        QString url;
+        if (useHelix) {
+            QUrl helixUrl(QString(HELIX_API) + "/streams");
+            QUrlQuery query;
+            query.addQueryItem("first", QString::number(sublist.length()));
+            foreach(Channel* channel, sublist) {
+                query.addQueryItem("user_id", QString::number(channel->getId()));
+            }
+            helixUrl.setQuery(query);
+            url = helixUrl.toString(QUrl::FullyEncoded);
+        }
+        else {
+            url = KRAKEN_API
+                    + QString("/streams?")
+                    + QString("limit=%1").arg(50) //Important!
+                    + QString("&channel=") + commaSeparatedChannelIds(sublist);
+        }
         netman->getStreams(url);
 
-        //Shift pos by 50
+        //Shift pos by requested batch length
         pos += sublist.length();
     }
 }
