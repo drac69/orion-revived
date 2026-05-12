@@ -64,6 +64,64 @@ Item {
         })
     }
 
+    function messagePartText(part) {
+        if (typeof part === "string") {
+            return part
+        }
+        if (!part) {
+            return ""
+        }
+
+        var text = part.originalText || ""
+        if (part.textSuffix) {
+            text += part.textSuffix
+        }
+        return text
+    }
+
+    function messageText() {
+        var text = ""
+        if (msg) {
+            for (var i = 0; i < msg.length; i++) {
+                text += messagePartText(msg[i])
+            }
+        }
+        return text
+    }
+
+    function copyText() {
+        if (showSystemMessageLine && !showUsernameLine) {
+            return systemMessage
+        }
+
+        var text = messageText()
+        if (isAction) {
+            return user + " " + text
+        }
+        return user + ": " + text
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        z: 100
+        acceptedButtons: Qt.RightButton
+        propagateComposedEvents: true
+        onClicked: {
+            chatMessageMenu.x = mouse.x
+            chatMessageMenu.y = mouse.y
+            chatMessageMenu.open()
+            mouse.accepted = true
+        }
+    }
+
+    Menu {
+        id: chatMessageMenu
+        MenuItem {
+            text: "Copy Message"
+            onTriggered: Settings.copyToClipboard(root.copyText())
+        }
+    }
+
     Label {
         id: _systemMessageLine
         anchors {

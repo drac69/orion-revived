@@ -151,6 +151,8 @@ public:
     bool autoScrollSmoothing() const;
     void setAutoScrollSmoothing(bool autoScrollSmoothing);
 
+    Q_INVOKABLE void copyToClipboard(const QString &text) const;
+
 signals:
     void alertChanged();
     void multipleInstancesChanged();

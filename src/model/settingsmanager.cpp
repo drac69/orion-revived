@@ -1,6 +1,8 @@
 #include "settingsmanager.h"
 #include "../network/httpserver.h"
+#include <QClipboard>
 #include <QCoreApplication>
+#include <QGuiApplication>
 
 SettingsManager::SettingsManager(QObject *parent) :
     QObject(parent), settings(QCoreApplication::organizationName(), QCoreApplication::applicationName(), this)
@@ -333,6 +335,14 @@ void SettingsManager::setAutoScrollSmoothing(bool autoScrollSmoothing)
         mAutoScrollSmoothing = autoScrollSmoothing;
         settings.setValue("autoScrollSmoothing", autoScrollSmoothing);
         emit autoScrollSmoothingChanged();
+    }
+}
+
+void SettingsManager::copyToClipboard(const QString &text) const
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if (clipboard) {
+        clipboard->setText(text);
     }
 }
 

@@ -30,6 +30,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 ## Partially addressed
 
 * #288 / #300: the OAuth login URL and scopes now use the current Twitch authorization host, and the logged-in user response parser handles Helix `Get Users` responses. Follow, block, and browsing calls still need a full Helix migration.
+* #40: chat messages can now be copied from a right-click menu; arbitrary drag selection is still not implemented.
 
 ## Already covered by the final upstream code
 
@@ -56,7 +57,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #295, #278, #273, #271, #270, #263, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #187, #178, #141, #108, #101, #89, #74, #45, #40, #26, #18.
+* #295, #278, #273, #271, #270, #263, #254, #241, #240, #234, #226, #220, #217, #215, #212, #210, #205, #187, #178, #141, #108, #101, #89, #74, #45, #26, #18.
 
 ## Administrative
 
