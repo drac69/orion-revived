@@ -21,6 +21,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(QString opengl READ opengl WRITE setOpengl NOTIFY openglChanged)
     Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY qualityChanged)
     Q_PROPERTY(QString decoder READ decoder WRITE setDecoder NOTIFY decoderChanged)
+    Q_PROPERTY(bool audioCompressor READ audioCompressor WRITE setAudioCompressor NOTIFY audioCompressorChanged)
     Q_PROPERTY(QString backend READ backend WRITE setBackend NOTIFY backendChanged)
     Q_PROPERTY(QStringList backends READ backends NOTIFY backendsChanged)
     Q_PROPERTY(QString accessToken READ accessToken WRITE setAccessToken NOTIFY accessTokenChanged)
@@ -52,6 +53,7 @@ class SettingsManager : public QObject
 #endif
     QString mQuality = "source";
     QString mDecoder = "auto-copy";
+    bool mAudioCompressor = false;
 
 #ifdef MPV_PLAYER
     QString mBackend = "mpv";
@@ -125,6 +127,9 @@ public:
     QString decoder() const;
     void setDecoder(const QString &decoder);
 
+    bool audioCompressor() const;
+    void setAudioCompressor(bool audioCompressor);
+
     QString accessToken() const;
 
     void setHiDpi(bool dpi);
@@ -180,6 +185,7 @@ signals:
     void openglChanged();
     void qualityChanged();
     void decoderChanged();
+    void audioCompressorChanged();
     void backendChanged();
     void backendsChanged();
     void lightThemeChanged();

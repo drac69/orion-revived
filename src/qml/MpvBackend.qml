@@ -15,6 +15,7 @@
 import QtQuick 2.5
 import mpv 1.0
 import "util.js" as Util
+import app.orion 1.0
 
 /* Interface for backend Mpv
 
@@ -50,6 +51,7 @@ Item {
         status = "BUFFERING"
 
         stop();
+        updateAudioFilters();
 
         if (start >= 0) {
             position = start
@@ -112,6 +114,14 @@ Item {
         renderer.setProperty("hwdec", decoderName)
     }
 
+    function audioCompressorFilter() {
+        return "acompressor=threshold=0.125:ratio=4:attack=5:release=80:makeup=2"
+    }
+
+    function updateAudioFilters() {
+        renderer.setProperty("af", Settings.audioCompressor ? audioCompressorFilter() : "")
+    }
+
     signal playingResumed()
     signal playingPaused()
     signal playingStopped()
@@ -137,6 +147,13 @@ Item {
     property double volume: 100
     onVolumeChanged: {
         renderer.setProperty("volume", volume)
+    }
+
+    Component.onCompleted: updateAudioFilters()
+
+    Connections {
+        target: Settings
+        onAudioCompressorChanged: updateAudioFilters()
     }
 
     MpvObject {

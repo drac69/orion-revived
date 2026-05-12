@@ -29,6 +29,7 @@ void SettingsManager::load()
     setQuality(settings.value("quality", mQuality).toString());
     const QString savedDecoder = settings.value("decoder", mDecoder).toString();
     setDecoder(savedDecoder == "auto" ? mDecoder : savedDecoder);
+    setAudioCompressor(settings.value("audioCompressor", mAudioCompressor).toBool());
     setBackend(settings.value("backend", mBackend).toString());
     setVolumeLevel(settings.value("volumeLevel", mVolumeLevel).toInt());
     setChatEdge(settings.value("chatEdge", mChatEdge).toInt());
@@ -218,6 +219,20 @@ void SettingsManager::setDecoder(const QString &decoder)
         mDecoder = decoder;
         settings.setValue("decoder", decoder);
         emit decoderChanged();
+    }
+}
+
+bool SettingsManager::audioCompressor() const
+{
+    return mAudioCompressor;
+}
+
+void SettingsManager::setAudioCompressor(bool audioCompressor)
+{
+    if (mAudioCompressor != audioCompressor) {
+        mAudioCompressor = audioCompressor;
+        settings.setValue("audioCompressor", audioCompressor);
+        emit audioCompressorChanged();
     }
 }
 

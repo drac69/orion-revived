@@ -152,6 +152,13 @@ Page {
                         onClicked: Settings.inhibitScreensaver = checked
                     }
 
+                    Switch {
+                        text: "Audio compressor"
+                        visible: Settings.backend === "mpv"
+                        checked: Settings.audioCompressor
+                        onClicked: Settings.audioCompressor = checked
+                    }
+
                     OptionCombo {
                         id: qualityOption
                         text: "Default stream quality"
