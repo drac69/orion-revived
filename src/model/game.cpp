@@ -71,6 +71,7 @@ Game::Game(){
 //Copy constructor
 Game::Game(const Game &other)
 {
+    setId(other.getId());
     setViewers(other.getViewers());
     setName(other.getName());
     setLogo(other.getLogo());

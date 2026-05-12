@@ -42,6 +42,7 @@ class JsonParser
 {
 public:
     static PagedResult<Channel*> parseStreams(const QByteArray&);
+    static PagedResult<Game*> parseGameResults(const QByteArray&);
     static QList<Game*> parseGames(const QByteArray&);
     static PagedResult<Channel*> parseChannels(const QByteArray&);
     static PagedResult<Channel*> parseFavourites(const QByteArray&);

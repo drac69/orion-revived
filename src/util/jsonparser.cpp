@@ -141,27 +141,35 @@ Channel* JsonParser::parseStreamJson(const QJsonObject &json, const bool expectC
 
 QList<Game*> JsonParser::parseGames(const QByteArray &data)
 {
-    QList<Game*> games;
+    return parseGameResults(data).items;
+}
+
+PagedResult<Game*> JsonParser::parseGameResults(const QByteArray &data)
+{
+    PagedResult<Game*> out;
 
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(data,&error);
     if (error.error == QJsonParseError::NoError) {
         QJsonObject json = doc.object();
 
-        QString arg = (!json["top"].isNull() ? "top" : (!json["games"].isNull() ? "games" : ""));
+        QString arg = (!json["data"].isNull() ? "data" : (!json["top"].isNull() ? "top" : (!json["games"].isNull() ? "games" : "")));
 
         if (!arg.isEmpty()){
             QJsonArray arr = json[arg].toArray();
             foreach (const QJsonValue &item, arr){
                 Game* game = parseGame(item.toObject());
                 if (!game->getName().isEmpty()){
-                    games.append(game);
+                    out.items.append(game);
                 }
             }
         }
+
+        out.cursor = json["pagination"].toObject()["cursor"].toString();
+        out.total = out.items.size();
     }
 
-    return games;
+    return out;
 }
 
 
@@ -169,8 +177,18 @@ Game* JsonParser::parseGame(const QJsonObject &json)
 {
     Game* game = new Game();
 
+    if (json.contains("box_art_url")) {
+        game->setId(json["id"].toString().toUInt());
+        game->setName(json["name"].toString());
+
+        QString boxArtUrl = json["box_art_url"].toString();
+        boxArtUrl.replace("{width}", "285");
+        boxArtUrl.replace("{height}", "380");
+        game->setLogo(boxArtUrl);
+        game->setPreview(boxArtUrl);
+    }
     //From top games
-    if (json.contains("game") && !json["game"].isNull()){
+    else if (json.contains("game") && !json["game"].isNull()){
         const QJsonObject gameObj = json["game"].toObject();
 
         if (!gameObj["_id"].isNull())

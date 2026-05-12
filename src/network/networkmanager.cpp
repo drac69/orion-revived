@@ -243,13 +243,48 @@ void NetworkManager::getStreams(const QString &url)
 
 void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
 {
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+
+    if (!access_token.isEmpty() && offset == 0) {
+        topGamesPageCursors.clear();
+    }
+    else if (!access_token.isEmpty() && !topGamesPageCursors.contains(offset)) {
+        QList<Game *> empty;
+        emit gamesOperationFinished(empty);
+        return;
+    }
+
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    QString url = KRAKEN_API;
-    url += QString("/games/top?limit=%1").arg(limit)
-            + QString("&offset=%1").arg(offset);
-    request.setUrl(QUrl(url));
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+
+    QUrl url;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/games/top");
+        QUrlQuery query;
+        query.addQueryItem("first", QString::number(pageSize));
+
+        const QString cursor = topGamesPageCursors.value(offset);
+        if (!cursor.isEmpty()) {
+            query.addQueryItem("after", cursor);
+        }
+        url.setQuery(query);
+
+        request.setRawHeader("Accept", "application/json");
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
+    else {
+        QString legacyUrl = KRAKEN_API;
+        legacyUrl += QString("/games/top?limit=%1").arg(pageSize)
+                + QString("&offset=%1").arg(offset);
+        url = QUrl(legacyUrl);
+
+        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    }
+
+    request.setUrl(url);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -307,12 +342,27 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
 void NetworkManager::searchGames(const QString &query)
 {
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    QString url = QString(KRAKEN_API)
-            + QString("/search/games?query=") + QUrl::toPercentEncoding(query);
 
-    request.setUrl(QUrl(url));
+    QUrl url;
+    if (!access_token.isEmpty()) {
+        url = QUrl(QString(HELIX_API) + "/search/categories");
+        QUrlQuery urlQuery;
+        urlQuery.addQueryItem("query", query);
+        url.setQuery(urlQuery);
+
+        request.setRawHeader("Accept", "application/json");
+        QString auth = "Bearer " + access_token;
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    }
+    else {
+        url = QUrl(QString(KRAKEN_API)
+                + QString("/search/games?query=") + QUrl::toPercentEncoding(query));
+
+        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    }
+
+    request.setUrl(url);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1212,7 +1262,8 @@ void NetworkManager::searchGamesReply()
     }
     QByteArray data = reply->readAll();
 
-    emit searchGamesOperationFinished(JsonParser::parseGames(data));
+    auto result = JsonParser::parseGameResults(data);
+    emit searchGamesOperationFinished(result.items);
 
     reply->deleteLater();
 }
@@ -1226,7 +1277,17 @@ void NetworkManager::gamesReply()
     }
     QByteArray data = reply->readAll();
 
-    emit gamesOperationFinished(JsonParser::parseGames(data));
+    auto result = JsonParser::parseGameResults(data);
+    const bool isHelix = reply->url().path() == "/helix/games/top";
+    if (isHelix && !result.cursor.isEmpty()) {
+        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 returnedCount = static_cast<quint32>(result.items.size());
+        const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
+        topGamesPageCursors.insert(nextOffset, result.cursor);
+    }
+
+    emit gamesOperationFinished(result.items);
 
     reply->deleteLater();
 }
