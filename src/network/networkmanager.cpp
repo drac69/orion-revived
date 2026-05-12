@@ -372,14 +372,31 @@ void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, qui
     if (!userId)
         return;
 
-    QString url = QString(KRAKEN_API) + "/users/" + QString::number(userId) + "/follows/channels"
-            + QString("?offset=%1").arg(offset)
-            + QString("&limit=%1").arg(limit);
+    if (offset == 0) {
+        userFavouritesPageCursors.clear();
+    }
+
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+    QUrl url(QString(HELIX_API) + "/channels/followed");
+    QUrlQuery query;
+    query.addQueryItem("user_id", QString::number(userId));
+    query.addQueryItem("first", QString::number(pageSize));
+
+    const QString cursor = userFavouritesPageCursors.value(offset);
+    if (!cursor.isEmpty()) {
+        query.addQueryItem("after", cursor);
+    }
+    url.setQuery(query);
+
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
-    request.setAttribute(QNetworkRequest::User, (int) (offset + limit));
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1292,15 +1309,27 @@ void NetworkManager::favouritesReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (statusCode == 401) {
+            qWarning() << "Warning: Not authorized to read followed channels; logout and log in again to update OAuth scopes";
+        }
         return;
     }
 
     QByteArray data = reply->readAll();
 
-    int offset = reply->request().attribute(QNetworkRequest::User).toInt();
-
     auto result = JsonParser::parseFavourites(data);
-    emit favouritesReplyFinished(result.items, offset, result.total);
+
+    const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+    const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+    const quint32 nextOffset = offset + limit;
+    const quint32 total = result.cursor.isEmpty() ? nextOffset : qMax<quint32>(static_cast<quint32>(result.total), nextOffset + 1);
+
+    if (!result.cursor.isEmpty()) {
+        userFavouritesPageCursors.insert(nextOffset, result.cursor);
+    }
+
+    emit favouritesReplyFinished(result.items, nextOffset, total);
 
     reply->deleteLater();
 }

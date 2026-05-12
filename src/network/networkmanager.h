@@ -215,6 +215,7 @@ private:
 
     QSet<QString> * curChatReplayDedupeBatch;
     QSet<QString> * prevChatReplayDedupeBatch;
+    QMap<quint32, QString> userFavouritesPageCursors;
     QMap<quint32, QString> blockedUserListPageCursors;
 
     void initReplayChat();

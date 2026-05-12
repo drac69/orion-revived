@@ -284,11 +284,35 @@ PagedResult<Channel *> JsonParser::parseFavourites(const QByteArray &data)
     if (error.error == QJsonParseError::NoError){
         QJsonObject json = doc.object();
 
-        out.total = json["_total"].toInt();
+        if (json.contains("data")) {
+            const QJsonArray arr = json["data"].toArray();
+            foreach (const QJsonValue &item, arr) {
+                const QJsonObject follow = item.toObject();
+                const QString login = follow["broadcaster_login"].toString();
+                const QString displayName = follow["broadcaster_name"].toString();
+                const quint64 channelId = follow["broadcaster_id"].toString().toULongLong();
 
-        QJsonArray arr = json["follows"].toArray();
-        foreach (const QJsonValue &item, arr){
-            out.items.append(JsonParser::parseChannelJson(item.toObject()["channel"].toObject()));
+                if (channelId == 0 && login.isEmpty() && displayName.isEmpty()) {
+                    continue;
+                }
+
+                Channel *channel = new Channel();
+                channel->setId(static_cast<quint32>(channelId));
+                channel->setServiceName(login);
+                channel->setName(displayName.isEmpty() ? login : displayName);
+                out.items.append(channel);
+            }
+
+            out.cursor = json["pagination"].toObject()["cursor"].toString();
+            out.total = json["total"].toInt(out.items.size());
+        }
+        else {
+            out.total = json["_total"].toInt();
+
+            QJsonArray arr = json["follows"].toArray();
+            foreach (const QJsonValue &item, arr){
+                out.items.append(JsonParser::parseChannelJson(item.toObject()["channel"].toObject()));
+            }
         }
     }
 
