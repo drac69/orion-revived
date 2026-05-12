@@ -31,7 +31,8 @@ jobs:
             qml-module-qtquick-controls2 \
             qml-module-qtquick-layouts \
             qml-module-qtquick-window2 \
-            qml-module-qtquick2
+            qml-module-qtquick2 \
+            qtquickcontrols2-5-dev
 
       - name: Configure
         run: qmake orion.pro CONFIG+=mpv

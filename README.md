@@ -44,7 +44,7 @@ sudo pacman -S git gcc qt5-base qt5-quickcontrols qt5-svg qt5-quickcontrols2 qt5
 Ubuntu/Linux Mint:
 
 ```
-sudo apt install build-essential libmpv-dev qt5-qmake qtbase5-dev qtdeclarative5-dev qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtgraphicaleffects
+sudo apt install build-essential libmpv-dev qt5-qmake qtbase5-dev qtdeclarative5-dev qtquickcontrols2-5-dev qml-module-qtquick2 qml-module-qtquick-controls qml-module-qtquick-controls2 qml-module-qtquick-layouts qml-module-qtquick-window2 qml-module-qtgraphicaleffects
 ```
 
 If using backend other than mpv, install those packages instead.
