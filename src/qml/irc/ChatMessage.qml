@@ -145,7 +145,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        z: 100
+        z: -1
         acceptedButtons: Qt.RightButton
         propagateComposedEvents: true
         onClicked: {
@@ -164,7 +164,7 @@ Item {
         }
     }
 
-    Label {
+    TextEdit {
         id: _systemMessageLine
         anchors {
             left: parent.left
@@ -180,9 +180,17 @@ Item {
         visible: showSystemMessageLine
         text: root.systemMessage
         font.pointSize: fontSize
-        wrapMode: Text.Wrap
+        color: Material.foreground
+        readOnly: true
+        selectByMouse: true
+        selectByKeyboard: true
+        textFormat: TextEdit.PlainText
+        wrapMode: TextEdit.Wrap
+        textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
 
         height: showSystemMessageLine? contentHeight : 0
+
+        TextMenu { copyAllText: root.copyText() }
     }
 
     CustomFlow {
@@ -259,23 +267,38 @@ Item {
     }
 
     property Component msgText: Component {
-      Label {
-        verticalAlignment: Text.AlignVCenter
+      TextEdit {
         color: Material.foreground
         font.pointSize: fontSize
         text: msgItem
-        textFormat: Text.PlainText
+        textFormat: TextEdit.PlainText
+        readOnly: true
+        selectByMouse: true
+        selectByKeyboard: true
+        wrapMode: TextEdit.NoWrap
+        textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
+        width: Math.max(1, contentWidth)
+        height: contentHeight
+
+        TextMenu { copyAllText: root.copyText() }
       }
     }
     property Component msgLink: Component {
-      Label {
-        verticalAlignment: Text.AlignVCenter
+      TextEdit {
         font.pointSize: fontSize
         color: Material.foreground
-        linkColor: "#4286f4"
         text: Util.makeUrl(msgItem)
         onLinkActivated: linkActivation(link)
-        textFormat: Text.StyledText
+        textFormat: TextEdit.RichText
+        readOnly: true
+        selectByMouse: true
+        selectByKeyboard: true
+        wrapMode: TextEdit.NoWrap
+        textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard | Qt.LinksAccessibleByMouse
+        width: Math.max(1, contentWidth)
+        height: contentHeight
+
+        TextMenu { copyAllText: root.copyText() }
         MouseArea {
             visible: parent.hoveredLink
             anchors.fill: parent
@@ -285,16 +308,23 @@ Item {
       }
     }
     property Component msgUserRefLink: Component {
-      Label {
-        verticalAlignment: Text.AlignVCenter
+      TextEdit {
         color: Material.foreground
-        linkColor: "#4286f4"
         font.pointSize: fontSize
         text: colorUserRef(Util.makeUrl(msgItem))
         onLinkActivated: linkActivation(link)
-        textFormat: Text.RichText
+        textFormat: TextEdit.RichText
+        readOnly: true
+        selectByMouse: true
+        selectByKeyboard: true
+        wrapMode: TextEdit.NoWrap
+        textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard | Qt.LinksAccessibleByMouse
+        width: Math.max(1, contentWidth)
+        height: contentHeight
         property int lastUserMessage: hoveredLink ? findLastUserMessage(hoveredLink) : -1
         onLastUserMessageChanged: list.markIndex(lastUserMessage)
+
+        TextMenu { copyAllText: root.copyText() }
         MouseArea {
             visible: parent.lastUserMessage !== -1
             anchors.fill: parent

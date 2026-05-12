@@ -29,6 +29,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.
 * #190: Escape is handled as an application shortcut while the emote picker is open.
+* #40: chat text segments are selectable and copyable, and whole messages can still be copied from the row context menu.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
 * #284: kept the upstream localhost OAuth response fix from #272.
@@ -36,7 +37,6 @@ The upstream repository is archived and had 79 open issues at the time this fork
 ## Partially addressed
 
 * #288 / #300: the OAuth login URL and scopes now use the current Twitch authorization host, and the logged-in user response parser handles Helix `Get Users` responses. Follow, block, and browsing calls still need a full Helix migration.
-* #40: chat messages can now be copied from a right-click menu; arbitrary drag selection is still not implemented.
 
 ## Already covered by the final upstream code
 

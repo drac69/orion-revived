@@ -1,10 +1,13 @@
 import QtQuick 2.5
 import QtQuick.Controls 2.1
+import app.orion 1.0
 
 
 MouseArea {
     property alias menu : contextMenu
     property var source : parent
+    property string copyAllText: ""
+    property string copyAllLabel: "Copy Message"
 
     QtObject {
         id: d
@@ -61,9 +64,15 @@ MouseArea {
         }
         MenuItem {
             text: "Copy"
+            enabled: source.selectedText !== ""
             onTriggered: {
                 source.copy()
             }
+        }
+        MenuItem {
+            text: copyAllLabel
+            visible: copyAllText !== ""
+            onTriggered: Settings.copyToClipboard(copyAllText)
         }
         MenuItem {
             text: "Paste"
