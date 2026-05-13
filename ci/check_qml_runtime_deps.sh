@@ -9,6 +9,40 @@ ci_dependency_sources=(
     "$repo_dir/ci/install_ubuntu_ci_deps.sh"
 )
 
+allowed_external_imports=(
+    Qt.labs.settings
+    QtAV
+    QtGraphicalEffects
+    QtMultimedia
+    QtQuick
+    QtQuick.Controls
+    QtQuick.Controls.Material
+    QtQuick.Layouts
+    QtQuick.Window
+    aldrog.twitchtube.ircchat
+    app.orion
+    mpv
+)
+
+mapfile -t qml_external_imports < <(
+    rg --no-filename --only-matching --replace '$1' '^import ([A-Za-z][A-Za-z0-9_.]*)\b' "$repo_dir/src/qml" | sort -u
+)
+
+for qml_import in "${qml_external_imports[@]}"; do
+    known=false
+    for allowed_import in "${allowed_external_imports[@]}"; do
+        if [ "$qml_import" = "$allowed_import" ]; then
+            known=true
+            break
+        fi
+    done
+
+    if [ "$known" = false ]; then
+        printf 'QML import %s must be added to ci/check_qml_runtime_deps.sh with package coverage or an explicit local-module reason.\n' "$qml_import" >&2
+        exit 1
+    fi
+done
+
 require_package_for_import() {
     local import_pattern=$1
     local package_name=$2
