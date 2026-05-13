@@ -41,7 +41,7 @@ jobs:
 
       - name: Validate packaging metadata
         run: |
-          appstreamcli validate --pedantic distfiles/Orion.appdata.xml
+          appstreamcli validate --pedantic --no-net distfiles/Orion.appdata.xml
           desktop-file-validate distfiles/Orion.desktop
 
       - name: Validate Twitch API usage
