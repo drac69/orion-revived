@@ -240,6 +240,21 @@ Item{
                     itemCount += 25
                 }
             }
+
+            BusyIndicator {
+                visible: running
+                running: vodSearchInProgress
+                anchors.centerIn: parent
+            }
+
+            Label {
+                anchors.centerIn: parent
+                width: Math.min(parent.width - 48, 420)
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                visible: selectedChannel && !vodSearchInProgress && vodsModel.count() === 0
+                text: !Settings.hasAccessToken ? "Log in to load Twitch VODs" : (vodsModel.filterText.length > 0 ? "No VODs match this filter" : "No VODs found")
+            }
         }
     }
 }
