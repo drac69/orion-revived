@@ -375,6 +375,12 @@ Page {
                     }
 
                     Switch {
+                        text: "Compact navigation"
+                        checked: Settings.compactNavigation
+                        onClicked: Settings.compactNavigation = checked
+                    }
+
+                    Switch {
                         visible: !isMobile()
                         text: "Allow multiple instances"
                         checked: Settings.multipleInstances

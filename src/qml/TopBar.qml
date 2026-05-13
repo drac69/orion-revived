@@ -34,7 +34,7 @@ ToolBar {
         anchors.fill: parent
         currentIndex: selectedView
 
-        property bool showIcons: root.width < 700
+        property bool showIcons: Settings.compactNavigation || root.width < 700
         font.pointSize: !showIcons ? 13 : 16
         font.family: showIcons ? "Material Icons" : rootWindow.font.name
 

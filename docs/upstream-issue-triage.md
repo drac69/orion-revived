@@ -65,6 +65,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #268: Twitch `USERNOTICE` raid messages now append a channel URL from the raid `msg-param-login` tag, and chat system notices render URLs as selectable/clickable links; automatic in-client raid redirection is still not implemented.
 * #283: the player header now offers a direct Twitch fallback for the current live channel or VOD, giving users a supported path when Orion's native playlist-token flow fails; a documented native HLS playback-token replacement remains unavailable.
 * #142: the emote picker now includes a small common Unicode emoji set that inserts the selected emoji into chat; a bundled emoji image/font set and full Unicode emoji catalog remain unimplemented.
+* #278: added an optional compact navigation setting that keeps the main navigation icon-only on wide windows; a full recreation of the old 1.5.x side-navigation/right-chat layout remains unimplemented.
 
 ## Already covered by the final upstream code
 
@@ -111,7 +112,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278.
+* #278: full 1.5.x legacy layout recreation remains product work outside the maintenance pass.
 
 ## Administrative
 

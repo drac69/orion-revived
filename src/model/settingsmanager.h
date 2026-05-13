@@ -32,6 +32,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(bool hasAccessToken READ hasAccessToken NOTIFY accessTokenChanged)
     Q_PROPERTY(bool lightTheme READ lightTheme WRITE setLightTheme NOTIFY lightThemeChanged)
     Q_PROPERTY(bool pastelColors READ pastelColors WRITE setPastelColors NOTIFY pastelColorsChanged)
+    Q_PROPERTY(bool compactNavigation READ compactNavigation WRITE setCompactNavigation NOTIFY compactNavigationChanged)
     Q_PROPERTY(bool clickTogglePause READ clickTogglePause WRITE setClickTogglePause NOTIFY clickTogglePauseChanged)
     Q_PROPERTY(bool inhibitScreensaver READ inhibitScreensaver WRITE setInhibitScreensaver NOTIFY inhibitScreensaverChanged)
     Q_PROPERTY(bool autoScrollSmoothing READ autoScrollSmoothing WRITE setAutoScrollSmoothing NOTIFY autoScrollSmoothingChanged)
@@ -87,6 +88,7 @@ class SettingsManager : public QObject
     int mChatEdge = 1;
     bool mLightTheme = false;
     bool mPastelColors = true;
+    bool mCompactNavigation = false;
     bool mClickTogglePause = true;
     bool mInhibitScreensaver = true;
     bool mAutoScrollSmoothing = true;
@@ -173,6 +175,9 @@ public:
     bool pastelColors() const;
     void setPastelColors(bool pastelColors);
 
+    bool compactNavigation() const;
+    void setCompactNavigation(bool compactNavigation);
+
     bool clickTogglePause() const;
     void setClickTogglePause(bool clickTogglePause);
 
@@ -221,6 +226,7 @@ signals:
     void fontChanged();
     void keepOnTopChanged();
     void pastelColorsChanged();
+    void compactNavigationChanged();
     void clickTogglePauseChanged();
     void inhibitScreensaverChanged();
     void autoScrollSmoothingChanged();
