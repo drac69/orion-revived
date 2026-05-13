@@ -711,6 +711,16 @@ Page {
                 loadAndPlay()
             }
 
+            onStatusChanged: {
+                if (status === Loader.Error) {
+                    var failedBackend = Settings.backend
+                    Settings.markBackendUnavailable(failedBackend)
+                    if (Settings.backend === failedBackend) {
+                        setHeaderText("Player backend failed to load: " + failedBackend)
+                    }
+                }
+            }
+
             onLoaded: {
                 console.log("Loaded renderer")
                 if (root.showPlaybackStats) {

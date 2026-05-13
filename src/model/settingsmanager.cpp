@@ -438,6 +438,26 @@ QStringList SettingsManager::backends() const
     return mBackends;
 }
 
+void SettingsManager::markBackendUnavailable(const QString &backend)
+{
+    if (!mBackends.contains(backend)) {
+        return;
+    }
+
+    if (mBackends.size() <= 1) {
+        qWarning() << "Player backend" << backend << "failed to load and no fallback backend is available";
+        return;
+    }
+
+    mBackends.removeAll(backend);
+    qWarning() << "Player backend" << backend << "failed to load; falling back to available backend list" << mBackends;
+
+    if (mBackend == backend) {
+        setBackend(mBackends.first());
+    }
+    emit backendsChanged();
+}
+
 QString SettingsManager::accessToken() const
 {
     return mAccessToken;

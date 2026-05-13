@@ -229,11 +229,21 @@ Page {
                             "mpv": "mpv",
                             "multimedia": "Qt Multimedia"
                         }
-                        Component.onCompleted: {
+
+                        function refreshModel() {
                             model = Settings.backends.map(function(v) { return backendNames[v] || v; })
                             selectItem(Settings.backend)
                             visible = Settings.backends.length > 1
                         }
+
+                        Component.onCompleted: refreshModel()
+
+                        Connections {
+                            target: Settings
+                            onBackendChanged: playerOption.selectItem(Settings.backend)
+                            onBackendsChanged: playerOption.refreshModel()
+                        }
+
                         onActivated: {
                             if (Settings.backend !== Settings.backends[currentIndex]) {
                                 Settings.backend = Settings.backends[currentIndex]

@@ -211,6 +211,7 @@ public:
     Q_INVOKABLE QStringList screenNames() const;
     Q_INVOKABLE QString channelQuality(const QString &channel);
     Q_INVOKABLE void setChannelQuality(const QString &channel, const QString &quality);
+    Q_INVOKABLE void markBackendUnavailable(const QString &backend);
 
 signals:
     void alertChanged();

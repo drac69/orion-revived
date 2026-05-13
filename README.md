@@ -64,18 +64,18 @@ pkg install qt5-buildtools qt5-core qt5-declarative qt5-graphicaleffects qt5-gui
   qt5-network qt5-quickcontrols2 qt5-widgets mpv
 ```
 
-If using backend other than mpv, install those packages instead.
+If using backend other than mpv, install those packages instead. Packagers can build multiple backends into one binary by passing more than one backend flag, for example `CONFIG+=mpv CONFIG+=multimedia`. At startup, Orion removes a compiled backend from the in-app selector if its QML module cannot load and falls back to another compiled backend when one is available.
 
 If a FreeBSD build fails at runtime with unresolved `QSslSocket` or OpenSSL symbols, check that the runtime Qt Network package and OpenSSL libraries come from the same package set. Old FreeBSD 11-era reports of `SSL_CTX_set1_groups` failures were consistent with an SSL runtime mismatch rather than an Orion-only crash.
 
 #### Choosing player backend (optional)
-To select a backend used, pass CONFIG-variable a suitable backend for qmake (alternatively edit straight to .pro file):
+To select one or more backends, pass suitable CONFIG variables to qmake (alternatively edit straight to `.pro` file):
 
 * MPV: `CONFIG+=mpv`
 * QtAV: `CONFIG+=qtav`
 * Qt5 Multimedia: `CONFIG+=multimedia`
 
-As default, mpv is used (if nothing is passed)
+As default, mpv is used if nothing is passed. When more than one backend is built, the player setting becomes visible and Orion can fall back to another compiled backend if the selected backend cannot load at runtime.
 
 #### Get orion from github and install
 
