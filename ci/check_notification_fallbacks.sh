@@ -23,6 +23,11 @@ for source_file in "$repo_dir/src/notification/notificationsender.cpp" "$repo_di
         printf '%s must still show text notifications when image loading fails.\n' "$source_file" >&2
         exit 1
     fi
+
+    if rg -q 'SIGNAL\(|SLOT\(' "$source_file"; then
+        printf '%s must use type-checked signal/slot connections.\n' "$source_file" >&2
+        exit 1
+    fi
 done
 
 if ! rg -q 'this->deleteLater\(\);' "$repo_dir/src/notification/notificationsender.cpp"; then
