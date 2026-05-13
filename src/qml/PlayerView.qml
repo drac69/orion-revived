@@ -996,7 +996,7 @@ Page {
         }
 
         onClicked: {
-            if (Settings.clickTogglePause) {
+            if (Settings.clickTogglePause && !isMobile()) {
                 clickRect.run()
                 clickTimer.restart()
             }

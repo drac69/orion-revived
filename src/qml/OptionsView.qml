@@ -169,6 +169,7 @@ Page {
 
                     Switch {
                         text: "Toggle pause by clicking"
+                        visible: !isMobile()
                         checked: Settings.clickTogglePause
                         onClicked: Settings.clickTogglePause = checked
                     }

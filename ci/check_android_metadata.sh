@@ -95,6 +95,14 @@ if "FLAG_KEEP_SCREEN_ON" not in main_activity:
 if re.search(r"\bWakeLock\b", main_activity):
     errors.append("MainActivity must not use deprecated WakeLock APIs")
 
+player_view_qml = (repo / "src" / "qml" / "PlayerView.qml").read_text(encoding="utf-8")
+if "Settings.clickTogglePause && !isMobile()" not in player_view_qml:
+    errors.append("Mobile player taps must only reveal controls; they must not toggle pause")
+
+options_view_qml = (repo / "src" / "qml" / "OptionsView.qml").read_text(encoding="utf-8")
+if not re.search(r'text:\s*"Toggle pause by clicking"\s+visible:\s*!isMobile\(\)', options_view_qml):
+    errors.append("Click-to-pause setting must stay hidden on mobile where surface taps reveal controls")
+
 views_qml = views_path.read_text(encoding="utf-8")
 for required_text, description in (
     ("property int lastNonPlayerIndex", "Views.qml must remember the last non-player tab for Android Back navigation"),

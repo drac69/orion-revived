@@ -8,8 +8,9 @@ Current source-level maintenance:
 * The app no longer requests `WAKE_LOCK`; playback screen inhibition uses Android's `FLAG_KEEP_SCREEN_ON` window flag while the Activity exists.
 * Android background running is disabled in the Qt manifest metadata so playback is suspended when Android backgrounds the Activity, such as during calls or app switching.
 * Android now uses the same screen-density detection as desktop builds before the chat/emote providers are initialized, so high-density devices request 2x Twitch, BTTV, FFZ, Bits, and badge images instead of the low-resolution 1x assets.
+* Mobile player surface taps now only reveal playback controls instead of toggling pause, avoiding accidental pauses from touch misses while keeping the explicit play/pause button available.
 * Optional Android OpenSSL libraries are only added to the package when `libs/libcrypto.so` and `libs/libssl.so` are actually present.
-* CI validates the Android manifest version, package name, lifecycle metadata, required network permissions, absence of `WAKE_LOCK`, `FLAG_KEEP_SCREEN_ON` source path, and the QML Back-key navigation contract.
+* CI validates the Android manifest version, package name, lifecycle metadata, required network permissions, absence of `WAKE_LOCK`, `FLAG_KEEP_SCREEN_ON` source path, the mobile tap-to-control playback contract, and the QML Back-key navigation contract.
 
 Release requirements still missing:
 
