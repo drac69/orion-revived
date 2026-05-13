@@ -42,8 +42,15 @@ if ! rg -q 'const qint16 IrcChat::PORT = 6697;' src/model/ircchat.cpp; then
     fail=1
 fi
 
-if ! rg -q 'RECONNECT' src/model/ircchat.cpp; then
-    printf 'Twitch IRC RECONNECT command handling is required for server-requested reconnects.\n' >&2
+for required_irc_command in RECONNECT HOSTTARGET CLEARMSG ROOMSTATE; do
+    if ! rg -q "$required_irc_command" src/model/ircchat.cpp; then
+        printf 'Twitch IRC %s command handling is required for current chat behavior.\n' "$required_irc_command" >&2
+        fail=1
+    fi
+done
+
+if ! rg -q 'ircCommandKeyword' src/model/ircchat.cpp; then
+    printf 'Twitch IRC command parsing must use the structured command keyword helper.\n' >&2
     fail=1
 fi
 

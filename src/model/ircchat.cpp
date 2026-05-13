@@ -980,15 +980,50 @@ void IrcChat::parseMessageCommand(const QString cmd, const QString cmdKeyword, C
     //qDebug() << "emotes " << emotes;
 }
 
+static QString ircCommandKeyword(const QString &cmd)
+{
+    QString message = cmd;
+    if (message.startsWith('@')) {
+        const int tagEnd = message.indexOf(' ');
+        if (tagEnd == -1) {
+            return QString();
+        }
+        message = message.mid(tagEnd + 1);
+    }
+
+    const QStringList parts = message.split(' ', Qt::SkipEmptyParts);
+    const int commandIndex = !parts.isEmpty() && parts.first().startsWith(':') ? 1 : 0;
+    return commandIndex < parts.length() ? parts.at(commandIndex) : QString();
+}
+
+static QString ircTrailingMessage(const QString &cmd, int afterPos)
+{
+    const int messageStart = cmd.indexOf(':', afterPos);
+    return messageStart == -1 ? QString() : cmd.mid(messageStart + 1);
+}
+
 void IrcChat::parseCommand(QString cmd) {
-    if (cmd == ":tmi.twitch.tv RECONNECT" || cmd.endsWith(" RECONNECT")) {
+    const QString commandKeyword = ircCommandKeyword(cmd);
+
+    if (commandKeyword == "RECONNECT") {
         qDebug() << "Twitch IRC requested reconnect";
         reopenSocket();
         return;
     }
 
-    if(cmd.startsWith("PING ")) {
+    if(commandKeyword == "PING" && cmd.startsWith("PING ")) {
         sock->write(("PONG " + cmd.mid(5) + "\r\n").toStdString().c_str());
+        return;
+    }
+
+    if (commandKeyword == "HOSTTARGET") {
+        const QString hostTarget = ircTrailingMessage(cmd, cmd.indexOf("HOSTTARGET")).section(' ', 0, 0);
+        if (hostTarget == "-") {
+            emit noticeReceived("No longer hosting another channel.");
+        }
+        else if (!hostTarget.isEmpty()) {
+            emit noticeReceived(QString("Now hosting %1.").arg(hostTarget));
+        }
         return;
     }
 
@@ -1196,6 +1231,11 @@ void IrcChat::parseCommand(QString cmd) {
         return;
     }
 
+    if (commandKeyword == "CLEARMSG") {
+        emit noticeReceived("A chat message was deleted by a moderator.");
+        return;
+    }
+
     if(cmd.contains("CLEARCHAT")) {
         //@ban-duration=<ban-duration>;ban-reason=<ban-reason> :tmi.twitch.tv CLEARCHAT #<channel> :<user>
         QString user = cmd.mid(cmd.lastIndexOf(":")+1);
@@ -1219,6 +1259,14 @@ void IrcChat::parseCommand(QString cmd) {
                              .arg(user).arg(banReason);
           emit noticeReceived(banText);
         }
+        return;
+    }
+
+    if (commandKeyword == "CAP" || commandKeyword == "JOIN" || commandKeyword == "PART" ||
+        commandKeyword == "ROOMSTATE" || commandKeyword == "001" || commandKeyword == "002" ||
+        commandKeyword == "003" || commandKeyword == "004" || commandKeyword == "353" ||
+        commandKeyword == "366" || commandKeyword == "372" || commandKeyword == "375" ||
+        commandKeyword == "376") {
         return;
     }
 
