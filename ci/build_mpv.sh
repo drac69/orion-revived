@@ -1,4 +1,5 @@
 #!/bin/bash
+. "$(dirname "${BASH_SOURCE[0]}")/legacy_ci_guard.sh" || exit 1
 set -e -x
 
 sudo apt-fast -y install nasm xorg-dev libwayland-dev libgl1-mesa-dev libegl1-mesa-dev fontconfig libfribidi-dev yasm libxinerama-dev libxrandr-dev libasound2-dev libpulse-dev libjack-dev libvdpau-dev libva-dev libva-egl1 libva-x11-1 libva1 libgstreamer-plugins-base1.0-0 > /dev/null

@@ -1,4 +1,5 @@
 #!/bin/bash
+. "$(dirname "${BASH_SOURCE[0]}")/legacy_ci_guard.sh" || exit 1
 set -e -x
 
 # https://github.com/benlau/qtci
@@ -29,4 +30,3 @@ cat << EOM > $ENVFILE
 export QTDIR=$PWD/${QT_VERSION}/gcc_64
 export PATH=$QTDIR/bin:$PATH
 EOM
-

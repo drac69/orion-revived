@@ -101,7 +101,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 * #276: added FreeBSD dependency notes to the README.
 * #216: added FreeBSD SSL-runtime troubleshooting for the reported `SSL_CTX_set1_groups` startup failure; the original FreeBSD 11 crash has not been reproduced in this environment.
-* #235 / #219: Linux desktop packaging metadata now points at this maintained fork, uses a reverse-DNS AppStream component ID with a desktop launchable, includes screenshot captions, and is validated in CI with `appstreamcli`, `desktop-file-validate`, and a staged `make install`; publishing distro packages or a PPA remains maintainer/distribution work.
+* #235 / #219: Linux desktop packaging metadata now points at this maintained fork, uses a reverse-DNS AppStream component ID with a desktop launchable, includes screenshot captions, and is validated in CI with `appstreamcli`, `desktop-file-validate`, and a staged `make install`. Obsolete Travis/AppVeyor release helpers are now documented as legacy and require an explicit opt-in before running; publishing distro packages or a PPA remains maintainer/distribution work.
 * #239: Fedora's package was built with the Qt Multimedia/GStreamer backend and missing codec/video sink dependencies, while distro comments recommend rebuilding with mpv; this remains distro packaging work.
 * #277: the failed VOD thumbnail URLs also failed on Twitch's own website according to upstream triage, so this is an upstream Twitch data/thumbnail issue rather than an Orion API bug.
 * #34: the Fluendo/GStreamer codec-pack playback failure depends on an old Qt Multimedia/GStreamer backend path and proprietary codec pack behavior that has not been reproduced here.

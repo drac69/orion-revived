@@ -1,3 +1,4 @@
+@call "%~dp0legacy_ci_guard.bat" || exit /b 1
 set QTAV_DIR=C:\projects\QtAV\%cc%\%platform%\%configuration%
 setlocal enableextensions
 

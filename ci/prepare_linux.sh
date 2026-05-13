@@ -1,4 +1,6 @@
 #!/bin/bash
+. "$(dirname "${BASH_SOURCE[0]}")/legacy_ci_guard.sh" || exit 1
+
 BASE_DIR=$PWD
 
 $BASE_DIR/ci/build_mpv.sh

@@ -17,6 +17,8 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 
 This fork currently validates source builds on Linux through GitHub Actions. Revalidated Windows, macOS, Android, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, followed-channel, and VOD metadata use Helix and require logging in; this desktop fork does not embed a client secret for unauthenticated app-token requests.
 
+The maintained automation entry point is `.github/workflows/ci.yml`. Older release helper scripts under `ci/` are preserved for reference only, require an explicit legacy opt-in before running, and should not be treated as current build instructions.
+
 ## Features: 
 
 * Login by twitch credentials

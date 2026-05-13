@@ -1,5 +1,6 @@
 #!/bin/bash
 #Fixes mac frameworks
+. "$(dirname "${BASH_SOURCE[0]}")/legacy_ci_guard.sh" || exit 1
 
 DIR=$1
 
@@ -60,4 +61,3 @@ for FRAMEWORK in $FRAMEWORKS; do
 	$DIR/Contents/Resources/qml/QtMultimedia/libdeclarative_multimedia.dylib
 done
 	
-

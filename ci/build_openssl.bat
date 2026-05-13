@@ -1,3 +1,4 @@
+@call "%~dp0legacy_ci_guard.bat" || exit /b 1
 set OPENSSL_DIR=C:\projects\OpenSSL\%cc%\%platform%
 set "PATH=C:\Program Files (x86)\nasm;%PATH%"
 setlocal enableextensions

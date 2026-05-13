@@ -1,4 +1,5 @@
 #!/bin/bash
+. "$(dirname "${BASH_SOURCE[0]}")/legacy_ci_guard.sh" || exit 1
 
 set -e
 

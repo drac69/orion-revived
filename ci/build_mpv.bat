@@ -1,3 +1,4 @@
+@call "%~dp0legacy_ci_guard.bat" || exit /b 1
 set MPVDIR=C:\projects\mpv\%cc%\%platform%
 setlocal enableextensions
 
