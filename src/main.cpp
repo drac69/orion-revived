@@ -238,8 +238,8 @@ void showConsole() {
     info.dwFontSize.Y = 14;
     info.FontWeight = FW_NORMAL;
     wcscpy_s(info.FaceName, L"Consolas");
-    SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), NULL, &info);
-    SetCurrentConsoleFontEx(GetStdHandle(STD_ERROR_HANDLE), NULL, &info);
+    SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &info);
+    SetCurrentConsoleFontEx(GetStdHandle(STD_ERROR_HANDLE), FALSE, &info);
     SetConsoleOutputCP(CP_UTF8);
 }
 #endif
@@ -442,7 +442,7 @@ void msgHandler(QtMsgType type, const QMessageLogContext &context, const QString
                         "CODE_FILE=%s", context.file ? context.file : "",
                         "CODE_LINE=%i", context.line,
                         "CODE_FUNC=%s", context.function ? context.function : "",
-                        NULL);
+                        static_cast<const char *>(nullptr));
     }
 #endif
 }

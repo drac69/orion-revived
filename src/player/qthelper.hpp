@@ -126,7 +126,7 @@ private:
         return list;
     err:
         free_node(dst);
-        return NULL;
+        return nullptr;
     }
     char *dup_qstring(const QString &s) {
         QByteArray b = s.toUtf8();
