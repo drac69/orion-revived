@@ -13,6 +13,11 @@ if rg -n '\b(NULL|Q_NULLPTR)\b' "$repo_dir/src"; then
     exit 1
 fi
 
+if rg -n '\b(Q_OS_MAC|Q_OS_OSX|Q_WS_MAC)\b' "$repo_dir/src"; then
+    printf 'src must use Q_OS_MACOS for macOS-specific code instead of deprecated Qt platform macros.\n' >&2
+    exit 1
+fi
+
 if rg -n '\*\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*0\s*(;|,|\))|\*\s*parent\s*=\s*0\b' "$repo_dir/src"; then
     printf 'Pointer declarations and default arguments must use nullptr instead of 0.\n' >&2
     exit 1

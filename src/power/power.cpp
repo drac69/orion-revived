@@ -23,7 +23,7 @@
     #include <QtDBus>
 #endif
 #endif
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     #include <CoreServices/CoreServices.h>
 #endif
 
@@ -92,7 +92,7 @@ void Power::setScreensaver(bool enabled)
         SetThreadExecutionState(ES_CONTINUOUS);
 #endif
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 //    if (enabled){
 //        timer->stop();
 //    } else {
@@ -125,7 +125,7 @@ void Power::timerEvent(QTimerEvent *event)
 #endif
 #endif
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
     UpdateSystemActivity(OverallAct);
     qDebug() << "Sent nudge to osx screensaver";
 #endif

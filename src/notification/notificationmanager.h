@@ -22,7 +22,7 @@
 #include <QQmlComponent>
 #include <QObject>
 
-#if defined(Q_OS_MAC) || defined(Q_OS_LINUX)
+#if defined(Q_OS_MACOS) || defined(Q_OS_LINUX)
     #include "notificationsender.h"
 
 #endif

@@ -21,7 +21,7 @@
 #include <QDebug>
 
 namespace {
-#if !defined(Q_OS_MAC) && !defined(Q_OS_LINUX)
+#if !defined(Q_OS_MACOS) && !defined(Q_OS_LINUX)
 QRect selectedNotificationGeometry()
 {
     const QList<QScreen *> screens = QGuiApplication::screens();
@@ -71,7 +71,7 @@ void NotificationManager::showNext()
     if (!queue.isEmpty()){
         NotificationData *data = queue.takeFirst();
 
-#if defined(Q_OS_MAC) || defined (Q_OS_LINUX)
+#if defined(Q_OS_MACOS) || defined (Q_OS_LINUX)
         //NotificationSender deletes itself after displaying message
         NotificationSender *msg = new NotificationSender(net);
         msg->pushNotification(data->title, data->message, data->imgUrl);

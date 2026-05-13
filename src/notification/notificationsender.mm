@@ -17,7 +17,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 #import <Foundation/NSUserNotification.h>
 #endif
 
@@ -82,7 +82,7 @@ void NotificationSender::onFileReply()
     sendNotification(title, subtitle, data);
 }
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACOS
 
 void NotificationSender::sendNotification(const QString &title, const QString &message, const QByteArray &data)
 {
