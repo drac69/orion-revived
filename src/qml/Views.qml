@@ -24,9 +24,20 @@ StackView {
     property alias playerView : playerView
     property alias settingsView : settingsView
     property bool playerVisible : playerView.visible
+    property int lastNonPlayerIndex: 1
+    focus: true
 
     function requestSelectionChange(index) {
         setCurrentIndex(index);
+    }
+
+    function navigateBack() {
+        if (currentIndex === 4) {
+            setCurrentIndex(lastNonPlayerIndex === 4 ? 1 : lastNonPlayerIndex)
+            return true
+        }
+
+        return false
     }
 
     function isItemInView(item) {
@@ -37,6 +48,18 @@ StackView {
             item = item.parent
         }
         return false
+    }
+
+    onCurrentIndexChanged: {
+        if (currentIndex !== 4) {
+            lastNonPlayerIndex = currentIndex
+        }
+    }
+
+    Keys.onBackPressed: {
+        if (isMobile()) {
+            event.accepted = navigateBack()
+        }
     }
 
     SearchView {

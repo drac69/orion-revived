@@ -61,6 +61,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #210: new Windows installs now default to ANGLE D3D11 instead of the older D3D9 renderer, and saved D3D9 defaults are migrated to D3D11 to reduce exposure to the Fraps/Qt render-thread crash path; the Fraps-specific crash has not been reproduced in this environment.
 * #90: focused QML text fields now request the Qt input method, and Windows tablet/slate systems also launch the OS touch keyboard (`TabTip.exe`/`osk.exe`) when text inputs gain focus; the Windows tablet behavior has not been reproduced in this environment.
 * #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests; the heavier prefetch segment/proxy approach remains unimplemented.
+* #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; Android playback pause/resume, call-audio handling, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
 
 ## Already covered by the final upstream code
 
@@ -84,7 +85,7 @@ These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VO
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
 * #276: added FreeBSD dependency notes to the README.
-* #267, #261, #235, #219, #216, #202.
+* #267, #261, #235, #219, #216.
 
 ## Feature requests not implemented here
 
