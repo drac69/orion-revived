@@ -36,7 +36,7 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
     connect(operation, &QNetworkAccessManager::sslErrors, this, &NetworkManager::handleSslErrors);
 
     //Handshake
-    operation->connectToHost(TWITCH_API);
+    operation->connectToHostEncrypted(QStringLiteral("api.twitch.tv"));
 
     //Set up offline poller
     offlinePoller.setInterval(2000);

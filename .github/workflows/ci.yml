@@ -43,6 +43,9 @@ jobs:
           appstreamcli validate --pedantic distfiles/Orion.appdata.xml
           desktop-file-validate distfiles/Orion.desktop
 
+      - name: Validate Twitch API usage
+        run: ci/check_twitch_api_guard.sh
+
       - name: Configure
         run: qmake orion.pro CONFIG+=mpv
 
