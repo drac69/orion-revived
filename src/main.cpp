@@ -44,9 +44,7 @@
 
 #ifndef Q_OS_ANDROID
 #include <QApplication>
-#ifndef Q_OS_WIN
 #include "notification/notificationmanager.h"
-#endif
 #else
 #include <QGuiApplication>
 #endif
@@ -568,11 +566,9 @@ int main(int argc, char *argv[])
 
     SettingsManager::getInstance()->setHiDpi(maxDevicePixelRatio > 1.0);
 
-#ifndef Q_OS_WIN
     //Set up notifications
     NotificationManager *notificationManager = new NotificationManager(&engine, engine.networkAccessManager(), &app);
     QObject::connect(ChannelManager::getInstance(), &ChannelManager::pushNotification, notificationManager, &NotificationManager::pushNotification);
-#endif
 #endif
 
     QQmlContext *rootContext = engine.rootContext();

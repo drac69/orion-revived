@@ -13,8 +13,25 @@
  */
 
 #include "notificationmanager.h"
+#include "../model/settingsmanager.h"
+#include <QGuiApplication>
+#include <QRect>
+#include <QScreen>
 #include <QVariant>
 #include <QDebug>
+
+namespace {
+QRect selectedNotificationGeometry()
+{
+    const QList<QScreen *> screens = QGuiApplication::screens();
+    if (screens.isEmpty())
+        return QRect(0, 0, 800, 600);
+
+    const int requestedScreen = SettingsManager::getInstance()->alertScreen();
+    const int screenIndex = qMax(0, qMin(requestedScreen, screens.count() - 1));
+    return screens.at(screenIndex)->availableGeometry();
+}
+}
 
 NotificationManager::NotificationManager(QQmlApplicationEngine *engine, QNetworkAccessManager *nm, QObject *parent) :
     QObject(parent),
@@ -56,6 +73,24 @@ void NotificationManager::showNext()
         //NotificationSender deletes itself after displaying message
         NotificationSender *msg = new NotificationSender(net);
         msg->pushNotification(data->title, data->message, data->imgUrl);
+#else
+        QQmlComponent component(engine, QUrl(QStringLiteral("qrc:/components/Notification.qml")));
+        currentObject = component.create();
+
+        if (currentObject) {
+            const QRect geometry = selectedNotificationGeometry();
+            currentObject->setProperty("screenX", geometry.x());
+            currentObject->setProperty("screenY", geometry.y());
+            currentObject->setProperty("screenWidth", geometry.width());
+            currentObject->setProperty("screenHeight", geometry.height());
+            currentObject->setProperty("location", SettingsManager::getInstance()->alertPosition());
+            currentObject->setProperty("title", data->title);
+            currentObject->setProperty("description", data->message);
+            currentObject->setProperty("imgSrc", data->imgUrl);
+            currentObject->setProperty("visible", true);
+        } else {
+            qDebug() << "Error loading notification component:" << component.errors();
+        }
 #endif
         delete data;
 

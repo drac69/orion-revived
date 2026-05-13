@@ -123,16 +123,36 @@ Page {
                         onClicked: Settings.chatNotifications = checked
                         text: "Chat mention notifications"
                     }
-                    //                    OptionCombo {
-                    //                        id: alertPosition
-                    //                        width: parent.width
-                    //                        visible: Qt.platform.os === "windows"
-                    //                        selection: Settings.alertPosition
-                    //                        onActivated: Settings.alertPosition = index
+                    OptionCombo {
+                        id: alertPosition
+                        width: parent.width
+                        visible: Qt.platform.os === "windows"
+                        enabled: alertOption.checked
+                        text: "Notification corner"
+                        model: ["Top Left", "Top Right", "Bottom Left", "Bottom Right"]
+                        Component.onCompleted: currentIndex = Settings.alertPosition
+                        onActivated: Settings.alertPosition = index
 
-                    //                        text: "Notification position"
-                    //                        model: ["Top Left", "Top Right", "Bottom Left", "Bottom Right"]
-                    //                    }
+                        Connections {
+                            target: Settings
+                            onAlertPositionChanged: alertPosition.currentIndex = Settings.alertPosition
+                        }
+                    }
+                    OptionCombo {
+                        id: alertScreen
+                        width: parent.width
+                        visible: Qt.platform.os === "windows"
+                        enabled: alertOption.checked
+                        text: "Notification screen"
+                        model: Settings.screenNames()
+                        Component.onCompleted: currentIndex = Settings.alertScreen
+                        onActivated: Settings.alertScreen = index
+
+                        Connections {
+                            target: Settings
+                            onAlertScreenChanged: alertScreen.currentIndex = Settings.alertScreen
+                        }
+                    }
                 }
             }
 

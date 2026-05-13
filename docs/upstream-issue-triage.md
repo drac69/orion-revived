@@ -40,6 +40,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #40: chat text segments are selectable and copyable, and whole messages can still be copied from the row context menu.
 * #232: the single-instance lock now uses an app-specific runtime/temp path instead of an opaque fixed temp filename, and startup warnings include the lock path.
 * #236: Ubuntu/Linux Mint build instructions include `libmpv-dev` for the `mpv/client.h` header, and the README now points users to `orion --debug` plus the Qt Labs Settings QML package when a build starts without showing a window.
+* #45: Windows desktop notifications are wired through the in-app QML notification surface again, with settings for notification corner and target screen so multi-monitor users can choose where alerts appear.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
 * #284: kept the upstream localhost OAuth response fix from #272.
@@ -84,7 +85,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #226, #210, #45.
+* #278, #271, #226, #210.
 
 ## Administrative
 

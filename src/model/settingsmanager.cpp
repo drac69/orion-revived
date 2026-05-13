@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QGuiApplication>
+#include <QScreen>
 
 namespace {
 QString channelQualityKey(const QString &channel)
@@ -31,6 +32,7 @@ void SettingsManager::load()
     //Load values from settings, notifying changes as needed
     setAlert(settings.value("alert", mAlert).toBool());
     setAlertPosition(settings.value("alertPosition", mAlertPosition).toInt());
+    setAlertScreen(settings.value("alertScreen", mAlertScreen).toInt());
     setMultipleInstances(settings.value("multipleInstances", mMultipleInstances).toBool());
     setMinimizeOnStartup(settings.value("minimizeOnStartup", mMinimizeOnStartup).toBool());
     setOpengl(settings.value("opengl", mOpengl).toString());
@@ -94,11 +96,31 @@ int SettingsManager::alertPosition() const
 
 void SettingsManager::setAlertPosition(int alertPosition)
 {
-    if (alertPosition != mAlertPosition) {
-        mAlertPosition = alertPosition;
-        settings.setValue("alertPosition", alertPosition);
+    const int normalizedPosition = qMax(0, qMin(alertPosition, 3));
+    if (normalizedPosition != mAlertPosition) {
+        mAlertPosition = normalizedPosition;
+        settings.setValue("alertPosition", normalizedPosition);
         emit alertPositionChanged();
-        qDebug() << "alertPosition changed to" << alertPosition;
+        qDebug() << "alertPosition changed to" << normalizedPosition;
+    }
+}
+
+int SettingsManager::alertScreen() const
+{
+    return mAlertScreen;
+}
+
+void SettingsManager::setAlertScreen(int alertScreen)
+{
+    const int screenCount = QGuiApplication::screens().count();
+    const int maxScreen = screenCount > 0 ? screenCount - 1 : 0;
+    const int normalizedScreen = qMax(0, qMin(alertScreen, maxScreen));
+
+    if (normalizedScreen != mAlertScreen) {
+        mAlertScreen = normalizedScreen;
+        settings.setValue("alertScreen", normalizedScreen);
+        emit alertScreenChanged();
+        qDebug() << "alertScreen changed to" << normalizedScreen;
     }
 }
 
@@ -481,6 +503,22 @@ void SettingsManager::copyToClipboard(const QString &text) const
     if (clipboard) {
         clipboard->setText(text);
     }
+}
+
+QStringList SettingsManager::screenNames() const
+{
+    QStringList names;
+    const QList<QScreen *> screens = QGuiApplication::screens();
+
+    for (int i = 0; i < screens.count(); ++i) {
+        const QString name = screens.at(i)->name();
+        names.append(name.isEmpty() ? QString("Screen %1").arg(i + 1) : name);
+    }
+
+    if (names.isEmpty())
+        names.append("Primary screen");
+
+    return names;
 }
 
 #include <QVersionNumber>

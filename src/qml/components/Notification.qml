@@ -22,6 +22,10 @@ Window {
     property string description
     property string imgSrc
     property real destY
+    property real screenX: 0
+    property real screenY: 0
+    property real screenWidth: Screen.width
+    property real screenHeight: Screen.height
 
     signal clicked()
 
@@ -41,27 +45,27 @@ Window {
     function setPosition(){
         switch (location){
         case 0:
-            x =  50
-            y = -height
-            destY = 50
+            x = screenX + 50
+            y = screenY - height
+            destY = screenY + 50
             break
 
         case 1:
-            x = Screen.width - width - 50
-            y = -height
-            destY = 50
+            x = screenX + screenWidth - width - 50
+            y = screenY - height
+            destY = screenY + 50
             break
 
         case 2:
-            x = 50
-            y = Screen.height
-            destY = Screen.height - height  - 50
+            x = screenX + 50
+            y = screenY + screenHeight
+            destY = screenY + screenHeight - height - 50
             break
 
         case 3:
-            x = Screen.width - width  - 50
-            y = Screen.height
-            destY = Screen.height - height - 50
+            x = screenX + screenWidth - width - 50
+            y = screenY + screenHeight
+            destY = screenY + screenHeight - height - 50
             break
         }
     }

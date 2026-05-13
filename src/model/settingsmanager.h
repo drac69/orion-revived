@@ -13,6 +13,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(bool alert READ alert WRITE setAlert NOTIFY alertChanged)
     Q_PROPERTY(bool multipleInstances READ multipleInstances WRITE setMultipleInstances NOTIFY multipleInstancesChanged)
     Q_PROPERTY(int alertPosition READ alertPosition WRITE setAlertPosition NOTIFY alertPositionChanged)
+    Q_PROPERTY(int alertScreen READ alertScreen WRITE setAlertScreen NOTIFY alertScreenChanged)
     Q_PROPERTY(int volumeLevel READ volumeLevel WRITE setVolumeLevel NOTIFY volumeLevelChanged)
     Q_PROPERTY(bool minimizeOnStartup READ minimizeOnStartup WRITE setMinimizeOnStartup NOTIFY minimizeOnStartupChanged)
     Q_PROPERTY(int chatEdge READ chatEdge WRITE setChatEdge NOTIFY chatEdgeChanged)
@@ -43,6 +44,7 @@ class SettingsManager : public QObject
     bool mAlert = true;
     bool mMultipleInstances = false;
     int mAlertPosition = 1;
+    int mAlertScreen = 0;
     int mVolumeLevel = 100;
     bool mMinimizeOnStartup = false;
     bool mSwapChat = false;
@@ -106,6 +108,9 @@ public:
 
     int alertPosition() const;
     void setAlertPosition(int alertPosition);
+
+    int alertScreen() const;
+    void setAlertScreen(int alertScreen);
 
     int volumeLevel() const;
     void setVolumeLevel(int volumeLevel);
@@ -182,6 +187,7 @@ public:
     void setChatOpacity(double chatOpacity);
 
     Q_INVOKABLE void copyToClipboard(const QString &text) const;
+    Q_INVOKABLE QStringList screenNames() const;
     Q_INVOKABLE QString channelQuality(const QString &channel);
     Q_INVOKABLE void setChannelQuality(const QString &channel, const QString &quality);
 
@@ -189,6 +195,7 @@ signals:
     void alertChanged();
     void multipleInstancesChanged();
     void alertPositionChanged();
+    void alertScreenChanged();
     void volumeLevelChanged();
     void minimizeOnStartupChanged();
     void chatEdgeChanged();

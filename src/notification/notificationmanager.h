@@ -22,10 +22,6 @@
 #include <QQmlComponent>
 #include <QObject>
 
-#ifdef Q_OS_WIN
-    #include <QQuickWindow>
-#endif
-
 #if defined(Q_OS_MAC) || defined(Q_OS_LINUX)
     #include "notificationsender.h"
 
@@ -60,10 +56,6 @@ private:
     QList<NotificationData*> queue;
 
     QObject *currentObject;
-
-#ifdef Q_OS_WIN
-    QQuickWindow *hiddenWindow;
-#endif
 };
 
 #endif // NOTIFICATIONMANAGER_H
