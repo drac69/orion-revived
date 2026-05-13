@@ -82,3 +82,18 @@ if ! rg -q 'dh, &QObject::deleteLater' "$image_provider"; then
     printf 'ImageProvider must delete DownloadHandler instances through a typed completion connection.\n' >&2
     exit 1
 fi
+
+if ! rg -q 'if \(!_file\.open\(QFile::WriteOnly\)\)' "$image_provider"; then
+    printf 'DownloadHandler must treat cache-file open failures as failed downloads.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'if \(!_file\.isOpen\(\)\)' "$image_provider"; then
+    printf 'DownloadHandler must not write image data when the cache file is not open.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'if \(!_file\.commit\(\)\)' "$image_provider"; then
+    printf 'DownloadHandler must treat cache-file commit failures as failed downloads.\n' >&2
+    exit 1
+fi

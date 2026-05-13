@@ -189,7 +189,12 @@ QString ImageProvider::getCanonicalKey(const QString key) {
 
 DownloadHandler::DownloadHandler(QString filename, QString key) : filename(filename), key(key), hadError(false) {
     _file.setFileName(filename);
-    _file.open(QFile::WriteOnly);
+    if (!_file.open(QFile::WriteOnly)) {
+        hadError = true;
+        qDebug() << "could not open image cache file" << filename << ":" << _file.errorString();
+        return;
+    }
+
     qDebug() << "save to" << filename;
 }
 
@@ -201,6 +206,11 @@ void DownloadHandler::dataAvailable() {
     }
 
     auto buffer = _reply->readAll();
+    if (!_file.isOpen()) {
+        hadError = true;
+        return;
+    }
+
     _file.write(buffer.data(), buffer.size());
 }
 
@@ -225,7 +235,12 @@ void DownloadHandler::replyFinished() {
     }
 
     _reply->deleteLater();
-    _file.commit();
+    if (hadError) {
+        _file.cancelWriting();
+    } else if (!_file.commit()) {
+        hadError = true;
+        qDebug() << "could not commit image cache file" << _file.fileName() << ":" << _file.errorString();
+    }
     //qDebug() << _file.fileName();
     //might need something for windows for the forwardslash..
     qDebug() << "download of" << _file.fileName() << "complete";
