@@ -49,6 +49,11 @@ Power::~Power()
     setScreensaver(true);
 }
 
+bool Power::screensaver() const
+{
+    return screensaverEnabled;
+}
+
 void Power::setScreensaver(bool enabled)
 {
     screensaverEnabled = enabled;
