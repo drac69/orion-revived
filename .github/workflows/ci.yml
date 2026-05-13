@@ -47,6 +47,9 @@ jobs:
       - name: Validate Twitch API usage
         run: ci/check_twitch_api_guard.sh
 
+      - name: Validate M3U8 parser
+        run: ci/check_m3u8_parser.sh
+
       - name: Configure
         run: qmake orion.pro CONFIG+=mpv
 

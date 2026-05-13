@@ -18,8 +18,78 @@
 #include <QVariantMap>
 #include <QMap>
 #include <QByteArray>
+#include <QString>
 
 namespace m3u8 {
+
+    static QString attributeValue(const QString &line, const QString &name)
+    {
+        const int colon = line.indexOf(':');
+        const QString attributes = colon >= 0 ? line.mid(colon + 1) : line;
+        int pos = 0;
+
+        while (pos < attributes.length()) {
+            while (pos < attributes.length() && (attributes.at(pos) == ',' || attributes.at(pos).isSpace())) {
+                pos++;
+            }
+
+            const int keyStart = pos;
+            while (pos < attributes.length() && attributes.at(pos) != '=' && attributes.at(pos) != ',') {
+                pos++;
+            }
+
+            if (pos >= attributes.length() || attributes.at(pos) != '=') {
+                while (pos < attributes.length() && attributes.at(pos) != ',') {
+                    pos++;
+                }
+                continue;
+            }
+
+            const QString key = attributes.mid(keyStart, pos - keyStart).trimmed();
+            pos++;
+
+            QString value;
+            if (pos < attributes.length() && attributes.at(pos) == '"') {
+                pos++;
+                const int valueStart = pos;
+                while (pos < attributes.length() && attributes.at(pos) != '"') {
+                    pos++;
+                }
+                value = attributes.mid(valueStart, pos - valueStart);
+                if (pos < attributes.length()) {
+                    pos++;
+                }
+            }
+            else {
+                const int valueStart = pos;
+                while (pos < attributes.length() && attributes.at(pos) != ',') {
+                    pos++;
+                }
+                value = attributes.mid(valueStart, pos - valueStart).trimmed();
+            }
+
+            if (key.compare(name, Qt::CaseInsensitive) == 0) {
+                return value;
+            }
+        }
+
+        return QString();
+    }
+
+    static QString normalizeStreamName(QString streamName)
+    {
+        streamName = streamName.trimmed();
+
+        if (streamName == "chunked") {
+            return QStringLiteral("source");
+        }
+
+        if (streamName.compare(QStringLiteral("Audio Only"), Qt::CaseInsensitive) == 0) {
+            return QStringLiteral("audio_only");
+        }
+
+        return streamName;
+    }
 
     static QVariantMap getUrls(const QByteArray &data)
     {
@@ -29,35 +99,16 @@ namespace m3u8 {
         foreach(QString str, QString(data).split("\n")){
             str = str.trimmed();
 
-            if (str.contains("VIDEO=")){
-                str.remove(0, str.indexOf("VIDEO=") + 6);
-                str.replace("\"","");
-                streamName = str;
+            if (str.startsWith("#EXT-X-STREAM-INF")){
+                streamName = normalizeStreamName(attributeValue(str, QStringLiteral("VIDEO")));
+                if (streamName.isEmpty()) {
+                    streamName = normalizeStreamName(attributeValue(str, QStringLiteral("NAME")));
+                }
             }
             else if (!streamName.isEmpty()
                      && (str.startsWith("http://") || str.startsWith("https://"))){
 
-                if (streamName == "chunked")
-                    streamName = "source";
-
                 streams.insert(streamName, str);
-
-//                qDebug() << lastKey << ", " << str;
-
-//                if (lastKey == "mobile")
-//                    streams[0] = str;
-
-//                else if (lastKey == "low")
-//                    streams[1] = str;
-
-//                else if (lastKey == "medium")
-//                    streams[2] = str;
-
-//                else if (lastKey == "high")
-//                    streams[3] = str;
-
-//                else if (lastKey == "chunked")
-//                    streams[4] = str;
 
                 streamName.clear();
             }
