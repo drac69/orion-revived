@@ -14,6 +14,10 @@
 
 #include "fileutils.h"
 
+#include <sys/stat.h>
+#include <QFile>
+#include <QIODevice>
+
 namespace {
 bool writeAll(const QString &filename, const QByteArray &data, QIODevice::OpenMode mode)
 {
@@ -47,12 +51,6 @@ QString util::readFile(const QString &filename){
 
 bool util::writeFile(const QString& filename, const QByteArray& data){
     return writeAll(filename, data, QFile::WriteOnly | QFile::Truncate);
-}
-
-void util::writeImage(const char* path, FILE *data){
-	std::ofstream file(path);
-	file << data;
-	file.close();
 }
 
 bool util::fileExists(const char* file){

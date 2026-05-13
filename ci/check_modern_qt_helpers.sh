@@ -67,6 +67,11 @@ if rg -Uq 'file\.write\(data\);\s*return true;' "$repo_dir/src/util/fileutils.cp
     exit 1
 fi
 
+if rg -q 'writeImage|std::ofstream|FILE \*data' "$repo_dir/src/util/fileutils.cpp" "$repo_dir/src/util/fileutils.h"; then
+    printf 'fileutils must not keep the unused writeImage(FILE*) helper that wrote pointer values.\n' >&2
+    exit 1
+fi
+
 required_override_lines=(
     "$repo_dir/src/model/channellistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
     "$repo_dir/src/model/gamelistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
