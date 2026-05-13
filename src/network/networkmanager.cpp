@@ -28,8 +28,6 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
 {
     operation = man;
 
-    initReplayChat();
-
     //Select interface
     connectionOK = false;
     testNetworkInterface();
@@ -47,8 +45,6 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
     //Set up listening to access token changes
     connect(SettingsManager::getInstance(), &SettingsManager::accessTokenChanged, this, &NetworkManager::setAccessToken);
     setAccessToken(SettingsManager::getInstance()->accessToken());
-
-    lastVodChatRequest = nullptr;
 }
 
 void NetworkManager::setAccessToken(const QString &accessToken)
@@ -73,7 +69,6 @@ NetworkManager::~NetworkManager()
     offlinePoller.stop();
     qDebug() << "Destroyer: NetworkManager";
     //operation->deleteLater();
-    teardownReplayChat();
 }
 
 void NetworkManager::initialize(QNetworkAccessManager *mgr)
@@ -913,110 +908,6 @@ void NetworkManager::blockedUserListReply() {
     }
 
     emit blockedUserListLoadOperationFinished(result.items, nextOffset, total);
-
-    reply->deleteLater();
-}
-
-void NetworkManager::getVodChatPiece(quint64 vodId, quint64 offset) {
-    QString url = QString(TWITCH_API_V5) + QString("/videos/%2/comments?content_offset_seconds=%1").arg(offset).arg(vodId);
-
-    qDebug() << "Requesting" << url;
-
-    QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(url);
-
-    QNetworkReply *reply = operation->get(request);
-
-    lastVodChatRequest = reply;
-    
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::vodChatPieceReply);
-}
-
-void NetworkManager::getNextVodChatPiece(quint64 vodId, QString cursor) {
-    QString url = QString(TWITCH_API_V5) + QString("/videos/%2/comments?cursor=%1").arg(cursor).arg(vodId);
-
-    qDebug() << "Requesting" << url;
-
-    QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(url);
-
-    QNetworkReply *reply = operation->get(request);
-
-    lastVodChatRequest = reply;
-
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::vodChatPieceReply);
-}
-
-void NetworkManager::cancelLastVodChatRequest() {
-    if (lastVodChatRequest != nullptr) {
-        lastVodChatRequest->abort();
-        lastVodChatRequest = nullptr;
-    }
-}
-
-void NetworkManager::resetVodChat() {
-    replayChatPartNum = 0;
-    curChatReplayDedupeBatch->clear();
-    prevChatReplayDedupeBatch->clear();
-}
-
-void NetworkManager::initReplayChat() {
-    curChatReplayDedupeBatch = new QSet<QString>();
-    prevChatReplayDedupeBatch = new QSet<QString>();
-}
-
-void NetworkManager::teardownReplayChat() {
-    delete curChatReplayDedupeBatch;
-    delete prevChatReplayDedupeBatch;
-}
-
-void NetworkManager::filterReplayChat(QList<ReplayChatMessage> & replayChat) {
-    if (replayChatPartNum % REPLAY_CHAT_DEDUPE_SWAP_ITERATIONS == 0) {
-        auto oldPrev = prevChatReplayDedupeBatch;
-        prevChatReplayDedupeBatch = curChatReplayDedupeBatch;
-        oldPrev->clear();
-        curChatReplayDedupeBatch = oldPrev;
-    }
-
-    for (auto entry = replayChat.begin(); entry != replayChat.end(); ) {
-        if (entry->deleted || curChatReplayDedupeBatch->contains(entry->id) || prevChatReplayDedupeBatch->contains(entry->id)) {
-            qDebug() << "DUPE" << entry->from << ":" << entry->id << entry->message;
-            entry = replayChat.erase(entry);
-        }
-        else {
-            //qDebug() << "GOOD" << entry->from << ":" << entry->id << entry->message;
-            curChatReplayDedupeBatch->insert(entry->id);
-            entry++;
-        }
-    }
-
-    replayChatPartNum++;
-}
-
-void NetworkManager::vodChatPieceReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
-
-    if (lastVodChatRequest == reply) {
-        lastVodChatRequest = nullptr;
-    }
-
-    if (!handleNetworkError(reply)) {
-        return;
-    }
-
-    QByteArray data = reply->readAll();
-
-    //qDebug() << data;
-
-    ReplayChatPiece ret = JsonParser::parseVodChatPiece(data);
-
-    filterReplayChat(ret.comments);
-
-    emit vodChatPieceGetOperationFinished(ret);
 
     reply->deleteLater();
 }

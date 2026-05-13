@@ -61,10 +61,6 @@ private:
 public slots:
     void onSearchFinished(QList<Vod *>);
     void onSearchFailed();
-    void cancelLastVodChatRequest();
-    void resetVodChat();
-    void getVodChatPiece(quint64 vodId, quint64 offset);
-    void getNextVodChatPiece(quint64 vodId, QString cursor);
     void setVodLastPlaybackPosition(const QString & channel, const QString & vod, quint64 position);
     QVariant getVodLastPlaybackPosition(const QString & channel, const QString & vod);
     QVariantMap getChannelVodsLastPlaybackPositions(const QString & channel);
@@ -77,7 +73,6 @@ signals:
     void searchFailed();
     void streamsGetFinished(QVariantMap items);
 
-    void vodChatPieceGetOperationFinished(ReplayChatPiece);
     void vodLastPositionUpdated(const QString & channel, const QString & vod, const quint64 position);
 
 private:

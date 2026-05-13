@@ -38,7 +38,6 @@ VodManager::VodManager(QObject *parent) :
     connect(netman, &NetworkManager::broadcastsOperationFinished, this, &VodManager::onSearchFinished);
     connect(netman, &NetworkManager::broadcastsOperationFailed, this, &VodManager::onSearchFailed);
     connect(netman, &NetworkManager::m3u8OperationBFinished, this, &VodManager::streamsGetFinished);
-    connect(netman, &NetworkManager::vodChatPieceGetOperationFinished, this, &VodManager::vodChatPieceGetOperationFinished);
 
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     int numLastPositions = settings.beginReadArray("lastPositions");
@@ -239,22 +238,6 @@ void VodManager::getBroadcasts(QString vod)
     vod.remove(QRegExp("[^0-9]"));
 
     netman->getBroadcastPlaybackStream(vod);
-}
-
-void VodManager::getVodChatPiece(quint64 vodId, quint64 offset) {
-    netman->getVodChatPiece(vodId, offset);
-}
-
-void VodManager::getNextVodChatPiece(quint64 vodId, QString cursor) {
-    netman->getNextVodChatPiece(vodId, cursor);
-}
-
-void VodManager::cancelLastVodChatRequest() {
-    netman->cancelLastVodChatRequest();
-}
-
-void VodManager::resetVodChat() {
-    netman->resetVodChat();
 }
 
 void VodManager::setVodLastPlaybackPosition(const QString & channel, const QString & vod, quint64 position) {

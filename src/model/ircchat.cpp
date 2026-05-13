@@ -29,7 +29,6 @@
 #include <QStandardPaths>
 #include <QImage>
 #include <qqml.h>
-#include <QtMath>
 #include <QDateTime>
 #include "../util/jsonparser.h"
 #include "badgecontainer.h"
@@ -126,7 +125,6 @@ void IrcChat::hookupChannelProviders() {
     _bitsProvider = BadgeContainer::getInstance()->getBitsImageProvider();
     connect(_badgeProvider, &ImageProvider::downloadComplete, this, &IrcChat::handleDownloadComplete);
     connect(_bitsProvider, &ImageProvider::downloadComplete, this, &IrcChat::handleDownloadComplete);
-    connect(NetworkManager::getInstance(), &NetworkManager::vodChatPieceGetOperationFinished, this, &IrcChat::handleDownloadedReplayChat);
     connect(BadgeContainer::getInstance(), &BadgeContainer::channelBitsUrlsLoaded, this, &IrcChat::handleChannelBitsUrlsLoaded);
     connect(BadgeContainer::getInstance(), &BadgeContainer::channelBttvEmotesLoaded, this, &IrcChat::handleChannelBttvEmotesLoaded);
     connect(BadgeContainer::getInstance(), &BadgeContainer::channelFfzEmotesLoaded, this, &IrcChat::handleChannelFfzEmotesLoaded);
@@ -186,236 +184,22 @@ void IrcChat::join(const QString channel, const QString channelId) {
     qDebug() << "Joined channel " << channel;
 }
 
-void IrcChat::replay(const QString channel, const QString channelId, const quint64 vodId, double /*vodStartEpochTime*/, double playbackOffset) {
+void IrcChat::replay(const QString channel, const QString channelId, const quint64 /*vodId*/, double /*vodStartEpochTime*/, double /*playbackOffset*/) {
     replayMode = true;
-
     roomInitCommon(channel, channelId);
-
-    replayVodId = vodId;
-
-    replayChatVodStartTime = 0;
-
-    replayChatCurrentSeekOffset = playbackOffset;
-
-    replayChatFirstLoadAfterSeek = true;
-
-    // Get start timestamp of the chat replay segments as the requests need to be aligned to chunk boundaries from this start
-    replayChatFirstChunkTime = 0;
-    replaySeek(replayChatCurrentSeekOffset);
+    qWarning() << "Twitch no longer exposes VOD replay chat through a supported public API";
 }
 
-double quantize(double value, double start, double multiple) {
-    double rel = value - start;
-    return start + qRound(qFloor(rel / multiple) * multiple);
+void IrcChat::replaySeek(double /*newOffset*/) {
 }
 
-// When seeking, request past chat starting this far back in seconds...
-const double SEEK_HISTORY_TIME = 90.0;
-// ... and display up to this many messages of it.
-const int SEEK_HISTORY_MESSAGE_LIMIT = 15;
-
-void IrcChat::replaySeek(double newOffset) {
-    // we set a flag indicating that a request is in flight
-    if (replayChatRequestInProgress) {
-        VodManager::getInstance()->cancelLastVodChatRequest();
-    }
-    VodManager::getInstance()->resetVodChat();
-    nextChatCursor.clear();
-    replayChatFirstLoadAfterSeek = true;
-    replayChatRequestInProgress = true;
-    // we save the offset to the point we want to start loading chat at as the current time
-    replayChatCurrentTime = replayChatVodStartTime + qMax(newOffset - SEEK_HISTORY_TIME, 0.0);
-    qDebug() << "original vod playback start time" << replayChatCurrentTime;
-    nextChatChunkTimestamp = replayChatCurrentTime;
-    // we dump any pending messages from the previous playback position
-    replayChatMessagesPending.clear();
-    // we'll do an initial request for starting offset chat right now.
-    VodManager::getInstance()->getVodChatPiece(replayVodId, nextChatChunkTimestamp);
-    // time passes in the front end as the vod plays back.
-}
-
-void IrcChat::replayUpdate(double newOffset) {
-    // every so often the front end will find that time has passed and update our time and do our timestamp update
-    double newCurrentTime = replayChatVodStartTime + newOffset;
-    replayChatCurrentTime = newCurrentTime;
-    replayUpdateCommon();
+void IrcChat::replayUpdate(double /*newOffset*/) {
 }
 
 QList<QPair<QString, QString>> parseBadges(const QString badgesStr);
 
-void IrcChat::replayChatMessage(const ReplayChatMessage & replayMessage) {
-
-    ChatMessage chatMessage;
-
-    chatMessage.name = replayMessage.from;
-
-    for (auto tag = replayMessage.tags.constBegin(); tag != replayMessage.tags.constEnd(); tag++) {
-        if (tag.key() == "display-name") {
-            QString displayName = tag.value().toString();
-            if (displayName != "") {
-                chatMessage.name = displayName;
-            }
-        }
-        else if (tag.key() == "color") {
-            chatMessage.color = tag.value().toString();
-        }
-        else if (tag.key() == "subscriber") {
-            chatMessage.subscriber = tag.value().toBool();
-        }
-        else if (tag.key() == "turbo") {
-            chatMessage.turbo = tag.value().toBool();
-        }
-        else if (tag.key() == "mod") {
-            chatMessage.mod = tag.value().toBool();
-        }
-        else if (tag.key() == "badges") {
-            QList<QPair<QString, QString>> badgesMap = parseBadges(tag.value().toString());
-            for (auto entry = badgesMap.constBegin(); entry != badgesMap.constEnd(); entry++) {
-                makeBadgeAvailable(entry->first, entry->second);
-                chatMessage.badges.push_back(QVariantList({ entry->first, entry->second }));
-            }
-        }
-        else if (tag.key() == "system-msg") {
-            QString systemMessage = tag.value().toString();
-
-            // \s -> space
-            systemMessage.replace("\\s", " ");
-            // double backslash -> single backslash
-            systemMessage.replace("\\\\", "\\");
-
-            chatMessage.systemMessage = systemMessage;
-        }
-        else if (tag.key() == "bits") {
-            chatMessage.bitsNumber = tag.value().toString();
-        }
-    }
-
-    if (replayMessage.command == "USERNOTICE") {
-        chatMessage.isChannelNotice = true;
-    }
-    else {
-        chatMessage.isChannelNotice = false;
-    }
-
-    QString message = replayMessage.message;
-
-    // parse IRC action before applying emotes, as emote indices are relative to the content of the action
-    const QString ACTION_PREFIX = QString(QChar(1)) + "ACTION ";
-    const QString ACTION_SUFFIX = QString(QChar(1));
-    if (message.startsWith(ACTION_PREFIX) && message.endsWith(ACTION_SUFFIX)) {
-        chatMessage.isAction = true;
-        message = message.mid(ACTION_PREFIX.length(), message.length() - ACTION_SUFFIX.length() - ACTION_PREFIX.length());
-    }
-    else {
-        chatMessage.isAction = false;
-    }
-
-    for (int emoteId : replayMessage.emoteList) {
-        _emoteProvider.makeAvailable(QString::number(emoteId));
-    }
-    
-    QVariantList messageList;
-    createMessageList(replayMessage.emotePositionsMap, chatMessage.bitsNumber, messageList, message);
-
-    //qDebug() << "messageList " << messageList;
-
-    chatMessage.messageList = messageList;
-
-    disposeOfMessage(chatMessage);
-}
-
-void IrcChat::replayUpdateCommon() {
-    // time to start fetching chat in advance by
-    const double CHAT_TIME_MARGIN = 5.0;
-
-    double curVideoOffsetMS = (replayChatCurrentTime - replayChatVodStartTime) * 1000.0;
-
-    double nextChatTime = nextChatChunkTimestamp;
-    // if we're close enough to the end of the chat buffer, we need more chat right away
-    bool needMoreChat = replayChatCurrentTime > (nextChatTime - CHAT_TIME_MARGIN);
-
-    // if it's the first set of replay chunks after seeking, wait until loading has caught up and then apply SEEK_HISTORY_MESSAGE_LIMIT across all the
-    // messages up to the current time from all the chunks
-    if (replayChatFirstLoadAfterSeek && !needMoreChat) {
-        int chatLinesReadyToOutput = 0;
-        for (const auto & entry : replayChatMessagesPending) {
-            if (entry.videoOffset > curVideoOffsetMS) {
-                break;
-            }
-            chatLinesReadyToOutput++;
-        }
-        qDebug() << "first load after seek; have" << chatLinesReadyToOutput << "current lines";
-
-        int removeCount = chatLinesReadyToOutput - SEEK_HISTORY_MESSAGE_LIMIT;
-        if (removeCount > 0) {
-            qDebug() << "skipping" << removeCount << "lines";
-            replayChatMessagesPending.erase(replayChatMessagesPending.begin(), replayChatMessagesPending.begin() + removeCount);
-        }
-
-    } 
-
-    if (!replayChatFirstLoadAfterSeek || !needMoreChat) {
-        // look at the current time and emit whatever chat messages' timestamps are up
-        while (!replayChatMessagesPending.empty() && (replayChatMessagesPending.first().videoOffset) <= curVideoOffsetMS) {
-            auto message = replayChatMessagesPending.first();
-            auto delay = (curVideoOffsetMS - (replayChatMessagesPending.first().videoOffset)) / 1000.0;
-
-            if ((delay > 1.0 || delay < -1.0) && !replayChatFirstLoadAfterSeek) {
-                qDebug() << "**********************************************************";
-                qDebug() << "chat replay delay" << delay << "s -" << message.from << message.message;
-                qDebug() << "**********************************************************";
-            }
-
-            replayChatMessage(message);
-            replayChatMessagesPending.pop_front();
-        }
-
-        if (replayChatFirstLoadAfterSeek) {
-            replayChatFirstLoadAfterSeek = false;
-        }
-    }
-
-    if (!replayChatRequestInProgress && needMoreChat) {
-        replayChatRequestInProgress = true;
-        if (!nextChatCursor.isEmpty()) {
-            VodManager::getInstance()->getNextVodChatPiece(replayVodId, nextChatCursor);
-        } else {
-            qDebug() << "No cursor from last request; falling back to time-based request";
-            VodManager::getInstance()->getVodChatPiece(replayVodId, nextChatChunkTimestamp);
-        }
-    }
-}
-
-void IrcChat::handleDownloadedReplayChat(ReplayChatPiece piece) {
-    // eventually the initial chat response will arrive. we'll put the chat into a queue, and do a first chat update check
-
-    auto messages = piece.comments;
-    replayChatMessagesPending.append(messages);
-    nextChatCursor = piece.next;
-
-    qDebug() << "CHAT REPLAY PART; t=" << nextChatChunkTimestamp << messages.length() << "records";
-
-    // next request will start at the end of the current request
-    if (!messages.empty()) {
-        nextChatChunkTimestamp = messages.last().videoOffset / 1000.0;
-    } else {
-        // make sure we're not just going to re-request the same timestamp if we fall back
-        // to a time-based request
-        nextChatChunkTimestamp += 60.0;
-    }
-
-    replayChatRequestInProgress = false;
-
-    replayUpdateCommon();
-}
-
 void IrcChat::replayStop() {
-    if (replayChatRequestInProgress) {
-        VodManager::getInstance()->cancelLastVodChatRequest();
-        replayChatRequestInProgress = false;
-    }
-    VodManager::getInstance()->resetVodChat();
-    replayChatMessagesPending.clear();
+    replayMode = false;
 }
 
 void IrcChat::leave()

@@ -145,7 +145,6 @@ private slots:
     void processError(QAbstractSocket::SocketError socketError);
     void processSslErrors(const QList<QSslError> &errors);
     void handleDownloadComplete();
-    void handleDownloadedReplayChat(ReplayChatPiece);
     void handleChannelBitsUrlsLoaded(const int channelID, BitsQStringsMap bitsUrls);
 
     void blockedUsersLoaded(const QSet<QString> &);
@@ -222,22 +221,6 @@ private:
     QMap<QString, bool> userChannelMod;
     QMap<QString, bool> userChannelSubscriber;
     bool allDownloadsComplete();
-
-    bool replayChatRequestInProgress;
-    bool replayChatFirstLoadAfterSeek;
-    
-    double replayChatVodStartTime;
-    double replayChatFirstChunkTime;
-    double replayChatCurrentSeekOffset;
-    double replayChatCurrentTime; // the position that playback is currently at in chat
-    double nextChatChunkTimestamp;
-    QString nextChatCursor;
-    
-    quint64 replayVodId;
-    QList<ReplayChatMessage> replayChatMessagesPending;
-
-    void replayChatMessage(const ReplayChatMessage &);
-    void replayUpdateCommon();
 
     QMap<QString, QRegExp> lastCurChannelBitsRegexes;
     QMap<QString, QRegExp> lastGlobalBitsRegexes;

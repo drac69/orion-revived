@@ -33,7 +33,6 @@
 #include "../model/game.h"
 #include "../model/vod.h"
 
-#include "replaychat.h"
 #include "../model/singletonprovider.h"
 
 #define USE_HLS true
@@ -98,10 +97,6 @@ public:
     void getChannelFfzEmotes(const QString channel);
     void getGlobalFfzEmotes();
 
-    Q_INVOKABLE void getVodChatPiece(quint64 vodId, quint64 offset);
-    Q_INVOKABLE void getNextVodChatPiece(quint64 vodId, QString cursor);
-    Q_INVOKABLE void cancelLastVodChatRequest();
-    Q_INVOKABLE void resetVodChat();
     Q_INVOKABLE void loadChatterList(const QString channel);
     void getBlockedUserList(const quint64 userId, const quint32 offset, const quint32 limit);
     void editUserBlock(const quint64 myUserId, const QString & blockUserName, const bool isBlock);
@@ -137,7 +132,6 @@ signals:
     void getChannelBadgeBetaUrlsOperationFinished(const int, const QMap<QString, QMap<QString, QMap<QString, QString>>>);
     void getGlobalBadgeBetaUrlsOperationFinished(const QMap<QString, QMap<QString, QMap<QString, QString>>>);
 
-    void vodChatPieceGetOperationFinished(ReplayChatPiece);
     void chatterListLoadOperationFinished(QMap<QString, QList<QString>>);
     void blockedUserListLoadOperationFinished(QList<QString>, const quint32 nextOffset, const quint32 total);
 
@@ -176,7 +170,6 @@ private slots:
     void broadcastsReply();
     void favouritesReply();
     void streamReply();
-    void vodChatPieceReply();
     void chatterListReply();
     void blockedUserListReply();
     void blockUserReply();
@@ -205,11 +198,6 @@ private:
     bool connectionOK;
     QTimer offlinePoller;
 
-    const int REPLAY_CHAT_DEDUPE_SWAP_ITERATIONS = 5;
-    int replayChatPartNum = 0;
-
-    QSet<QString> * curChatReplayDedupeBatch;
-    QSet<QString> * prevChatReplayDedupeBatch;
     QString lastSearchChannelsQuery;
     QMap<quint32, QString> searchChannelsPageCursors;
     QMap<quint32, QString> topGamesPageCursors;
@@ -225,12 +213,6 @@ private:
     int pendingEmoteSetReplies = 0;
     QMap<quint32, QString> userFavouritesPageCursors;
     QMap<quint32, QString> blockedUserListPageCursors;
-
-    void initReplayChat();
-    void teardownReplayChat();
-    void filterReplayChat(QList<ReplayChatMessage> & replayChat);
-
-    QNetworkReply *lastVodChatRequest;
 
     void getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language = QString());
     void editUserBlockWithId(const quint64 myUserId, const QString & blockUsername, const quint64 blockUserId, const bool isBlock);
