@@ -48,6 +48,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #284: kept the upstream localhost OAuth response fix from #272.
 * #108: hidden live chat sends desktop notifications for incoming whispers and `@username` mentions, outgoing `/w` whispers are flagged as whispers, and chat now has a dedicated Whispers tab with unread state.
 * #101: added configurable log levels, per-sink stdout/stderr/file/journal log thresholds, optional file logging, optional Linux systemd journal output when built with `libsystemd`, and an in-app recent-log viewer with copy/clear actions.
+* #278: added optional compact and desktop side-navigation settings; combined with the existing right-side chat position, this covers the requested 1.5.x-style left-nav/right-chat layout without changing the default layout.
 
 ## Partially addressed
 
@@ -65,7 +66,6 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; the Android Activity now uses `FLAG_KEEP_SCREEN_ON` instead of a deprecated wakelock, and Qt background running is disabled so playback is suspended when Android backgrounds the Activity. Android playback pause/resume, call-audio behavior, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
 * #283: the player header now offers a direct Twitch fallback for the current live channel or VOD, giving users a supported path when Orion's native playlist-token flow fails; a documented native HLS playback-token replacement remains unavailable.
 * #142: the emote picker now includes a small common Unicode emoji set that inserts the selected emoji into chat; a bundled emoji image/font set and full Unicode emoji catalog remain unimplemented.
-* #278: added an optional compact navigation setting that keeps the main navigation icon-only on wide windows; a full recreation of the old 1.5.x side-navigation/right-chat layout remains unimplemented.
 
 ## Already covered by the final upstream code
 
@@ -107,12 +107,6 @@ These are packaging/distribution requests or platform-specific reports that need
 * #34: the Fluendo/GStreamer codec-pack playback failure depends on an old Qt Multimedia/GStreamer backend path and proprietary codec pack behavior that has not been reproduced here.
 * #42: duplicate/random playback stop report linked upstream to closed #43; remaining validation needs target OS/GPU/backend reproduction.
 * #267 / #261: Android source metadata now follows the fork version and Android/F-Droid release status is documented in `docs/android.md`; publishing a Play Store or F-Droid package still needs a maintained Android build recipe and target-device validation.
-
-## Feature requests not implemented here
-
-These remain product work outside the maintenance pass:
-
-* #278: full 1.5.x legacy layout recreation remains product work outside the maintenance pass.
 
 ## Administrative
 

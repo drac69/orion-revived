@@ -19,7 +19,7 @@ SidePanel {
 
     height: orientation === Qt.Horizontal ? parent.height :
                          // Fit playerview to 16:9
-                         Math.max(chatSize, parent.height - topbar.height - (parent.width * 0.5625))
+                         Math.max(chatSize, parent.height - (topbar.visible ? topbar.height : 0) - (parent.width * 0.5625))
 
     width: orientation === Qt.Horizontal ? chatSize : parent.width
 

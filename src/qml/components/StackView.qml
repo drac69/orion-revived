@@ -48,8 +48,8 @@ Container {
 
     onCountChanged: {
         for (var i = 0; i < count; i++) {
-            if (itemAt(i).width === 0) itemAt(i).width = Qt.binding(function() { return container.parent.width; })
-            if (itemAt(i).height === 0) itemAt(i).height = Qt.binding(function() { return container.parent.height; })
+            if (itemAt(i).width === 0) itemAt(i).width = Qt.binding(function() { return container.width; })
+            if (itemAt(i).height === 0) itemAt(i).height = Qt.binding(function() { return container.height; })
         }
     }
 

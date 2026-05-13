@@ -98,6 +98,7 @@ ApplicationWindow {
     property bool appFullScreen: isMobile() ? (view.playerVisible && !isPortraitMode) : false
     property bool isPortraitMode: Screen.primaryOrientation === Qt.PortraitOrientation
                                   || Screen.primaryOrientation === Qt.InvertedPortraitOrientation
+    property bool sideNavigationVisible: Settings.sideNavigation && !appFullScreen && !isMobile()
 
     function preparePopupMenu() {
         if (!popupScreenFixApplied && !isMobile()) {
@@ -154,12 +155,24 @@ ApplicationWindow {
         currentIndex: topbar.currentIndex
 
         anchors.fill: parent
+        anchors.leftMargin: sideNavigationVisible ? sidebar.width : 0
 
+    }
+
+    SideBar {
+        id: sidebar
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        visible: sideNavigationVisible
+        currentIndex: view.currentIndex
+        onIndexRequested: topbar.setCurrentIndex(index)
     }
 
     header: TopBar {
         id: topbar
         currentIndex: view.currentIndex
+        visible: !root.sideNavigationVisible && !appFullScreen
     }
 
     footer: ToolBar {

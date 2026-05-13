@@ -382,6 +382,13 @@ Page {
 
                     Switch {
                         visible: !isMobile()
+                        text: "Side navigation"
+                        checked: Settings.sideNavigation
+                        onClicked: Settings.sideNavigation = checked
+                    }
+
+                    Switch {
+                        visible: !isMobile()
                         text: "Allow multiple instances"
                         checked: Settings.multipleInstances
                         onClicked: Settings.multipleInstances = checked

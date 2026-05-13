@@ -111,6 +111,7 @@ void SettingsManager::load()
     setKeepOnTop(settings.value("keepOnTop", mKeepOnTop).toBool());
     setPastelColors(settings.value("pastelColors", mPastelColors).toBool());
     setCompactNavigation(settings.value("compactNavigation", mCompactNavigation).toBool());
+    setSideNavigation(settings.value("sideNavigation", mSideNavigation).toBool());
     setClickTogglePause(settings.value("clickTogglePause", mClickTogglePause).toBool());
     setInhibitScreensaver(settings.value("inhibitScreensaver", mInhibitScreensaver).toBool());
     setChatBlacklist(settings.value("chatBlacklist", mChatBlacklist).toString());
@@ -507,6 +508,20 @@ void SettingsManager::setCompactNavigation(bool compactNavigation)
         mCompactNavigation = compactNavigation;
         settings.setValue("compactNavigation", compactNavigation);
         emit compactNavigationChanged();
+    }
+}
+
+bool SettingsManager::sideNavigation() const
+{
+    return mSideNavigation;
+}
+
+void SettingsManager::setSideNavigation(bool sideNavigation)
+{
+    if (mSideNavigation != sideNavigation) {
+        mSideNavigation = sideNavigation;
+        settings.setValue("sideNavigation", sideNavigation);
+        emit sideNavigationChanged();
     }
 }
 
