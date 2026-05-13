@@ -237,26 +237,24 @@ void VodManager::saveSettings() {
     //Save
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
 
-    //Write last positions
-    int nextLastPositionEntry = settings.beginReadArray("lastPositions");
-    settings.endArray();
+    int lastPositionCount = 0;
+    for (auto channelEntry = channelVodLastPositions.constBegin(); channelEntry != channelVodLastPositions.constEnd(); channelEntry++) {
+        lastPositionCount += channelEntry.value().size();
+    }
 
-    settings.beginWriteArray("lastPositions");
+    settings.beginWriteArray("lastPositions", lastPositionCount);
+    int settingsIndex = 0;
     for (auto channelEntry = channelVodLastPositions.begin(); channelEntry != channelVodLastPositions.end(); channelEntry++) {
         auto & vods = channelEntry.value();
         for (auto vodEntry = vods.begin(); vodEntry != vods.end(); vodEntry++) {
             auto & lastPosition = vodEntry.value();
-            if (lastPosition.modified) {
-                if (lastPosition.settingsIndex == -1) {
-                    lastPosition.settingsIndex = nextLastPositionEntry++;
-                }
-
-                settings.setArrayIndex(lastPosition.settingsIndex);
-                settings.setValue("channel", channelEntry.key());
-                settings.setValue("vod", vodEntry.key());
-                settings.setValue("position", vodEntry.value().lastPosition);
-                lastPosition.modified = false;
-            }
+            lastPosition.settingsIndex = settingsIndex;
+            settings.setArrayIndex(settingsIndex);
+            settings.setValue("channel", channelEntry.key());
+            settings.setValue("vod", vodEntry.key());
+            settings.setValue("position", lastPosition.lastPosition);
+            lastPosition.modified = false;
+            settingsIndex++;
         }
     }
     settings.endArray();
