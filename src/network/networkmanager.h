@@ -57,6 +57,7 @@ class NetworkManager: public QObject
 
     void getM3U8Data(const QString&, M3U8TYPE type);
     bool handleNetworkError(QNetworkReply *error);
+    bool requireAccessToken(const QString &operation);
 
     static NetworkManager *singleton;
 

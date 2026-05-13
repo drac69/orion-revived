@@ -296,33 +296,27 @@ QString commaSeparatedChannelIds(const QList<Channel *> & channels) {
 
 void ChannelManager::checkStreams(const QList<Channel *> &list)
 {
+    if (!isAccessTokenAvailable()) {
+        qWarning() << "Skipping stream metadata refresh because Twitch login is required for Helix streams";
+        return;
+    }
+
     //Divide list to sublists for sanity
     int pos = 0;
 
     while(pos < list.length()) {
 
-        const bool useHelix = isAccessTokenAvailable();
-        const int batchSize = useHelix ? 100 : 50;
+        const int batchSize = 100;
         QList<Channel*> sublist = list.mid(pos, batchSize);
 
-        QString url;
-        if (useHelix) {
-            QUrl helixUrl(QString(HELIX_API) + "/streams");
-            QUrlQuery query;
-            query.addQueryItem("first", QString::number(sublist.length()));
-            foreach(Channel* channel, sublist) {
-                query.addQueryItem("user_id", QString::number(channel->getId()));
-            }
-            helixUrl.setQuery(query);
-            url = helixUrl.toString(QUrl::FullyEncoded);
+        QUrl helixUrl(QString(HELIX_API) + "/streams");
+        QUrlQuery query;
+        query.addQueryItem("first", QString::number(sublist.length()));
+        foreach(Channel* channel, sublist) {
+            query.addQueryItem("user_id", QString::number(channel->getId()));
         }
-        else {
-            url = KRAKEN_API
-                    + QString("/streams?")
-                    + QString("limit=%1").arg(50) //Important!
-                    + QString("&channel=") + commaSeparatedChannelIds(sublist);
-        }
-        netman->getStreams(url);
+        helixUrl.setQuery(query);
+        netman->getStreams(helixUrl.toString(QUrl::FullyEncoded));
 
         //Shift pos by requested batch length
         pos += sublist.length();

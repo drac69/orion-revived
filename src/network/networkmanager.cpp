@@ -56,6 +56,18 @@ void NetworkManager::setAccessToken(const QString &accessToken)
     access_token = accessToken;
 }
 
+bool NetworkManager::requireAccessToken(const QString &operation)
+{
+    if (!access_token.isEmpty()) {
+        return true;
+    }
+
+    const QString message = operation + " requires Twitch login";
+    qWarning().noquote() << message;
+    emit error(message);
+    return false;
+}
+
 NetworkManager::~NetworkManager()
 {
     offlinePoller.stop();
@@ -192,28 +204,24 @@ void NetworkManager::checkVersion()
  */
 void NetworkManager::getStream(const quint64 channelId)
 {
-    QUrl url;
-    if (!access_token.isEmpty()) {
-        url = QUrl(QString(HELIX_API) + "/streams");
-        QUrlQuery query;
-        query.addQueryItem("user_id", QString::number(channelId));
-        query.addQueryItem("first", "1");
-        url.setQuery(query);
-    }
-    else {
-        url = QUrl(KRAKEN_API + QString("/streams/%1").arg(channelId));
+    if (!requireAccessToken("Stream status")) {
+        emit streamGetOperationFinished(channelId, false);
+        return;
     }
 
+    QUrl url(QString(HELIX_API) + "/streams");
+    QUrlQuery query;
+    query.addQueryItem("user_id", QString::number(channelId));
+    query.addQueryItem("first", "1");
+    url.setQuery(query);
+
     QNetworkRequest request;
-    request.setRawHeader("Accept", access_token.isEmpty() ? "application/vnd.twitchtv.v5+json" : "application/json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, channelId);
-
-    if (!access_token.isEmpty()) {
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-    }
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -225,16 +233,24 @@ void NetworkManager::getStreams(const QString &url)
     //qDebug() << "GET: " << url;
     const QUrl requestUrl(url);
     const bool isHelix = requestUrl.path().startsWith("/helix/");
+    if (!isHelix) {
+        qWarning() << "Ignoring legacy stream metadata request" << requestUrl;
+        QList<Channel *> empty;
+        emit allStreamsOperationFinished(empty);
+        return;
+    }
+    if (!requireAccessToken("Stream metadata")) {
+        QList<Channel *> empty;
+        emit allStreamsOperationFinished(empty);
+        return;
+    }
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", isHelix ? "application/json" : "application/vnd.twitchtv.v5+json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(requestUrl);
-
-    if (isHelix && !access_token.isEmpty()) {
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-    }
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -243,12 +259,18 @@ void NetworkManager::getStreams(const QString &url)
 
 void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
 {
+    if (!requireAccessToken("Top games")) {
+        QList<Game *> empty;
+        emit gamesOperationFinished(empty);
+        return;
+    }
+
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
-    if (!access_token.isEmpty() && offset == 0) {
+    if (offset == 0) {
         topGamesPageCursors.clear();
     }
-    else if (!access_token.isEmpty() && !topGamesPageCursors.contains(offset)) {
+    else if (!topGamesPageCursors.contains(offset)) {
         QList<Game *> empty;
         emit gamesOperationFinished(empty);
         return;
@@ -259,30 +281,19 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
 
-    QUrl url;
-    if (!access_token.isEmpty()) {
-        url = QUrl(QString(HELIX_API) + "/games/top");
-        QUrlQuery query;
-        query.addQueryItem("first", QString::number(pageSize));
+    QUrl url(QString(HELIX_API) + "/games/top");
+    QUrlQuery query;
+    query.addQueryItem("first", QString::number(pageSize));
 
-        const QString cursor = topGamesPageCursors.value(offset);
-        if (!cursor.isEmpty()) {
-            query.addQueryItem("after", cursor);
-        }
-        url.setQuery(query);
-
-        request.setRawHeader("Accept", "application/json");
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    const QString cursor = topGamesPageCursors.value(offset);
+    if (!cursor.isEmpty()) {
+        query.addQueryItem("after", cursor);
     }
-    else {
-        QString legacyUrl = KRAKEN_API;
-        legacyUrl += QString("/games/top?limit=%1").arg(pageSize)
-                + QString("&offset=%1").arg(offset);
-        url = QUrl(legacyUrl);
+    url.setQuery(query);
 
-        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    }
+    request.setRawHeader("Accept", "application/json");
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     request.setUrl(url);
 
@@ -293,6 +304,12 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
 
 void NetworkManager::searchChannels(const QString &query, const quint32 &offset, const quint32 &limit)
 {
+    if (!requireAccessToken("Channel search")) {
+        QList<Channel *> empty;
+        emit searchChannelsOperationFinished(empty, 0);
+        return;
+    }
+
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
     QNetworkRequest request;
@@ -300,36 +317,25 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
 
-    QUrl url;
-    if (!access_token.isEmpty()) {
-        if (offset == 0 || query != lastSearchChannelsQuery) {
-            searchChannelsPageCursors.clear();
-            lastSearchChannelsQuery = query;
-        }
-
-        url = QUrl(QString(HELIX_API) + "/search/channels");
-        QUrlQuery urlQuery;
-        urlQuery.addQueryItem("query", query);
-        urlQuery.addQueryItem("first", QString::number(pageSize));
-
-        const QString cursor = searchChannelsPageCursors.value(offset);
-        if (!cursor.isEmpty()) {
-            urlQuery.addQueryItem("after", cursor);
-        }
-        url.setQuery(urlQuery);
-
-        request.setRawHeader("Accept", "application/json");
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    if (offset == 0 || query != lastSearchChannelsQuery) {
+        searchChannelsPageCursors.clear();
+        lastSearchChannelsQuery = query;
     }
-    else {
-        url = QUrl(QString(KRAKEN_API)
-                + QString("/search/channels?query=") + QUrl::toPercentEncoding(query)
-                + QString("&offset=%1").arg(offset)
-                + QString("&limit=%1").arg(pageSize));
 
-        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    QUrl url(QString(HELIX_API) + "/search/channels");
+    QUrlQuery urlQuery;
+    urlQuery.addQueryItem("query", query);
+    urlQuery.addQueryItem("first", QString::number(pageSize));
+
+    const QString cursor = searchChannelsPageCursors.value(offset);
+    if (!cursor.isEmpty()) {
+        urlQuery.addQueryItem("after", cursor);
     }
+    url.setQuery(urlQuery);
+
+    request.setRawHeader("Accept", "application/json");
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     qDebug() << "requesting" << url;
     request.setUrl(url);
@@ -341,26 +347,23 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
 
 void NetworkManager::searchGames(const QString &query)
 {
+    if (!requireAccessToken("Category search")) {
+        QList<Game *> empty;
+        emit searchGamesOperationFinished(empty);
+        return;
+    }
+
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getClientId().toUtf8());
 
-    QUrl url;
-    if (!access_token.isEmpty()) {
-        url = QUrl(QString(HELIX_API) + "/search/categories");
-        QUrlQuery urlQuery;
-        urlQuery.addQueryItem("query", query);
-        url.setQuery(urlQuery);
+    QUrl url(QString(HELIX_API) + "/search/categories");
+    QUrlQuery urlQuery;
+    urlQuery.addQueryItem("query", query);
+    url.setQuery(urlQuery);
 
-        request.setRawHeader("Accept", "application/json");
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-    }
-    else {
-        url = QUrl(QString(KRAKEN_API)
-                + QString("/search/games?query=") + QUrl::toPercentEncoding(query));
-
-        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    }
+    request.setRawHeader("Accept", "application/json");
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     request.setUrl(url);
 
@@ -371,24 +374,23 @@ void NetworkManager::searchGames(const QString &query)
 
 void NetworkManager::getFeaturedStreams()
 {
+    if (!requireAccessToken("Featured streams")) {
+        QList<Channel *> empty;
+        emit featuredStreamsOperationFinished(empty, 0);
+        return;
+    }
+
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getClientId().toUtf8());
 
-    QUrl url;
-    if (!access_token.isEmpty()) {
-        url = QUrl(QString(HELIX_API) + "/streams");
-        QUrlQuery query;
-        query.addQueryItem("first", "25");
-        url.setQuery(query);
+    QUrl url(QString(HELIX_API) + "/streams");
+    QUrlQuery query;
+    query.addQueryItem("first", "25");
+    url.setQuery(query);
 
-        request.setRawHeader("Accept", "application/json");
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-    }
-    else {
-        url = QUrl(QString(KRAKEN_API) + "/streams/featured?limit=25&offset=0");
-        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    }
+    request.setRawHeader("Accept", "application/json");
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     request.setUrl(url);
 
@@ -455,70 +457,53 @@ void NetworkManager::getStreamsForLanguage(const QString &language, const quint3
 
 void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offset, const quint32 &limit, const QString &language)
 {
+    if (!requireAccessToken("Game stream search")) {
+        QList<Channel *> empty;
+        emit gameStreamsOperationFinished(empty, offset);
+        return;
+    }
+
     const QString gameName = game.trimmed();
     const QString normalizedLanguage = language.trimmed().toLower();
     const QString queryKey = gameName + "\n" + normalizedLanguage;
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
-    if (!access_token.isEmpty()) {
-        if (offset == 0 || queryKey != lastGameStreamsQuery) {
-            gameStreamsPageCursors.clear();
-            lastGameStreamsQuery = queryKey;
-        }
-        else if (!gameStreamsPageCursors.contains(offset)) {
-            QList<Channel *> empty;
-            emit gameStreamsOperationFinished(empty, offset);
-            return;
-        }
-
-        const QString gameId = gameStreamsGameIds.value(gameName);
-        if (!gameId.isEmpty()) {
-            getStreamsForGameId(gameId, offset, pageSize, normalizedLanguage);
-            return;
-        }
-
-        QUrl url(QString(HELIX_API) + "/games");
-        QUrlQuery query;
-        query.addQueryItem("name", gameName);
-        url.setQuery(query);
-
-        QNetworkRequest request;
-        request.setRawHeader("Client-ID", getClientId().toUtf8());
-        request.setRawHeader("Accept", "application/json");
-        request.setUrl(url);
-        request.setAttribute(QNetworkRequest::User, offset);
-        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
-        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), gameName);
-        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3), normalizedLanguage);
-
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
-        QNetworkReply *reply = operation->get(request);
-
-        connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsGameLookupReply);
-        return;
+    if (offset == 0 || queryKey != lastGameStreamsQuery) {
+        gameStreamsPageCursors.clear();
+        lastGameStreamsQuery = queryKey;
     }
-
-    if (!normalizedLanguage.isEmpty()) {
+    else if (!gameStreamsPageCursors.contains(offset)) {
         QList<Channel *> empty;
-        emit error("Game language stream search requires Twitch login");
         emit gameStreamsOperationFinished(empty, offset);
         return;
     }
 
+    const QString gameId = gameStreamsGameIds.value(gameName);
+    if (!gameId.isEmpty()) {
+        getStreamsForGameId(gameId, offset, pageSize, normalizedLanguage);
+        return;
+    }
+
+    QUrl url(QString(HELIX_API) + "/games");
+    QUrlQuery query;
+    query.addQueryItem("name", gameName);
+    url.setQuery(query);
+
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    QString url = QString(KRAKEN_API)
-            + QString("/streams?game=") + QUrl::toPercentEncoding(gameName)
-            + QString("&offset=%1").arg(offset)
-            + QString("&limit=%1").arg(pageSize);
-    request.setUrl(QUrl(url));
+    request.setRawHeader("Accept", "application/json");
+    request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, offset);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), gameName);
+    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3), normalizedLanguage);
+
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsReply);
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsGameLookupReply);
 }
 
 void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language)
@@ -571,18 +556,21 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
 
 void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit)
 {
+    if (!requireAccessToken("VOD listing")) {
+        emit broadcastsOperationFailed();
+        return;
+    }
+
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
-    if (!access_token.isEmpty()) {
-        if (offset == 0 || channelId != lastBroadcastsChannelId) {
-            broadcastsPageCursors.clear();
-            lastBroadcastsChannelId = channelId;
-        }
-        else if (!broadcastsPageCursors.contains(offset)) {
-            QList<Vod *> empty;
-            emit broadcastsOperationFinished(empty);
-            return;
-        }
+    if (offset == 0 || channelId != lastBroadcastsChannelId) {
+        broadcastsPageCursors.clear();
+        lastBroadcastsChannelId = channelId;
+    }
+    else if (!broadcastsPageCursors.contains(offset)) {
+        QList<Vod *> empty;
+        emit broadcastsOperationFinished(empty);
+        return;
     }
 
     QUrl url;
@@ -591,40 +579,23 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
 
-    if (!access_token.isEmpty()) {
-        url = QUrl(QString(HELIX_API) + "/videos");
-        QUrlQuery query;
-        query.addQueryItem("user_id", QString::number(channelId));
-        query.addQueryItem("first", QString::number(pageSize));
-        if (ONLY_BROADCASTS) {
-            query.addQueryItem("type", "archive");
-        }
-
-        const QString cursor = broadcastsPageCursors.value(offset);
-        if (!cursor.isEmpty()) {
-            query.addQueryItem("after", cursor);
-        }
-        url.setQuery(query);
-
-        request.setRawHeader("Accept", "application/json");
-        QString auth = "Bearer " + access_token;
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    url = QUrl(QString(HELIX_API) + "/videos");
+    QUrlQuery query;
+    query.addQueryItem("user_id", QString::number(channelId));
+    query.addQueryItem("first", QString::number(pageSize));
+    if (ONLY_BROADCASTS) {
+        query.addQueryItem("type", "archive");
     }
-    else {
-        QString legacyUrl = QString(KRAKEN_API)
-                + QString("/channels/%1/videos").arg(channelId)
-                + QString("?offset=%1").arg(offset)
-                + QString("&limit=%1").arg(pageSize);
 
-        if (ONLY_BROADCASTS)
-            legacyUrl += "&broadcast_type=archive";
-
-        //if (USE_HLS)
-            //legacyUrl += "&hls=true";
-
-        url = QUrl(legacyUrl);
-        request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
+    const QString cursor = broadcastsPageCursors.value(offset);
+    if (!cursor.isEmpty()) {
+        query.addQueryItem("after", cursor);
     }
+    url.setQuery(query);
+
+    request.setRawHeader("Accept", "application/json");
+    QString auth = "Bearer " + access_token;
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     request.setUrl(url);
 
@@ -702,59 +673,42 @@ void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, qui
 }
 
 void NetworkManager::getEmoteSets(const QList<int> &emoteSetIDs) {
-    QString auth = "Bearer " + access_token;
-    if (!access_token.isEmpty()) {
-        pendingEmoteSets.clear();
-        pendingEmoteSetReplies = (emoteSetIDs.size() + 24) / 25;
-
-        for (int pos = 0; pos < emoteSetIDs.size(); pos += 25) {
-            const QList<int> chunk = emoteSetIDs.mid(pos, 25);
-
-            QUrl url(QString(HELIX_API) + "/chat/emotes/set");
-            QUrlQuery query;
-            for (auto id : chunk) {
-                query.addQueryItem("emote_set_id", QString::number(id));
-            }
-            url.setQuery(query);
-
-            qDebug() << "Requesting" << url;
-
-            QNetworkRequest request;
-            request.setRawHeader("Accept", "application/json");
-            request.setRawHeader("Client-ID", getClientId().toUtf8());
-            request.setUrl(url);
-            request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
-            QNetworkReply *reply = operation->get(request);
-
-            connect(reply, &QNetworkReply::finished, this, &NetworkManager::emoteSetsReply);
-        }
-
-        if (emoteSetIDs.isEmpty()) {
-            emit getEmoteSetsOperationFinished(pendingEmoteSets);
-        }
+    if (!requireAccessToken("Emote set loading")) {
+        QMap<int, QMap<int, QString>> empty;
+        emit getEmoteSetsOperationFinished(empty);
         return;
     }
 
-    QList<QString> emoteSetsIDsStr;
-    for (auto id : emoteSetIDs) {
-        emoteSetsIDsStr.append(QString::number(id));
+    QString auth = "Bearer " + access_token;
+    pendingEmoteSets.clear();
+    pendingEmoteSetReplies = (emoteSetIDs.size() + 24) / 25;
+
+    for (int pos = 0; pos < emoteSetIDs.size(); pos += 25) {
+        const QList<int> chunk = emoteSetIDs.mid(pos, 25);
+
+        QUrl url(QString(HELIX_API) + "/chat/emotes/set");
+        QUrlQuery query;
+        for (auto id : chunk) {
+            query.addQueryItem("emote_set_id", QString::number(id));
+        }
+        url.setQuery(query);
+
+        qDebug() << "Requesting" << url;
+
+        QNetworkRequest request;
+        request.setRawHeader("Accept", "application/json");
+        request.setRawHeader("Client-ID", getClientId().toUtf8());
+        request.setUrl(url);
+        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+
+        QNetworkReply *reply = operation->get(request);
+
+        connect(reply, &QNetworkReply::finished, this, &NetworkManager::emoteSetsReply);
     }
 
-    QString url = QString(KRAKEN_API) + "/chat/emoticon_images"
-        + QString("?emotesets=") + emoteSetsIDsStr.join(',');
-
-    qDebug() << "Requesting" << url;
-
-    QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
-    QNetworkReply *reply = operation->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::emoteSetsReply);
+    if (emoteSetIDs.isEmpty()) {
+        emit getEmoteSetsOperationFinished(pendingEmoteSets);
+    }
 }
 
 void NetworkManager::loadChatterList(const QString channel) {
@@ -1144,28 +1098,28 @@ void NetworkManager::getGlobalBadgesUrlsBeta() {
 }
 
 void NetworkManager::getChannelBitsUrls(const int channelID) {
-    QUrl url;
+    if (!requireAccessToken("Channel Cheermote metadata")) {
+        BitsQStringsMap emptyUrls;
+        BitsQStringsMap emptyColors;
+        emit getChannelBitsUrlsOperationFinished(channelID, emptyUrls, emptyColors);
+        return;
+    }
+
+    QUrl url(QString(HELIX_API) + "/bits/cheermotes");
+    QUrlQuery query;
+    query.addQueryItem("broadcaster_id", QString::number(channelID));
+    url.setQuery(query);
+
     QString auth = "Bearer " + access_token;
-    if (!access_token.isEmpty()) {
-        url = QUrl(QString(HELIX_API) + "/bits/cheermotes");
-        QUrlQuery query;
-        query.addQueryItem("broadcaster_id", QString::number(channelID));
-        url.setQuery(query);
-    }
-    else {
-        url = QUrl(QString(KRAKEN_API) + QString("/bits/actions?channel_id=") + QString::number(channelID));
-    }
 
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setRawHeader("Accept", access_token.isEmpty() ? QString("application/vnd.twitchtv.v5+json").toUtf8() : QString("application/json").toUtf8());
+    request.setRawHeader("Accept", QString("application/json").toUtf8());
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, channelID);
-    if (!access_token.isEmpty()) {
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-    }
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1208,24 +1162,23 @@ void NetworkManager::channelBitsUrlsReply() {
 }
 
 void NetworkManager::getGlobalBitsUrls() {
-    QUrl url;
+    if (!requireAccessToken("Global Cheermote metadata")) {
+        BitsQStringsMap emptyUrls;
+        BitsQStringsMap emptyColors;
+        emit getGlobalBitsUrlsOperationFinished(emptyUrls, emptyColors);
+        return;
+    }
+
+    QUrl url(QString(HELIX_API) + "/bits/cheermotes");
     QString auth = "Bearer " + access_token;
-    if (!access_token.isEmpty()) {
-        url = QUrl(QString(HELIX_API) + "/bits/cheermotes");
-    }
-    else {
-        url = QUrl(QString(KRAKEN_API) + QString("/bits/actions"));
-    }
 
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", access_token.isEmpty() ? QString("application/vnd.twitchtv.v5+json").toUtf8() : QString("application/json").toUtf8());
+    request.setRawHeader("Accept", QString("application/json").toUtf8());
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(url);
-    if (!access_token.isEmpty()) {
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-    }
+    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
