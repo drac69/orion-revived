@@ -17,6 +17,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QtDBus/QtDBus>
+#include <QtGlobal>
 #include <QImage>
 
 NotificationSender::NotificationSender(QNetworkAccessManager *nm) : netman(nm)
@@ -169,6 +170,6 @@ QDBusArgument& operator<<(QDBusArgument& arg, const QImage& image) {
 
 const QDBusArgument& operator>>(const QDBusArgument& arg, QImage&) {
   // This is needed to link but shouldn't be called.
-  Q_ASSERT(0);
+  Q_UNREACHABLE();
   return arg;
 }

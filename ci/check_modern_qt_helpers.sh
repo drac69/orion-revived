@@ -13,6 +13,11 @@ if rg -n '\b(NULL|Q_NULLPTR)\b' "$repo_dir/src"; then
     exit 1
 fi
 
+if rg -n 'Q_ASSERT\((0|false)\)' "$repo_dir/src"; then
+    printf 'Unreachable code paths must use Q_UNREACHABLE() instead of release-noop Q_ASSERT constants.\n' >&2
+    exit 1
+fi
+
 if rg -n '\b(Q_OS_MAC|Q_OS_OSX|Q_WS_MAC)\b' "$repo_dir/src"; then
     printf 'src must use Q_OS_MACOS for macOS-specific code instead of deprecated Qt platform macros.\n' >&2
     exit 1
