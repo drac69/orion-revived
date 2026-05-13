@@ -60,6 +60,12 @@ jobs:
       - name: Validate QML fonts
         run: ci/check_qml_fonts.sh
 
+      - name: Validate QML image fallbacks
+        run: ci/check_qml_image_fallbacks.sh
+
+      - name: Validate notification fallbacks
+        run: ci/check_notification_fallbacks.sh
+
       - name: Validate QML window contracts
         run: ci/check_qml_window_contracts.sh
 

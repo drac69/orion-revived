@@ -23,7 +23,7 @@
 #include <QDebug>
 #include <QSettings>
 
-#define DEFAULT_LOGO_URL    "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_150x150.png"
+#define DEFAULT_LOGO_URL    "qrc:/icon/orion.ico"
 #define DEFAULT_LOGO_PATH   "resources/logos/default.png"
 
 class Channel: public QObject{
@@ -70,7 +70,7 @@ class Channel: public QObject{
         const QString getLogourl() const;
         void setLogourl(const QString&);
 
-        const QString getPreviewurl();
+        const QString getPreviewurl() const;
         void setPreviewurl(const QString&);
 
         qint32 getViewers() const;

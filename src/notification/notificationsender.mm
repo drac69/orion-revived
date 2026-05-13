@@ -13,6 +13,7 @@
  */
 
 #include "notificationsender.h"
+#include <QFile>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
@@ -40,13 +41,24 @@ void NotificationSender::pushNotification(const QString &title, const QString &s
     if (!url.isEmpty())
         getFile(url);
     else
-        pushNotification(this->title, this->subtitle);
+        sendNotification(this->title, this->subtitle);
 }
 
 void NotificationSender::getFile(const QString &url)
 {
+    const QUrl imageUrl(url);
+    if (imageUrl.scheme() == "qrc") {
+        QFile file(":" + imageUrl.path());
+        if (file.open(QIODevice::ReadOnly)) {
+            sendNotification(title, subtitle, file.readAll());
+        } else {
+            sendNotification(title, subtitle);
+        }
+        return;
+    }
+
     QNetworkRequest request;
-    request.setUrl(QUrl(url));
+    request.setUrl(imageUrl);
 
     QNetworkReply *reply = netman->get(request);
 
@@ -60,12 +72,14 @@ void NotificationSender::onFileReply()
 
     if (reply->error() != QNetworkReply::NoError){
         qDebug() << reply->errorString();
+        reply->deleteLater();
+        sendNotification(title, subtitle);
         return;
     }
 
-    sendNotification(title, subtitle, reply->readAll());
-
+    const QByteArray data = reply->readAll();
     reply->deleteLater();
+    sendNotification(title, subtitle, data);
 }
 
 #ifdef Q_OS_MAC
@@ -91,5 +105,4 @@ void NotificationSender::sendNotification(const QString &title, const QString &m
 }
 
 #endif
-
 

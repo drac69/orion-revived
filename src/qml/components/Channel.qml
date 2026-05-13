@@ -69,18 +69,28 @@ Item {
                 visible: running
                 anchors.centerIn: parent
                 anchors.verticalCenterOffset: -title.height / 2
-                running: image.progress < 1
+                running: image.status === Image.Loading
             }
 
             Image {
                 id: image
-                source: Util.withImageReloadToken(root.logo, Network.imageReloadToken)
+                property string fallbackSource: "qrc:/icon/orion.ico"
+                property string requestedSource: Util.withImageReloadToken(root.logo, Network.imageReloadToken)
                 property bool isLandscape: sourceSize.width >= sourceSize.height
+                source: requestedSource
 
                 fillMode: isLandscape ? Image.PreserveAspectFit : Image.PreserveAspectCrop
                 width: isLandscape ? undefined : imageSize
                 height: isLandscape ? imageSize : undefined
                 anchors.centerIn: parent
+                onRequestedSourceChanged: source = requestedSource
+                onStatusChanged: {
+                    if (status === Image.Error && requestedSource
+                            && String(source) === requestedSource
+                            && String(source) !== fallbackSource) {
+                        source = fallbackSource
+                    }
+                }
 
                 Behavior on height {
                     enabled: image.isLandscape

@@ -25,6 +25,9 @@ void Channel::updateWith(const Channel &other)
         if (!other.logouri.isEmpty()) {
             this->setLogourl(other.logouri);
         }
+        if (!other.previewuri.isEmpty()) {
+            this->setPreviewurl(other.previewuri);
+        }
         this->setInfo(other.getInfo());
         this->setViewers(other.getViewers());
         this->setGame(other.getGame());
@@ -202,7 +205,7 @@ void Channel::setPreviewurl(const QString &uri){
     previewuri = uri;
 }
 
-const QString Channel::getPreviewurl(){
+const QString Channel::getPreviewurl() const{
     return previewuri;
 }
 

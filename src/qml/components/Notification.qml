@@ -96,10 +96,20 @@ Window {
 
         Image {
             id: img
-            source: Util.withImageReloadToken(imgSrc, Network.imageReloadToken)
+            property string fallbackSource: "qrc:/icon/orion.ico"
+            property string requestedSource: Util.withImageReloadToken(imgSrc, Network.imageReloadToken)
+            source: requestedSource
             fillMode: Image.PreserveAspectFit
             width: 80
             height: width
+            onRequestedSourceChanged: source = requestedSource
+            onStatusChanged: {
+                if (status === Image.Error && requestedSource
+                        && String(source) === requestedSource
+                        && String(source) !== fallbackSource) {
+                    source = fallbackSource
+                }
+            }
             anchors {
                 left: parent.left
                 leftMargin: 10

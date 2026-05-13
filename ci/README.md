@@ -7,8 +7,8 @@ desktop/AppStream metadata, checks the install target, runs the Twitch API and e
 guards, verifies that preserved legacy release helpers keep their explicit opt-in
 guard, validates Android package metadata, validates the QML resource manifest
 and Ubuntu runtime module dependencies, validates bundled-font setup, checks
-window/menu contracts, validates HTML entity helpers, guards playback recovery
-behavior, and smoke-tests the HLS
+remote-image and notification-image fallback handling, checks window/menu
+contracts, validates HTML entity helpers, guards playback recovery behavior, and smoke-tests the HLS
 master-playlist parser.
 
 The Ubuntu dependency installer uses bounded apt timeouts and retries so a

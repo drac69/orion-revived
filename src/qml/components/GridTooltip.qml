@@ -99,8 +99,18 @@ Item {
 
             Image {
                 id: img
-                source: Util.withImageReloadToken(root.previewSource, Network.imageReloadToken)
+                property string fallbackSource: "qrc:/icon/orion.ico"
+                property string requestedSource: Util.withImageReloadToken(root.previewSource, Network.imageReloadToken)
+                source: requestedSource
                 anchors.fill: parent
+                onRequestedSourceChanged: source = requestedSource
+                onStatusChanged: {
+                    if (status === Image.Error && requestedSource
+                            && String(source) === requestedSource
+                            && String(source) !== fallbackSource) {
+                        source = fallbackSource
+                    }
+                }
             }
 
             Label {
@@ -173,7 +183,7 @@ Item {
             text += text.length > 0 ? "<br/>" : ""
             text += game.viewers + " viewers"
         }
-        img.source = game.preview
+        previewSource = game.preview
 
         display(game, getPosition)
     }
