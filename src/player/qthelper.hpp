@@ -18,10 +18,6 @@
 
 #include <mpv/client.h>
 
-#if !MPV_ENABLE_DEPRECATED
-#error "This helper is deprecated. Copy it into your project instead."
-#else
-
 /**
  * Note: these helpers are provided for convenience for C++/Qt applications.
  * This is based on the public API in client.h, and it does not encode any
@@ -230,67 +226,6 @@ struct node_autofree {
     ~node_autofree() { mpv_free_node_contents(ptr); }
 };
 
-#if MPV_ENABLE_DEPRECATED
-
-/**
- * Return the given property as mpv_node converted to QVariant, or QVariant()
- * on error.
- *
- * @deprecated use get_property() instead
- *
- * @param name the property name
- */
-static inline QVariant get_property_variant(mpv_handle *ctx, const QString &name)
-{
-    mpv_node node;
-    if (mpv_get_property(ctx, name.toUtf8().data(), MPV_FORMAT_NODE, &node) < 0)
-        return QVariant();
-    node_autofree f(&node);
-    return node_to_variant(&node);
-}
-
-/**
- * Set the given property as mpv_node converted from the QVariant argument.
-
- * @deprecated use set_property() instead
- */
-static inline int set_property_variant(mpv_handle *ctx, const QString &name,
-                                       const QVariant &v)
-{
-    node_builder node(v);
-    return mpv_set_property(ctx, name.toUtf8().data(), MPV_FORMAT_NODE, node.node());
-}
-
-/**
- * Set the given option as mpv_node converted from the QVariant argument.
- *
- * @deprecated use set_property() instead
- */
-static inline int set_option_variant(mpv_handle *ctx, const QString &name,
-                                     const QVariant &v)
-{
-    node_builder node(v);
-    return mpv_set_option(ctx, name.toUtf8().data(), MPV_FORMAT_NODE, node.node());
-}
-
-/**
- * mpv_command_node() equivalent. Returns QVariant() on error (and
- * unfortunately, the same on success).
- *
- * @deprecated use command() instead
- */
-static inline QVariant command_variant(mpv_handle *ctx, const QVariant &args)
-{
-    node_builder node(args);
-    mpv_node res;
-    if (mpv_command_node(ctx, node.node(), &res) < 0)
-        return QVariant();
-    node_autofree f(&res);
-    return node_to_variant(&res);
-}
-
-#endif
-
 /**
  * This is used to return error codes wrapped in QVariant for functions which
  * return QVariant.
@@ -360,6 +295,18 @@ static inline int set_property(mpv_handle *ctx, const QString &name,
 }
 
 /**
+ * Set the given option as mpv_node converted from the QVariant argument.
+ *
+ * @return mpv error code (<0 on error, >= 0 on success)
+ */
+static inline int set_option(mpv_handle *ctx, const QString &name,
+                             const QVariant &v)
+{
+    node_builder node(v);
+    return mpv_set_option(ctx, name.toUtf8().data(), MPV_FORMAT_NODE, node.node());
+}
+
+/**
  * mpv_command_node() equivalent.
  *
  * @param args command arguments, with args[0] being the command name as string
@@ -380,7 +327,5 @@ static inline QVariant command(mpv_handle *ctx, const QVariant &args)
 }
 
 Q_DECLARE_METATYPE(mpv::qt::ErrorReturn)
-
-#endif /* else #if MPV_ENABLE_DEPRECATED */
 
 #endif

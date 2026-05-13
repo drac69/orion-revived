@@ -209,17 +209,17 @@ void MpvObject::doUpdate()
 
 void MpvObject::command(const QVariant& params)
 {
-    mpv::qt::command_variant(mpv, params);
+    mpv::qt::command(mpv, params);
 }
 
 void MpvObject::setProperty(const QString& name, const QVariant& value)
 {
-    mpv::qt::set_property_variant(mpv, name, value);
+    mpv::qt::set_property(mpv, name, value);
 }
 
 void MpvObject::setOption(const QString &name, const QVariant &value)
 {
-    mpv::qt::set_option_variant(mpv, name, value);
+    mpv::qt::set_option(mpv, name, value);
 }
 
 bool MpvObject::observeProperty(const QString &name, const QJSValue &callback)
@@ -270,7 +270,11 @@ QQuickFramebufferObject::Renderer *MpvObject::createRenderer() const
 
 QVariant MpvObject::getProperty(const QString &name)
 {
-    return mpv::qt::get_property_variant(mpv, name);
+    const QVariant value = mpv::qt::get_property(mpv, name);
+    if (mpv::qt::is_error(value)) {
+        return QVariant();
+    }
+    return value;
 }
 
 bool MpvObject::event(QEvent *event)

@@ -9,6 +9,7 @@ qtav_backend="$repo_dir/src/qml/QtAVBackend.qml"
 mpv_backend="$repo_dir/src/qml/MpvBackend.qml"
 mpv_object_header="$repo_dir/src/player/mpvobject.h"
 mpv_object_source="$repo_dir/src/player/mpvobject.cpp"
+mpv_qt_helper="$repo_dir/src/player/qthelper.hpp"
 
 if ! printf '%s\n' "$status_changed_block" | rg -q 'renderer\.status === "BUFFERING"'; then
     printf 'PlayerView must restart stall recovery when active playback returns to BUFFERING.\n' >&2
@@ -96,5 +97,20 @@ fi
 
 if ! rg -q 'onPlaybackError: root\.backendError' "$mpv_backend"; then
     printf 'MpvBackend.qml must forward libmpv playback errors through backendError.\n' >&2
+    exit 1
+fi
+
+if rg -q 'command_variant|set_property_variant|set_option_variant|get_property_variant' "$mpv_object_source"; then
+    printf 'MpvObject must use the non-deprecated mpv Qt helper calls.\n' >&2
+    exit 1
+fi
+
+if rg -q '#error "This helper is deprecated' "$mpv_qt_helper"; then
+    printf 'The bundled mpv Qt helper must not require deprecated libmpv APIs to compile.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'static inline int set_option' "$mpv_qt_helper"; then
+    printf 'The bundled mpv Qt helper must expose a non-deprecated set_option helper.\n' >&2
     exit 1
 fi
