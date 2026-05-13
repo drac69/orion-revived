@@ -101,12 +101,16 @@ ApplicationWindow {
     property bool sideNavigationVisible: Settings.sideNavigation && !appFullScreen && !isMobile()
     property string networkMessage: ""
 
-    function preparePopupMenu() {
+    function refreshWindowScreenAssociation() {
         if (!popupScreenFixApplied && !isMobile()) {
             root.x += 1
             root.x -= 1
             popupScreenFixApplied = true
         }
+    }
+
+    function preparePopupMenu() {
+        refreshWindowScreenAssociation()
     }
 
     function fitToAspectRatio() {
@@ -215,6 +219,8 @@ ApplicationWindow {
     Component.onCompleted: {
         // remove binding. this is required to allow proper behaviour with Settings.minimizeOnStartup
         visibility = visibility
+
+        Qt.callLater(refreshWindowScreenAssociation)
 
         if (!isMobile()) {
             var component = Qt.createComponent("components/GridTooltip.qml")

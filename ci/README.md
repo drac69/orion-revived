@@ -4,8 +4,8 @@ The maintained CI entry point for this fork is `.github/workflows/ci.yml`. It
 builds the Linux Qt 5/mpv target on Ubuntu 24.04, validates desktop/AppStream
 metadata, checks the install target, runs the Twitch API and emote-ID regression
 guards, validates Android package metadata, validates the QML resource manifest
-and HTML entity helpers, guards playback recovery behavior, and smoke-tests the
-HLS master-playlist parser.
+and window/menu contracts, validates HTML entity helpers, guards playback
+recovery behavior, and smoke-tests the HLS master-playlist parser.
 
 The other scripts in this directory are legacy upstream Travis/AppVeyor release
 helpers. They reference old Qt, Android, OpenSSL, mpv, and deployment tooling
