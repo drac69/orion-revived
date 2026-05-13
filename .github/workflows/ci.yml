@@ -58,6 +58,9 @@ jobs:
           appstreamcli validate --pedantic --no-net distfiles/Orion.appdata.xml
           desktop-file-validate distfiles/Orion.desktop
 
+      - name: Validate legacy CI guard
+        run: ci/check_legacy_ci_guard.sh
+
       - name: Validate Twitch API usage
         run: ci/check_twitch_api_guard.sh
 
