@@ -37,7 +37,7 @@ class NotificationManager: public QObject
 {
     Q_OBJECT
 public:
-    NotificationManager(QQmlApplicationEngine *engine, QNetworkAccessManager *nm, QObject *parent = 0);
+    NotificationManager(QQmlApplicationEngine *engine, QNetworkAccessManager *nm, QObject *parent = nullptr);
     virtual ~NotificationManager();
 
 private slots:

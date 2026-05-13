@@ -70,7 +70,7 @@ class IrcChat : public QObject
     QList<QString> blockedUserListLoading;
 
 public:
-    IrcChat(QObject *parent = 0);
+    IrcChat(QObject *parent = nullptr);
     ~IrcChat();
 
     Q_PROPERTY(QString name MEMBER username)

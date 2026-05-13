@@ -23,7 +23,7 @@ ChannelManager::ChannelManager() :
     settingsManager(SettingsManager::getInstance())
 {
     user_id = 0;
-    tempFavourites = 0;
+    tempFavourites = nullptr;
 
     resultsModel = new ChannelListModel();
     gamesModel = new GameListModel();
@@ -162,7 +162,7 @@ void ChannelManager::updateAccessToken(QString /*accessToken*/)
         if (tempFavourites) {
             delete favouritesModel;
             favouritesModel = tempFavourites;
-            tempFavourites = 0;
+            tempFavourites = nullptr;
             favouritesProxy->setSourceModel(favouritesModel);
         }
 
@@ -229,7 +229,7 @@ void ChannelManager::save()
     if (tempFavourites) {
         delete favouritesModel;
         favouritesModel = tempFavourites;
-        tempFavourites = 0;
+        tempFavourites = nullptr;
     }
 
     //Write channels
@@ -276,7 +276,7 @@ void ChannelManager::removeFromFavourites(const quint32 &id){
 
     favouritesModel->removeChannel(chan);
 
-    chan = 0;
+    chan = nullptr;
 
     //Update results
     Channel* channel = resultsModel->find(id);

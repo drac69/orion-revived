@@ -101,7 +101,7 @@ void HttpServer::stop() {
     if (server) {
         qDebug() << "Stopping server";
         server->deleteLater();
-        server = 0;
+        server = nullptr;
     }
     m_state.clear();
 }

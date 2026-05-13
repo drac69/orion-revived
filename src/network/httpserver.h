@@ -12,13 +12,13 @@ class HttpServer: public QObject
     ORION_QML_SINGLETON
     Q_OBJECT
 
-    QTcpServer *server = 0;
+    QTcpServer *server = nullptr;
 
     bool listenError = false;
     QString m_port;
     QString m_state;
 
-    explicit HttpServer(QObject *parent = 0);
+    explicit HttpServer(QObject *parent = nullptr);
 public:
     static HttpServer *getInstance();
 

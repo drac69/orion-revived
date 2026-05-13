@@ -31,7 +31,7 @@ constexpr auto RequestContextAttribute3 = static_cast<QNetworkRequest::Attribute
 
 }
 
-NetworkManager *NetworkManager::singleton = 0;
+NetworkManager *NetworkManager::singleton = nullptr;
 
 NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
 {

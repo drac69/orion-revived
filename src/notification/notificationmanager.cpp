@@ -39,7 +39,7 @@ NotificationManager::NotificationManager(QQmlApplicationEngine *engine, QNetwork
     QObject(parent),
     net(nm)
 {
-    currentObject = 0;
+    currentObject = nullptr;
 
     queue.clear();
 
@@ -65,7 +65,7 @@ void NotificationManager::showNext()
     //Pops first in queue, and shows it
     if (currentObject){
         currentObject->deleteLater();
-        currentObject = 0;
+        currentObject = nullptr;
     }
 
     if (!queue.isEmpty()){

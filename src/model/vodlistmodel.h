@@ -26,7 +26,7 @@ class VodListModel: public QAbstractListModel
     Q_OBJECT
 
 public:
-    VodListModel(QObject *parent = 0);
+    VodListModel(QObject *parent = nullptr);
     ~VodListModel();
 
     enum Roles {

@@ -36,7 +36,7 @@ class VodManager: public QObject
 
     QMap<QString, QMap<QString, LastPosition>> channelVodLastPositions;
 
-    explicit VodManager(QObject *parent = 0);
+    explicit VodManager(QObject *parent = nullptr);
 
 public:
     static VodManager *getInstance();

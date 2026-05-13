@@ -32,7 +32,7 @@ public:
     static void setConfigFile(const QString &path);
     static QString configFile();
 
-    MpvObject(QQuickItem * parent = 0);
+    MpvObject(QQuickItem * parent = nullptr);
     virtual ~MpvObject();
     virtual Renderer *createRenderer() const;
 

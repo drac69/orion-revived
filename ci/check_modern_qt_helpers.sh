@@ -13,6 +13,11 @@ if rg -n '\b(NULL|Q_NULLPTR)\b' "$repo_dir/src"; then
     exit 1
 fi
 
+if rg -n '\*\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*0\s*(;|,|\))|\*\s*parent\s*=\s*0\b' "$repo_dir/src"; then
+    printf 'Pointer declarations and default arguments must use nullptr instead of 0.\n' >&2
+    exit 1
+fi
+
 if rg -n 'QVariant::Type|\.type\(\)' "$repo_dir/src/player/qthelper.hpp"; then
     printf 'qthelper.hpp must use QVariant::userType() for Qt meta-type checks.\n' >&2
     exit 1
