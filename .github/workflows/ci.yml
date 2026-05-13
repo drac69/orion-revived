@@ -22,6 +22,9 @@ jobs:
           - backend: multimedia
             config: CONFIG+=multimedia
             packages: qtmultimedia5-dev qml-module-qtmultimedia
+          - backend: mpv-multimedia
+            config: CONFIG+=mpv CONFIG+=multimedia
+            packages: libmpv-dev qtmultimedia5-dev qml-module-qtmultimedia
 
     steps:
       - name: Check out source
@@ -86,7 +89,7 @@ jobs:
         run: ci/check_m3u8_parser.sh
 
       - name: Configure
-        run: qmake orion.pro "${{ matrix.config }}"
+        run: qmake orion.pro ${{ matrix.config }}
 
       - name: Build
         run: make -j"$(nproc)"

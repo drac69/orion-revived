@@ -66,7 +66,7 @@ pkg install qt5-buildtools qt5-core qt5-declarative qt5-graphicaleffects qt5-gui
   qt5-network qt5-quickcontrols2 qt5-widgets mpv
 ```
 
-If using backend other than mpv, install those packages instead. Packagers can build multiple backends into one binary by passing more than one backend flag, for example `CONFIG+=mpv CONFIG+=multimedia`. At startup, Orion removes a compiled backend from the in-app selector if its QML module cannot load and falls back to another compiled backend when one is available.
+If using backend other than mpv, install those packages instead. Packagers can build multiple backends into one binary by passing more than one backend flag, for example `CONFIG+=mpv CONFIG+=multimedia`. The GitHub Actions workflow validates separate mpv and Qt Multimedia builds as well as a combined mpv plus Qt Multimedia build. At startup, Orion removes a compiled backend from the in-app selector if its QML module cannot load and falls back to another compiled backend when one is available.
 
 If a FreeBSD build fails at runtime with unresolved `QSslSocket` or OpenSSL symbols, check that the runtime Qt Network package and OpenSSL libraries come from the same package set. Old FreeBSD 11-era reports of `SSL_CTX_set1_groups` failures were consistent with an SSL runtime mismatch rather than an Orion-only crash.
 

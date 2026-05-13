@@ -27,3 +27,4 @@ require_package_for_import '^import QtQuick\.Controls\b' 'qml-module-qtquick-con
 require_package_for_import '^import QtQuick\.Controls\.Styles\b' 'qml-module-qtquick-controls'
 require_package_for_import '^import QtQuick\.Layouts\b' 'qml-module-qtquick-layouts'
 require_package_for_import '^import QtQuick\.Window\b' 'qml-module-qtquick-window2'
+require_package_for_import '^import QtMultimedia\b' 'qml-module-qtmultimedia'
