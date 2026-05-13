@@ -32,7 +32,7 @@ VodManager::VodManager(QObject *parent) :
     QObject(parent),
     netman(NetworkManager::getInstance())
 {
-    qmlRegisterInterface<VodListModel>("VodListModel");
+    qmlRegisterInterface<VodListModel>("Orion", 1);
     _model = new VodListModel(this);
     _filteredModel = new VodFilterProxyModel(this);
     _filteredModel->setSourceModel(_model);

@@ -15,6 +15,7 @@
 #include <QtQuick/QQuickWindow>
 #include <QtQuick/QQuickView>
 #include <QJSEngine>
+#include <QQmlEngine>
 
 namespace
 {
@@ -224,10 +225,13 @@ void MpvObject::setOption(const QString &name, const QVariant &value)
 bool MpvObject::observeProperty(const QString &name, const QJSValue &callback)
 {
     if (!callback.isCallable()) return false;
+    QQmlEngine *engine = qmlEngine(this);
+    if (!engine) return false;
+
     callbacks.emplace_back(std::make_unique<QJSValue>(callback));
     QJSValue *pCallback = callbacks[callbacks.size() - 1].get();
     if (mpv_observe_property(mpv, (uint64_t)(pCallback), name.toLatin1().data(), MPV_FORMAT_NODE) >= 0) {
-        connect(callback.engine(), &QJSEngine::destroyed, this, [this, pCallback](QObject*){
+        connect(engine, &QObject::destroyed, this, [this, pCallback](QObject*){
             callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(), [&](auto const& cb){
                 if (cb.get() == pCallback) {
                     mpv_unobserve_property(mpv, (uint64_t)pCallback);
@@ -293,11 +297,13 @@ bool MpvObject::event(QEvent *event)
                     mpv::qt::node_autofree f(node);
 
                     if (callback.isCallable()) {
-                        QJSEngine *engine = callback.engine();
-                        callback.call({
-                            engine->toScriptValue(mpv::qt::node_to_variant(node)),
-                            engine->toScriptValue(QString(prop->name))
-                        });
+                        QJSEngine *engine = qmlEngine(this);
+                        if (engine) {
+                            callback.call({
+                                engine->toScriptValue(mpv::qt::node_to_variant(node)),
+                                engine->toScriptValue(QString(prop->name))
+                            });
+                        }
                     }
                 }
                 break;
