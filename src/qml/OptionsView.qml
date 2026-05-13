@@ -245,6 +245,30 @@ Page {
                         }
                     }
 
+                    Label {
+                        text: "VOD progress backup"
+                        font.bold: true
+                    }
+
+                    RowLayout {
+                        width: parent.width
+
+                        TextField {
+                            id: vodProgressSnapshotPath
+                            text: VodManager.playbackPositionSnapshotPath()
+                            readOnly: true
+                            selectByMouse: true
+                            font.pointSize: 8
+                            Layout.fillWidth: true
+                        }
+
+                        Button {
+                            text: "Copy"
+                            font.pointSize: 9
+                            onClicked: Settings.copyToClipboard(vodProgressSnapshotPath.text)
+                        }
+                    }
+
                     OptionCombo {
                         width: parent.width
                         id: playerOption
