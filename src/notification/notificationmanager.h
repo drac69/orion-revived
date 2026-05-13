@@ -38,7 +38,7 @@ class NotificationManager: public QObject
     Q_OBJECT
 public:
     NotificationManager(QQmlApplicationEngine *engine, QNetworkAccessManager *nm, QObject *parent = nullptr);
-    virtual ~NotificationManager();
+    ~NotificationManager() override;
 
 private slots:
     void showNext();

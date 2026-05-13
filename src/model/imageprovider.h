@@ -52,7 +52,7 @@ class ImageProvider;
 class CachedImageProvider : public QQuickImageProvider {
 public:
     CachedImageProvider(ImageProvider const* provider);
-    QImage requestImage(const QString &id, QSize * size, const QSize & requestedSize);
+    QImage requestImage(const QString &id, QSize * size, const QSize & requestedSize) override;
 private:
     ImageProvider const* _provider;
 };
@@ -62,7 +62,7 @@ class ImageProvider : public QObject {
     Q_OBJECT
 public:
     ImageProvider(const QString imageProviderName, const QString extension, const QString cacheDirName = "");
-    ~ImageProvider();
+    ~ImageProvider() override;
 
     QString getImageProviderName() { return _imageProviderName;  }
     QString getBaseUrl() { return "image://" + _imageProviderName; }
@@ -119,7 +119,7 @@ class URLFormatImageProvider : public ImageProvider {
 public:
     URLFormatImageProvider(const QString imageProviderName, const QString urlFormat, const QString extension, const QString cacheDirName = "");
 protected:
-    virtual const QUrl getUrlForKey(QString & key);
+    const QUrl getUrlForKey(QString & key) override;
 private:
     QString _urlFormat;
 };

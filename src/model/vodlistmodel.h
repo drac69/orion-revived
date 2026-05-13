@@ -27,7 +27,7 @@ class VodListModel: public QAbstractListModel
 
 public:
     VodListModel(QObject *parent = nullptr);
-    ~VodListModel();
+    ~VodListModel() override;
 
     enum Roles {
         Title =          Qt::UserRole + 1,
@@ -47,10 +47,10 @@ public:
         MutedSegmentRanges,
     };
 
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    int rowCount(const QModelIndex & parent = QModelIndex()) const;
-    QHash<int,QByteArray> roleNames() const;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    int rowCount(const QModelIndex & parent = QModelIndex()) const override;
+    QHash<int,QByteArray> roleNames() const override;
 
     void addAll(QList<Vod *> &items);
     void mergePage(QList<Vod *> &items, quint32 offset);

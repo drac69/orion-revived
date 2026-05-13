@@ -33,8 +33,8 @@ public:
     static QString configFile();
 
     MpvObject(QQuickItem * parent = nullptr);
-    virtual ~MpvObject();
-    virtual Renderer *createRenderer() const;
+    ~MpvObject() override;
+    Renderer *createRenderer() const override;
 
     Q_INVOKABLE QVariant getProperty(const QString &name);
 
@@ -54,7 +54,7 @@ private slots:
 
 private:
     qint64 time;
-    bool event(QEvent *event);
+    bool event(QEvent *event) override;
 };
 
 #endif // MPVOBJECT_H

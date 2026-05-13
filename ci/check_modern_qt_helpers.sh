@@ -27,3 +27,23 @@ if rg -n '\.(setAttribute|attribute)\(static_cast<QNetworkRequest::Attribute>\(Q
     printf 'Network request context must use named request attributes instead of inline QNetworkRequest::User offsets.\n' >&2
     exit 1
 fi
+
+required_override_lines=(
+    "$repo_dir/src/model/channellistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
+    "$repo_dir/src/model/gamelistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
+    "$repo_dir/src/model/vodlistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
+    "$repo_dir/src/model/imageprovider.h|QImage requestImage(const QString &id, QSize * size, const QSize & requestedSize) override;"
+    "$repo_dir/src/model/badgeimageprovider.h|QString getCanonicalKey(QString key) override;"
+    "$repo_dir/src/player/mpvobject.h|Renderer *createRenderer() const override;"
+    "$repo_dir/src/player/mpvobject.h|bool event(QEvent *event) override;"
+    "$repo_dir/src/player/mpvobject.cpp|void render() override"
+)
+
+for entry in "${required_override_lines[@]}"; do
+    file=${entry%%|*}
+    line=${entry#*|}
+    if ! rg -Fq "$line" "$file"; then
+        printf 'Missing expected C++ override annotation in %s: %s\n' "$file" "$line" >&2
+        exit 1
+    fi
+done

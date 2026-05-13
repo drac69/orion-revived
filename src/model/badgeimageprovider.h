@@ -10,9 +10,9 @@ public:
     BadgeImageProvider();
     void setChannelName(QString channelName) { _channelName = channelName; }
     void setChannelId(QString channelId) { _channelId = channelId; }
-    virtual QString getCanonicalKey(QString key);
+    QString getCanonicalKey(QString key) override;
 protected:
-    virtual const QUrl getUrlForKey(QString & key);
+    const QUrl getUrlForKey(QString & key) override;
 private:
     QString _channelName;
     QString _channelId;
@@ -24,9 +24,9 @@ class BitsImageProvider : public ImageProvider {
 public:
     BitsImageProvider();
     void setChannelId(int channelId) { _channelId = channelId; }
-    virtual QString getCanonicalKey(QString key);
+    QString getCanonicalKey(QString key) override;
 protected:
-    virtual const QUrl getUrlForKey(QString & key);
+    const QUrl getUrlForKey(QString & key) override;
 private:
     int _channelId;
 };

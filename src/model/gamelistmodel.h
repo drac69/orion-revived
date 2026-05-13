@@ -27,12 +27,12 @@ class GameListModel: public QAbstractListModel
 
 public:
     GameListModel();
-    ~GameListModel();
+    ~GameListModel() override;
 
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    int rowCount(const QModelIndex & parent = QModelIndex()) const;
-    QHash<int,QByteArray> roleNames() const;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    int rowCount(const QModelIndex & parent = QModelIndex()) const override;
+    QHash<int,QByteArray> roleNames() const override;
 
     void addAll(const QList<Game*> &);
     void addGame(Game*);
