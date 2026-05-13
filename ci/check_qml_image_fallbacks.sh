@@ -12,6 +12,7 @@ grid_tooltip="$repo_dir/src/qml/components/GridTooltip.qml"
 info_drawer="$repo_dir/src/qml/components/InfoDrawer.qml"
 round_image="$repo_dir/src/qml/components/RoundImage.qml"
 notification="$repo_dir/src/qml/components/Notification.qml"
+image_provider="$repo_dir/src/model/imageprovider.cpp"
 
 if ! rg -q 'setPreviewurl\(other\.previewuri\)' "$channel_cpp"; then
     printf 'Channel::updateWith must refresh non-empty preview URLs.\n' >&2
@@ -49,5 +50,15 @@ fi
 
 if ! rg -q 'previewSource\s*=\s*game\.preview' "$grid_tooltip"; then
     printf 'GridTooltip must set previewSource for game previews.\n' >&2
+    exit 1
+fi
+
+if [ "$(rg -c 'if \(!_reply\)' "$image_provider")" -lt 3 ]; then
+    printf 'ImageProvider download slots must guard unexpected non-reply senders.\n' >&2
+    exit 1
+fi
+
+if ! rg -q '_file\.cancelWriting\(\)' "$image_provider"; then
+    printf 'ImageProvider must cancel partial writes when a download finishes without a reply sender.\n' >&2
     exit 1
 fi

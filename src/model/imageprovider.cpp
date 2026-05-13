@@ -197,6 +197,11 @@ DownloadHandler::DownloadHandler(QString filename, QString key) : filename(filen
 
 void DownloadHandler::dataAvailable() {
     QNetworkReply* _reply = qobject_cast<QNetworkReply*>(sender());
+    if (!_reply) {
+        hadError = true;
+        return;
+    }
+
     auto buffer = _reply->readAll();
     _file.write(buffer.data(), buffer.size());
 }
@@ -204,20 +209,30 @@ void DownloadHandler::dataAvailable() {
 void DownloadHandler::error(QNetworkReply::NetworkError /*code*/) {
     hadError = true;
     QNetworkReply* _reply = qobject_cast<QNetworkReply*>(sender());
+    if (!_reply) {
+        qDebug() << "Network error downloading" << filename << ": missing reply sender";
+        return;
+    }
+
     qDebug() << "Network error downloading" << _reply->request().url().toString() << ":" << _reply->errorString();
 }
 
 void DownloadHandler::replyFinished() {
     QNetworkReply* _reply = qobject_cast<QNetworkReply*>(sender());
-    if (_reply) {
-        _reply->deleteLater();
-        _file.commit();
-        //qDebug() << _file.fileName();
-        //might need something for windows for the forwardslash..
-        qDebug() << "download of" << _file.fileName() << "complete";
-
-        emit downloadComplete(_file.fileName(), hadError);
+    if (!_reply) {
+        hadError = true;
+        _file.cancelWriting();
+        emit downloadComplete(_file.fileName(), true);
+        return;
     }
+
+    _reply->deleteLater();
+    _file.commit();
+    //qDebug() << _file.fileName();
+    //might need something for windows for the forwardslash..
+    qDebug() << "download of" << _file.fileName() << "complete";
+
+    emit downloadComplete(_file.fileName(), hadError);
 }
 
 
