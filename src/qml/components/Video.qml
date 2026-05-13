@@ -25,6 +25,7 @@ Channel {
     property string createdAt
     property string seekPreviews
     property string mutedSegments
+    property string mutedSegmentRanges
     online: true
 
     Label {

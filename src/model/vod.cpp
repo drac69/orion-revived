@@ -115,3 +115,13 @@ void Vod::setMutedSegments(const QString &value)
 {
     mutedSegments = value;
 }
+
+QString Vod::getMutedSegmentRanges() const
+{
+    return mutedSegmentRanges;
+}
+
+void Vod::setMutedSegmentRanges(const QString &value)
+{
+    mutedSegmentRanges = value;
+}

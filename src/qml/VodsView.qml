@@ -213,6 +213,7 @@ Item{
                 createdAt: model.createdAt
                 seekPreviews: model.seekPreviews
                 mutedSegments: model.mutedSegments
+                mutedSegmentRanges: model.mutedSegmentRanges
 
                 width: vodgrid.cellWidth
             }

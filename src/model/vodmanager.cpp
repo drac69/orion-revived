@@ -160,6 +160,7 @@ void VodManager::loadCachedVods(quint64 channelId, const QString &type)
         vod->setCreatedAt(settings.value("createdAt").toString());
         vod->setSeekPreviews(settings.value("seekPreviews").toString());
         vod->setMutedSegments(settings.value("mutedSegments").toString());
+        vod->setMutedSegmentRanges(settings.value("mutedSegmentRanges").toString());
         items.append(vod);
     }
     settings.endArray();
@@ -197,6 +198,7 @@ void VodManager::saveCachedVods(quint64 channelId, const QString &type) const
         settings.setValue("createdAt", _model->data(index, VodListModel::CreatedAt));
         settings.setValue("seekPreviews", _model->data(index, VodListModel::SeekPreviews));
         settings.setValue("mutedSegments", _model->data(index, VodListModel::MutedSegments));
+        settings.setValue("mutedSegmentRanges", _model->data(index, VodListModel::MutedSegmentRanges));
     }
     settings.endArray();
     settings.endGroup();

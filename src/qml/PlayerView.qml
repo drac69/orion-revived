@@ -45,6 +45,7 @@ Page {
     property var vodQueueChannel
     property int vodQueueIndex: -1
     property bool suppressVodQueueAdvance: false
+    property var mutedSegmentRanges: []
     property int startupRetryAttempts: 0
     property int maxStartupRetryAttempts: 2
     property int unexpectedStopRetryAttempts: 0
@@ -111,6 +112,53 @@ Page {
     function suppressNextVodQueueAdvance() {
         suppressVodQueueAdvance = true
         suppressVodQueueAdvanceTimer.restart()
+    }
+
+    function parseMutedSegmentRanges(value) {
+        var ranges = []
+        if (!value) {
+            return ranges
+        }
+
+        var parts = String(value).split(";")
+        for (var i = 0; i < parts.length; i++) {
+            var bounds = parts[i].split("-")
+            if (bounds.length !== 2) {
+                continue
+            }
+
+            var start = Number(bounds[0])
+            var end = Number(bounds[1])
+            if (!isNaN(start) && !isNaN(end) && end > start) {
+                ranges.push({ "start": start, "end": end })
+            }
+        }
+
+        return ranges
+    }
+
+    function mutedSegmentAt(position) {
+        for (var i = 0; i < mutedSegmentRanges.length; i++) {
+            var segment = mutedSegmentRanges[i]
+            if (position >= segment.start && position < segment.end) {
+                return segment
+            }
+        }
+
+        return null
+    }
+
+    function skipMutedSegment() {
+        if (!renderer || !isVod) {
+            return
+        }
+
+        var segment = mutedSegmentAt(renderer.position)
+        if (!segment) {
+            return
+        }
+
+        seekTo(Math.min(duration, segment.end + 0.5))
     }
 
     function stopRendererWithoutQueueAdvance() {
@@ -424,6 +472,7 @@ Page {
             if (!vod || typeof vod === "undefined") {
                 ChannelManager.findPlaybackStream(channel.name)
                 isVod = false
+                root.mutedSegmentRanges = []
 
                 duration = -1
             }
@@ -432,6 +481,7 @@ Page {
                 isVod = true
                 root.curVodId = vod._id
                 root.lastSetPosition = startPos
+                root.mutedSegmentRanges = parseMutedSegmentRanges(vod.mutedSegmentRanges)
 
                 duration = vod.duration
 
@@ -441,6 +491,7 @@ Page {
             }
         } else {
             isVod = false;
+            root.mutedSegmentRanges = []
         }
 
         currentChannel = {
@@ -457,6 +508,7 @@ Page {
             "preview": channel.preview,
             "seekPreviews": isVod ? vod.seekPreviews : "",
             "mutedSegments": isVod ? vod.mutedSegments : "",
+            "mutedSegmentRanges": isVod ? vod.mutedSegmentRanges : "",
         }
 
         setWatchingTitle()
@@ -1208,6 +1260,27 @@ Page {
                     return seekTimer.offset
                 }
 
+                Item {
+                    anchors.fill: parent
+                    visible: root.isVod && root.duration > 0 && root.mutedSegmentRanges.length > 0
+
+                    Repeater {
+                        model: root.mutedSegmentRanges
+                        delegate: Rectangle {
+                            property real markerStart: Math.max(0, Math.min(1, modelData.start / root.duration))
+                            property real markerEnd: Math.max(markerStart, Math.min(1, modelData.end / root.duration))
+
+                            x: markerStart * seekBar.width
+                            y: Math.round((seekBar.height - height) / 2)
+                            width: Math.max(2, (markerEnd - markerStart) * seekBar.width)
+                            height: Math.max(4, Math.round(seekBar.height * 0.18))
+                            radius: height / 2
+                            color: Material.accent
+                            opacity: 0.55
+                        }
+                    }
+                }
+
                 MouseArea {
                     id: seekBarMouseArea
                     anchors.fill: seekBar
@@ -1305,6 +1378,16 @@ Page {
                 }
 
                 IconButtonFlat {
+                    id: skipMutedBtn
+                    visible: isVod && mutedSegmentRanges.length > 0
+                    enabled: renderer && mutedSegmentAt(renderer.position) !== null
+                    text: "\ue044"
+                    onClicked: skipMutedSegment()
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Skip current muted section"
+                }
+
+                IconButtonFlat {
                     id: volumeBtn
                     visible: !isMobile()
                     property real mutedValue: 100.0
@@ -1344,16 +1427,18 @@ Page {
 
                         playBtn.hoverEnabled = true
                         resetBtn.hoverEnabled = true
+                        skipMutedBtn.hoverEnabled = true
                         volumeBtn.hoverEnabled = true
                     }
 
                     Connections { target: playBtn; onHoveredChanged: volumeSlider.update(); onPressedChanged: volumeSlider.update() }
                     Connections { target: resetBtn; onHoveredChanged: volumeSlider.update(); onPressedChanged: volumeSlider.update() }
+                    Connections { target: skipMutedBtn; onHoveredChanged: volumeSlider.update(); onPressedChanged: volumeSlider.update() }
                     Connections { target: volumeBtn; onHoveredChanged: volumeSlider.update(); onPressedChanged: volumeSlider.update() }
 
                     // Volume slider behavior similar to youtube
                     function update() {
-                        if (opacity > 0 && (playBtn.hovered || resetBtn.hovered)) {
+                        if (opacity > 0 && (playBtn.hovered || resetBtn.hovered || skipMutedBtn.hovered)) {
                             opacity = 1
                             width = 90
                         } else if (hovered || pressed || volumeBtn.hovered || volumeBtn.pressed) {

@@ -410,6 +410,7 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
 
     if (json["muted_segments"].isArray()) {
         QStringList segments;
+        QStringList ranges;
         for (const QJsonValue &segmentValue : json["muted_segments"].toArray()) {
             const QJsonObject segment = segmentValue.toObject();
             if (!segment.contains("offset") || !segment.contains("duration")) {
@@ -422,11 +423,14 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
                 continue;
             }
 
+            const int end = offset + segmentDuration;
             segments.append(QString("%1-%2")
                             .arg(formatVodOffset(static_cast<quint32>(offset)))
-                            .arg(formatVodOffset(static_cast<quint32>(offset + segmentDuration))));
+                            .arg(formatVodOffset(static_cast<quint32>(end))));
+            ranges.append(QString("%1-%2").arg(offset).arg(end));
         }
         vod->setMutedSegments(segments.join(", "));
+        vod->setMutedSegmentRanges(ranges.join(";"));
     }
 
     return vod;
