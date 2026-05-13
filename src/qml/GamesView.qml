@@ -166,6 +166,15 @@ Page {
             running: false
             anchors.centerIn: parent
         }
+
+        Label {
+            anchors.centerIn: parent
+            width: Math.min(parent.width - 48, 420)
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            visible: !busyIndicator.running && games.model && games.model.count() === 0
+            text: Settings.hasAccessToken ? "No categories found" : "Log in to browse Twitch categories"
+        }
     }
 
     Menu {

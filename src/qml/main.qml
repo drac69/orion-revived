@@ -99,6 +99,7 @@ ApplicationWindow {
     property bool isPortraitMode: Screen.primaryOrientation === Qt.PortraitOrientation
                                   || Screen.primaryOrientation === Qt.InvertedPortraitOrientation
     property bool sideNavigationVisible: Settings.sideNavigation && !appFullScreen && !isMobile()
+    property string networkMessage: ""
 
     function preparePopupMenu() {
         if (!popupScreenFixApplied && !isMobile()) {
@@ -132,6 +133,15 @@ ApplicationWindow {
         }, null, 0)
         topbar.setCurrentIndex(4)
         return true
+    }
+
+    function showNetworkMessage(message) {
+        if (!message || message === "token_error" || message === "playlist_error") {
+            return
+        }
+
+        networkMessage = message
+        networkMessageTimer.restart()
     }
 
     function isMobile() {
@@ -178,11 +188,27 @@ ApplicationWindow {
     footer: ToolBar {
         id: connectionErrorRectangle
         Material.background: Material.Primary
-        visible: !Network.up && !view.isItemInView(view.playerView)
+        visible: (!Network.up || networkMessage.length > 0) && !view.isItemInView(view.playerView)
 
-        Label {
-            anchors.centerIn: parent
-            text: "Connection error"
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 12
+            anchors.rightMargin: 8
+
+            Label {
+                Layout.fillWidth: true
+                text: Network.up ? networkMessage : "Connection error"
+                elide: Text.ElideRight
+            }
+
+            Button {
+                visible: Network.up && !Settings.hasAccessToken && networkMessage.toLowerCase().indexOf("login") >= 0
+                text: "Log in"
+                onClicked: {
+                    networkMessage = ""
+                    topbar.setCurrentIndex(5)
+                }
+            }
         }
     }
 
@@ -260,6 +286,13 @@ ApplicationWindow {
 
         source: "fonts/NotoSans-Regular.ttf"
         name: "Noto Sans"
+    }
+
+    Timer {
+        id: networkMessageTimer
+        interval: 7000
+        repeat: false
+        onTriggered: networkMessage = ""
     }
 
     Popup {
@@ -347,6 +380,11 @@ ApplicationWindow {
     }
 
     Connections{
+        target: Network
+        onError: showNetworkMessage(error)
+    }
+
+    Connections {
         target: Settings
         onKeepOnTopChanged:{
             if (Settings.keepOnTop){

@@ -121,14 +121,16 @@ void ChannelManager::searchGames(QString q, const quint32 &offset, const quint32
         gamesModel->clear();
 
     //If query is empty, search games by viewercount
-    if (q.isEmpty())
+    if (q.isEmpty()) {
+        emit gamesSearchStarted();
         netman->getGames(offset, limit);
+    }
 
     //Else by queryword
-    else if (offset == 0)
+    else if (offset == 0) {
+        emit gamesSearchStarted();
         netman->searchGames(q);
-
-    emit gamesSearchStarted();
+    }
 }
 
 QString ChannelManager::username() const
@@ -333,6 +335,8 @@ void ChannelManager::searchChannels(QString q, const quint32 &offset, const quin
     if (clear)
         resultsModel->clear();
 
+    emit searchingStarted();
+
     if (q.isEmpty()) {
         netman->getFeaturedStreams();
     }
@@ -361,8 +365,6 @@ void ChannelManager::searchChannels(QString q, const quint32 &offset, const quin
     } else {
         netman->searchChannels(q, offset, limit);
     }
-
-    emit searchingStarted();
 }
 
 void ChannelManager::addSearchResults(const QList<Channel*> &list, const int total)

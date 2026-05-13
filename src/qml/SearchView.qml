@@ -145,6 +145,15 @@ Page {
         anchors.centerIn: parent
     }
 
+    Label {
+        anchors.centerIn: parent
+        width: Math.min(parent.width - 48, 420)
+        horizontalAlignment: Text.AlignHCenter
+        wrapMode: Text.WordWrap
+        visible: !busyIndicator.running && channels.model && channels.model.count() === 0
+        text: Settings.hasAccessToken ? "No channels found" : (query.length > 0 ? "Log in to search Twitch channels" : "Log in to browse live channels")
+    }
+
     Timer {
         id: timer
         interval: 30000
