@@ -13,6 +13,8 @@ master-playlist parser.
 
 The Ubuntu dependency installer uses bounded apt timeouts and retries so a
 transient package mirror stall fails cleanly instead of hanging a matrix job.
+The update/install timeouts can be tuned with `ORION_CI_APT_UPDATE_TIMEOUT` and
+`ORION_CI_APT_INSTALL_TIMEOUT`.
 
 GitHub Actions versions are monitored by Dependabot through
 `.github/dependabot.yml`.
