@@ -137,7 +137,8 @@ QHash<int, QByteArray> VodListModel::roleNames() const
 void VodListModel::addAll(QList<Vod *> &items)
 {
     QList<Vod *> newItems;
-    foreach (Vod *vod, items) {
+    const QList<Vod *> &incomingItems = items;
+    for (Vod *vod : incomingItems) {
         Vod *existing = find(vod->getId());
         if (existing) {
             *existing = *vod;
@@ -153,7 +154,7 @@ void VodListModel::addAll(QList<Vod *> &items)
 
     if (!newItems.isEmpty()){
         beginInsertRows(QModelIndex(), vods.size(), vods.size() + newItems.size() - 1);
-        foreach (Vod *vod, newItems) {
+        for (Vod *vod : newItems) {
             vods.append(new Vod(*vod));
         }
         endInsertRows();
@@ -167,7 +168,8 @@ void VodListModel::mergePage(QList<Vod *> &items, quint32 offset)
     }
 
     QSet<QString> incomingIds;
-    foreach (Vod *vod, items) {
+    const QList<Vod *> &incomingItems = items;
+    for (Vod *vod : incomingItems) {
         if (vod) {
             incomingIds.insert(vod->getId());
         }
@@ -193,9 +195,12 @@ void VodListModel::mergePage(QList<Vod *> &items, quint32 offset)
 
 Vod *VodListModel::find(const QString id)
 {
-    foreach(Vod *vod, vods)
-        if (vod->getId() == id)
+    const QList<Vod *> &knownVods = vods;
+    for (Vod *vod : knownVods) {
+        if (vod->getId() == id) {
             return vod;
+        }
+    }
     return 0;
 }
 

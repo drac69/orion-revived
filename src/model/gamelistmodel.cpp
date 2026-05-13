@@ -81,7 +81,7 @@ void GameListModel::addAll(const QList<Game *> &list)
 {
     if (!list.isEmpty()){
         beginInsertRows(QModelIndex(), games.size(), games.size() + list.size() - 1);
-        foreach (Game *game, list) {
+        for (Game *game : list) {
             games.append(new Game(*game));
         }
         endInsertRows();
@@ -107,7 +107,8 @@ void GameListModel::removeGame(Game *game)
 
 Game *GameListModel::find(const uint id)
 {
-    foreach(Game *game, games){
+    const QList<Game *> &knownGames = games;
+    for (Game *game : knownGames) {
         if (game->getId() == id){
             return game;
         }
