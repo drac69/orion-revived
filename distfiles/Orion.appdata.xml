@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="desktop">
-  <id>Orion.desktop</id>
+<component type="desktop-application">
+  <id>app.orion.Orion</id>
   <metadata_license>CC0-1.0</metadata_license>
-  <project_license>GPL-3.0</project_license>
+  <project_license>GPL-3.0-or-later</project_license>
   <name>Orion</name>
-  <summary>A desktop client for Twitch.tv</summary>
+  <summary>Native Twitch desktop client</summary>
+  <developer id="app.orion">
+    <name>Orion contributors</name>
+  </developer>
+  <launchable type="desktop-id">Orion.desktop</launchable>
   <description>
     <p>
-      Cross-platform Twitch client. Features:
+      Orion is a Qt desktop client for Twitch. It can browse live channels
+      and games, play live streams and VODs, show Twitch chat, send desktop
+      notifications, and save local preferences for playback and chat.
     </p>
-    <ul>
-        <li>Channel browsing</li>
-        <li>Integrated player</li>
-        <li>Login via Twitch account</li>
-        <li>Chat</li>
-        <li>Streamable videos</li>
-        <li>Desktop notifications</li>
-    </ul>
   </description>
   <screenshots>
     <screenshot type="default">
@@ -32,7 +30,17 @@
       <image>https://user-images.githubusercontent.com/5585454/27840062-b2f14eba-60fe-11e7-9e04-7d12477519d7.png</image>
     </screenshot>
   </screenshots>
-  <url type="homepage">https://alamminsalo.github.io/orion/</url>
-  <url type="bugtracker">https://github.com/alamminsalo/orion/issues</url>
-  <update_contact>eclipseo_at_fedoraproject.org</update_contact>
+  <url type="homepage">https://github.com/belagrf/orion</url>
+  <url type="bugtracker">https://github.com/belagrf/orion/issues</url>
+  <provides>
+    <binary>orion</binary>
+  </provides>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="1.6.8" date="2026-05-13">
+      <description>
+        <p>Maintained fork with Linux CI, modernized Twitch API calls, and desktop playback fixes.</p>
+      </description>
+    </release>
+  </releases>
 </component>
