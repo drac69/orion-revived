@@ -43,6 +43,9 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
     offlinePoller.setInterval(2000);
     connect(&offlinePoller, &QTimer::timeout, this, &NetworkManager::testNetworkConnection);
 
+    accessTokenValidator.setInterval(60 * 60 * 1000);
+    connect(&accessTokenValidator, &QTimer::timeout, this, &NetworkManager::validateAccessToken);
+
     //Initial network reachability check
     testNetworkConnection();
 
@@ -59,7 +62,18 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
 
 void NetworkManager::setAccessToken(const QString &accessToken)
 {
-    access_token = accessToken;
+    access_token = accessToken.trimmed();
+    if (access_token.isEmpty()) {
+        accessTokenValidator.stop();
+        access_token_validation_pending = false;
+        requestAppAccessToken();
+        return;
+    }
+
+    validateAccessToken();
+    if (!accessTokenValidator.isActive())
+        accessTokenValidator.start();
+
     requestAppAccessToken();
 }
 
@@ -134,9 +148,26 @@ void NetworkManager::requestAppAccessToken()
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::appAccessTokenReply);
 }
 
+void NetworkManager::validateAccessToken()
+{
+    if (access_token.isEmpty() || access_token_validation_pending)
+        return;
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(QStringLiteral("https://id.twitch.tv/oauth2/validate")));
+    request.setRawHeader("Accept", "application/json");
+    request.setRawHeader("Authorization", ("OAuth " + access_token).toUtf8());
+    request.setAttribute(QNetworkRequest::User, access_token);
+
+    access_token_validation_pending = true;
+    QNetworkReply *reply = operation->get(request);
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::accessTokenValidationReply);
+}
+
 NetworkManager::~NetworkManager()
 {
     offlinePoller.stop();
+    accessTokenValidator.stop();
     qDebug() << "Destroyer: NetworkManager";
     //operation->deleteLater();
 }
@@ -1266,6 +1297,59 @@ void NetworkManager::appAccessTokenReply()
 
     app_access_token = token;
     qInfo() << "Loaded Twitch app access token from client credentials";
+    reply->deleteLater();
+}
+
+void NetworkManager::accessTokenValidationReply()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    access_token_validation_pending = false;
+
+    if (!reply)
+        return;
+
+    const QString validatedToken = reply->request().attribute(QNetworkRequest::User).toString();
+    if (validatedToken != access_token) {
+        reply->deleteLater();
+        return;
+    }
+
+    const int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (statusCode == 401) {
+        qWarning() << "Stored Twitch OAuth access token is invalid; logging out";
+        emit error(QStringLiteral("Twitch login expired. Please log in again."));
+        SettingsManager::getInstance()->setAccessToken(QString());
+        reply->deleteLater();
+        return;
+    }
+
+    if (reply->error() != QNetworkReply::NoError) {
+        qWarning() << "Could not validate Twitch OAuth access token:" << reply->errorString();
+        reply->deleteLater();
+        return;
+    }
+
+    const QByteArray data = reply->readAll();
+    QJsonParseError parseError;
+    const QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &parseError);
+    const QJsonObject json = jsonDocument.object();
+    const QString tokenClientId = json.value("client_id").toString();
+
+    if (parseError.error != QJsonParseError::NoError || tokenClientId.isEmpty()) {
+        qWarning() << "Twitch OAuth token validation response was malformed";
+        reply->deleteLater();
+        return;
+    }
+
+    if (tokenClientId != getClientId()) {
+        qWarning() << "Stored Twitch OAuth access token belongs to another client; logging out";
+        emit error(QStringLiteral("Twitch login belongs to another client. Please log in again."));
+        SettingsManager::getInstance()->setAccessToken(QString());
+        reply->deleteLater();
+        return;
+    }
+
+    qInfo() << "Validated Twitch OAuth access token";
     reply->deleteLater();
 }
 

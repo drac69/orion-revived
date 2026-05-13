@@ -65,6 +65,7 @@ class NetworkManager: public QObject
     QString helixClientId(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
     void addHelixHeaders(QNetworkRequest &request, HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
     void requestAppAccessToken();
+    void validateAccessToken();
 
     static NetworkManager *singleton;
 
@@ -75,6 +76,7 @@ class NetworkManager: public QObject
     QString app_client_id;
     QString app_client_secret;
     bool app_access_token_request_pending = false;
+    bool access_token_validation_pending = false;
     quint32 image_reload_token = 0;
 
 public:
@@ -203,6 +205,7 @@ private slots:
     void globalFfzEmotesReply();
     void channelFfzEmotesReply();
     void appAccessTokenReply();
+    void accessTokenValidationReply();
 
     void setAccessToken(const QString &accessToken);
 
@@ -214,6 +217,7 @@ private:
     QNetworkAccessManager *operation;
     bool connectionOK;
     QTimer offlinePoller;
+    QTimer accessTokenValidator;
 
     QString lastSearchChannelsQuery;
     QMap<quint32, QString> searchChannelsPageCursors;

@@ -51,6 +51,9 @@ jobs:
       - name: Validate OAuth callback parser
         run: ci/check_oauth_callback_parser.sh
 
+      - name: Validate OAuth token validation
+        run: ci/check_oauth_token_validation.sh
+
       - name: Validate Twitch emote ID handling
         run: ci/check_twitch_emote_ids.sh
 
