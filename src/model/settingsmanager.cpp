@@ -95,6 +95,7 @@ void SettingsManager::load()
     setQuality(settings.value("quality", mQuality).toString());
     setRememberChannelQuality(settings.value("rememberChannelQuality", mRememberChannelQuality).toBool());
     setLowLatencyPlayback(settings.value("lowLatencyPlayback", mLowLatencyPlayback).toBool());
+    setVodCacheMaxAgeHours(settings.value("vodCacheMaxAgeHours", mVodCacheMaxAgeHours).toInt());
     const QString savedDecoder = settings.value("decoder", mDecoder).toString();
     setDecoder(savedDecoder == "auto" ? mDecoder : savedDecoder);
     setAudioCompressor(settings.value("audioCompressor", mAudioCompressor).toBool());
@@ -354,6 +355,21 @@ void SettingsManager::setLowLatencyPlayback(bool lowLatencyPlayback)
         mLowLatencyPlayback = lowLatencyPlayback;
         settings.setValue("lowLatencyPlayback", lowLatencyPlayback);
         emit lowLatencyPlaybackChanged();
+    }
+}
+
+int SettingsManager::vodCacheMaxAgeHours() const
+{
+    return mVodCacheMaxAgeHours;
+}
+
+void SettingsManager::setVodCacheMaxAgeHours(int vodCacheMaxAgeHours)
+{
+    const int normalizedHours = qMax(0, qMin(vodCacheMaxAgeHours, 24 * 30));
+    if (mVodCacheMaxAgeHours != normalizedHours) {
+        mVodCacheMaxAgeHours = normalizedHours;
+        settings.setValue("vodCacheMaxAgeHours", normalizedHours);
+        emit vodCacheMaxAgeHoursChanged();
     }
 }
 

@@ -13,6 +13,7 @@
  */
 
 #include "vodmanager.h"
+#include "settingsmanager.h"
 #include <QSettings>
 #include <QCoreApplication>
 #include <QDateTime>
@@ -127,6 +128,16 @@ void VodManager::loadCachedVods(quint64 channelId, const QString &type)
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     settings.beginGroup("vodCache");
     settings.beginGroup(vodCacheKey(channelId, type));
+
+    const int maxAgeHours = SettingsManager::getInstance()->vodCacheMaxAgeHours();
+    if (maxAgeHours > 0) {
+        const QDateTime updatedAt = QDateTime::fromString(settings.value("updatedAt").toString(), Qt::ISODate);
+        if (!updatedAt.isValid() || updatedAt.secsTo(QDateTime::currentDateTimeUtc()) > maxAgeHours * 60 * 60) {
+            settings.endGroup();
+            settings.endGroup();
+            return;
+        }
+    }
 
     QList<Vod *> items;
     const int savedCount = settings.beginReadArray("items");

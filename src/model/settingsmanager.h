@@ -25,6 +25,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY qualityChanged)
     Q_PROPERTY(bool rememberChannelQuality READ rememberChannelQuality WRITE setRememberChannelQuality NOTIFY rememberChannelQualityChanged)
     Q_PROPERTY(bool lowLatencyPlayback READ lowLatencyPlayback WRITE setLowLatencyPlayback NOTIFY lowLatencyPlaybackChanged)
+    Q_PROPERTY(int vodCacheMaxAgeHours READ vodCacheMaxAgeHours WRITE setVodCacheMaxAgeHours NOTIFY vodCacheMaxAgeHoursChanged)
     Q_PROPERTY(QString decoder READ decoder WRITE setDecoder NOTIFY decoderChanged)
     Q_PROPERTY(bool audioCompressor READ audioCompressor WRITE setAudioCompressor NOTIFY audioCompressorChanged)
     Q_PROPERTY(QString backend READ backend WRITE setBackend NOTIFY backendChanged)
@@ -64,6 +65,7 @@ class SettingsManager : public QObject
     QString mQuality = "source";
     bool mRememberChannelQuality = false;
     bool mLowLatencyPlayback = false;
+    int mVodCacheMaxAgeHours = 24;
     QString mDecoder = "auto-copy";
     bool mAudioCompressor = false;
 
@@ -153,6 +155,9 @@ public:
     bool lowLatencyPlayback() const;
     void setLowLatencyPlayback(bool lowLatencyPlayback);
 
+    int vodCacheMaxAgeHours() const;
+    void setVodCacheMaxAgeHours(int vodCacheMaxAgeHours);
+
     QString decoder() const;
     void setDecoder(const QString &decoder);
 
@@ -229,6 +234,7 @@ signals:
     void qualityChanged();
     void rememberChannelQualityChanged();
     void lowLatencyPlaybackChanged();
+    void vodCacheMaxAgeHoursChanged();
     void decoderChanged();
     void audioCompressorChanged();
     void backendChanged();

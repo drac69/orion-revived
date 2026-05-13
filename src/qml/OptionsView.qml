@@ -220,6 +220,32 @@ Page {
                     }
 
                     OptionCombo {
+                        id: vodCacheOption
+                        text: "VOD cache lifetime"
+                        width: parent.width
+                        model: ["1 hour", "6 hours", "1 day", "3 days", "7 days", "30 days", "Never expire"]
+                        property var values: [1, 6, 24, 72, 168, 720, 0]
+
+                        Component.onCompleted: selectItem(Settings.vodCacheMaxAgeHours)
+                        onActivated: Settings.vodCacheMaxAgeHours = values[currentIndex]
+
+                        function selectItem(hours) {
+                            for (var i in values) {
+                                if (values[i] === hours) {
+                                    currentIndex = i
+                                    return
+                                }
+                            }
+                            currentIndex = 2
+                        }
+
+                        Connections {
+                            target: Settings
+                            onVodCacheMaxAgeHoursChanged: vodCacheOption.selectItem(Settings.vodCacheMaxAgeHours)
+                        }
+                    }
+
+                    OptionCombo {
                         width: parent.width
                         id: playerOption
                         text: "Player"
