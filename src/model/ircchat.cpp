@@ -48,6 +48,20 @@ const QString IrcChat::FFZ_EMOTES_URL_FORMAT_HIDPI = "https://cdn.frankerfacez.c
 const qint16 IrcChat::PORT = 6697;
 const QString IrcChat::HOST = "irc.chat.twitch.tv";
 
+namespace {
+
+void writeIrcCommand(QSslSocket *socket, const QString &command)
+{
+    if (!socket) {
+        return;
+    }
+
+    const QByteArray bytes = command.toUtf8();
+    socket->write(bytes);
+}
+
+}
+
 IrcChat::IrcChat(QObject *parent) :
     QObject(parent),
     settings(SettingsManager::getInstance()),
@@ -189,7 +203,7 @@ void IrcChat::sendJoinCurrentRoom()
         return;
     }
 
-    sock->write(("JOIN #" + room + "\r\n").toStdString().c_str());
+    writeIrcCommand(sock, "JOIN #" + room + "\r\n");
     joinedRoom = true;
 
     qDebug() << "Joined channel" << room;
@@ -217,7 +231,7 @@ void IrcChat::leave()
 {
     msgQueue.clear();
     if (sock && joinedRoom && !room.isEmpty() && connected()) {
-        sock->write(("PART #" + room + "\r\n").toStdString().c_str());
+        writeIrcCommand(sock, "PART #" + room + "\r\n");
     }
     joinedRoom = false;
     room = "";
@@ -452,7 +466,7 @@ void IrcChat::sendMessage(const QString &msg, const QVariantMap &relevantEmotes)
             else {
                 ircCmd = "PRIVMSG #" + room + " :" + msg + "\r\n";
             }
-            sock->write(ircCmd.toStdString().c_str());
+            writeIrcCommand(sock, ircCmd);
         }
 
 		addWordSplit(displayMessage, ' ', message);
@@ -526,12 +540,12 @@ void IrcChat::login()
 
     if (sock) {
         // Tell server that we support twitch-specific commands
-        sock->write("CAP REQ :twitch.tv/commands\r\n");
-        sock->write("CAP REQ :twitch.tv/tags\r\n");
+        writeIrcCommand(sock, "CAP REQ :twitch.tv/commands\r\n");
+        writeIrcCommand(sock, "CAP REQ :twitch.tv/tags\r\n");
 
         // Login
-        sock->write(("PASS " + userpass + "\r\n").toStdString().c_str());
-        sock->write(("NICK " + username + "\r\n").toStdString().c_str());
+        writeIrcCommand(sock, "PASS " + userpass + "\r\n");
+        writeIrcCommand(sock, "NICK " + username + "\r\n");
     }
 
     logged_in = true;
@@ -1012,7 +1026,7 @@ void IrcChat::parseCommand(QString cmd) {
     }
 
     if(commandKeyword == "PING" && cmd.startsWith("PING ")) {
-        sock->write(("PONG " + cmd.mid(5) + "\r\n").toStdString().c_str());
+        writeIrcCommand(sock, "PONG " + cmd.mid(5) + "\r\n");
         return;
     }
 

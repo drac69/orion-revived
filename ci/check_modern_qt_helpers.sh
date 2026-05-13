@@ -27,6 +27,11 @@ if rg -n '\((MpvObject|QTcpSocket|QRgb)\s*\* ?\)|\((uint64_t|M3U8TYPE)\)' \
     exit 1
 fi
 
+if rg -n '\.toStdString\(\)\.c_str\(\)' "$repo_dir/src"; then
+    printf 'src must write Qt strings through explicit Qt byte arrays instead of temporary std::string c_str pointers.\n' >&2
+    exit 1
+fi
+
 if rg -n '\*\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*0\s*(;|,|\))|\*\s*parent\s*=\s*0\b' "$repo_dir/src"; then
     printf 'Pointer declarations and default arguments must use nullptr instead of 0.\n' >&2
     exit 1
