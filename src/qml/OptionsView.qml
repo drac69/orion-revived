@@ -65,6 +65,7 @@ Page {
                                 var url = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + Network.getClientId()
                                         + "&redirect_uri=http://localhost:8979"
                                         + "&scope=user%3Aread%3Afollows%20user%3Aread%3Asubscriptions%20user%3Aread%3Ablocked_users%20user%3Amanage%3Ablocked_users%20chat%3Aread%20chat%3Aedit"
+                                        + "&state=" + encodeURIComponent(LoginService.state())
                                         + "&force_verify=true";
                                 Qt.openUrlExternally(url);
                             }

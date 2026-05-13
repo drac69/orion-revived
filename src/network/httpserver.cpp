@@ -1,5 +1,6 @@
 #include "httpserver.h"
 
+#include <QUuid>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -18,17 +19,32 @@ QString requestTarget(const QByteArray &request)
     return QString::fromUtf8(parts.at(1));
 }
 
-QString accessTokenFromTarget(const QString &target)
+QUrlQuery queryFromTarget(const QString &target)
 {
     if (target.isEmpty())
-        return QString();
+        return QUrlQuery();
 
     QUrl callbackUrl(QStringLiteral("http://localhost") + target);
     QUrlQuery query(callbackUrl);
     if (!query.hasQueryItem(QStringLiteral("access_token")) && !callbackUrl.fragment().isEmpty())
         query = QUrlQuery(callbackUrl.fragment());
 
+    return query;
+}
+
+QString accessTokenFromQuery(const QUrlQuery &query)
+{
     return query.queryItemValue(QStringLiteral("access_token"), QUrl::FullyDecoded).trimmed();
+}
+
+QString stateFromQuery(const QUrlQuery &query)
+{
+    return query.queryItemValue(QStringLiteral("state"), QUrl::FullyDecoded).trimmed();
+}
+
+QString errorFromQuery(const QUrlQuery &query)
+{
+    return query.queryItemValue(QStringLiteral("error"), QUrl::FullyDecoded).trimmed();
 }
 
 }
@@ -47,6 +63,11 @@ QString HttpServer::port() {
     return m_port;
 }
 
+QString HttpServer::state() const
+{
+    return m_state;
+}
+
 bool HttpServer::isOk() const
 {
     return !listenError;
@@ -58,6 +79,7 @@ void HttpServer::start() {
     }
 
     server = new QTcpServer(this);
+    m_state = QUuid::createUuid().toString(QUuid::WithoutBraces);
 
     /// IMPORTANT!
     quint16 port = 8979;
@@ -81,6 +103,7 @@ void HttpServer::stop() {
         server->deleteLater();
         server = 0;
     }
+    m_state.clear();
 }
 
 void HttpServer::onConnect() {
@@ -95,14 +118,25 @@ void HttpServer::onRead() {
     socket->connect(socket, &QTcpSocket::disconnected, &QObject::deleteLater);
 
     /// Read data
-    const QString code = accessTokenFromTarget(requestTarget(socket->readAll()));
-    if (!code.isEmpty())
+    const QUrlQuery callbackQuery = queryFromTarget(requestTarget(socket->readAll()));
+    const QString code = accessTokenFromQuery(callbackQuery);
+    const QString oauthError = errorFromQuery(callbackQuery);
+    const bool stateMatches = !m_state.isEmpty() && stateFromQuery(callbackQuery) == m_state;
+    if (!code.isEmpty() && stateMatches)
         qDebug() << "Found OAuth access token";
 
     // Respond with 200
     // http payload message body
     QByteArray content;
-    if (code.isEmpty()) {
+    if (!code.isEmpty() && !stateMatches) {
+        qWarning() << "Ignoring OAuth callback with mismatched state";
+        content = "<!DOCTYPE html><html>"
+                  "<body><h1>Login failed</h1><p>Return to Orion and try logging in again.</p></body></html>";
+    } else if (!oauthError.isEmpty()) {
+        qWarning().noquote() << "Twitch OAuth login failed:" << oauthError;
+        content = "<!DOCTYPE html><html>"
+                  "<body><h1>Login failed</h1><p>You can close this page now.</p></body></html>";
+    } else if (code.isEmpty()) {
         content = "<!DOCTYPE html><html><script>"
                   "var uri = '' + window.location.href;"
                   "window.location.href = uri.replace('#','?');"
@@ -125,11 +159,13 @@ void HttpServer::onRead() {
     socket->disconnectFromHost();
 
     // Check if we have the api code ready
-    if (!code.isEmpty()) {
+    if (!code.isEmpty() && stateMatches) {
         qDebug() << "Received OAuth access token";
         emit codeReceived(code);
 
         // Spin down server
+        stop();
+    } else if (!oauthError.isEmpty() && stateMatches) {
         stop();
     }
 }

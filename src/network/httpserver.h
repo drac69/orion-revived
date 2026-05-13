@@ -16,12 +16,14 @@ class HttpServer: public QObject
 
     bool listenError = false;
     QString m_port;
+    QString m_state;
 
     explicit HttpServer(QObject *parent = 0);
 public:
     static HttpServer *getInstance();
 
     Q_INVOKABLE QString port();
+    Q_INVOKABLE QString state() const;
 
     bool isOk() const;
 
