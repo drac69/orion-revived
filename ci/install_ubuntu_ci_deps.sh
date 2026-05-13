@@ -21,7 +21,6 @@ common_packages=(
     qtdeclarative5-dev
     qml-module-qtgraphicaleffects
     qml-module-qt-labs-settings
-    qml-module-qtquick-controls
     qml-module-qtquick-controls2
     qml-module-qtquick-layouts
     qml-module-qtquick-window2

@@ -28,7 +28,11 @@ require_package_for_import() {
 require_package_for_import '^import Qt\.labs\.settings\b' 'qml-module-qt-labs-settings'
 require_package_for_import '^import QtGraphicalEffects\b' 'qml-module-qtgraphicaleffects'
 require_package_for_import '^import QtQuick\.Controls\b' 'qml-module-qtquick-controls2'
-require_package_for_import '^import QtQuick\.Controls\.Styles\b' 'qml-module-qtquick-controls'
 require_package_for_import '^import QtQuick\.Layouts\b' 'qml-module-qtquick-layouts'
 require_package_for_import '^import QtQuick\.Window\b' 'qml-module-qtquick-window2'
 require_package_for_import '^import QtMultimedia\b' 'qml-module-qtmultimedia'
+
+if rg -n '^import QtQuick\.Controls\.Styles\b' "$repo_dir/src/qml"; then
+    printf 'QML must not depend on deprecated Qt Quick Controls 1 Styles imports.\n' >&2
+    exit 1
+fi
