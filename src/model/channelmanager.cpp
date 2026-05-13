@@ -343,8 +343,22 @@ void ChannelManager::searchChannels(QString q, const quint32 &offset, const quin
         netman->getFeaturedStreams();
     }
     else if (q.startsWith("/game ")){
-        q.replace("/game ", "");
-        netman->getStreamsForGame(q, offset, limit);
+        QString game = q.mid(QString("/game ").length()).trimmed();
+        QString language;
+        int languageIndex = game.lastIndexOf(" /language ", -1, Qt::CaseInsensitive);
+        int languagePrefixLength = QString(" /language ").length();
+
+        if (languageIndex < 0) {
+            languageIndex = game.lastIndexOf(" /lang ", -1, Qt::CaseInsensitive);
+            languagePrefixLength = QString(" /lang ").length();
+        }
+
+        if (languageIndex >= 0) {
+            language = game.mid(languageIndex + languagePrefixLength).trimmed();
+            game = game.left(languageIndex).trimmed();
+        }
+
+        netman->getStreamsForGame(game, offset, limit, language);
 
     } else if (q.startsWith("/language ") || q.startsWith("/lang ")) {
         const QString language = q.section(' ', 1).trimmed();

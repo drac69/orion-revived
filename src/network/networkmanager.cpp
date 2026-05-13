@@ -453,14 +453,17 @@ void NetworkManager::getStreamsForLanguage(const QString &language, const quint3
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsReply);
 }
 
-void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offset, const quint32 &limit)
+void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offset, const quint32 &limit, const QString &language)
 {
+    const QString gameName = game.trimmed();
+    const QString normalizedLanguage = language.trimmed().toLower();
+    const QString queryKey = gameName + "\n" + normalizedLanguage;
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
     if (!access_token.isEmpty()) {
-        if (offset == 0 || game != lastGameStreamsQuery) {
+        if (offset == 0 || queryKey != lastGameStreamsQuery) {
             gameStreamsPageCursors.clear();
-            lastGameStreamsQuery = game;
+            lastGameStreamsQuery = queryKey;
         }
         else if (!gameStreamsPageCursors.contains(offset)) {
             QList<Channel *> empty;
@@ -468,15 +471,15 @@ void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offse
             return;
         }
 
-        const QString gameId = gameStreamsGameIds.value(game);
+        const QString gameId = gameStreamsGameIds.value(gameName);
         if (!gameId.isEmpty()) {
-            getStreamsForGameId(gameId, offset, pageSize);
+            getStreamsForGameId(gameId, offset, pageSize, normalizedLanguage);
             return;
         }
 
         QUrl url(QString(HELIX_API) + "/games");
         QUrlQuery query;
-        query.addQueryItem("name", game);
+        query.addQueryItem("name", gameName);
         url.setQuery(query);
 
         QNetworkRequest request;
@@ -485,7 +488,8 @@ void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offse
         request.setUrl(url);
         request.setAttribute(QNetworkRequest::User, offset);
         request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
-        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), game);
+        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), gameName);
+        request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3), normalizedLanguage);
 
         QString auth = "Bearer " + access_token;
         request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
@@ -496,11 +500,18 @@ void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offse
         return;
     }
 
+    if (!normalizedLanguage.isEmpty()) {
+        QList<Channel *> empty;
+        emit error("Game language stream search requires Twitch login");
+        emit gameStreamsOperationFinished(empty, offset);
+        return;
+    }
+
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
     QString url = QString(KRAKEN_API)
-            + QString("/streams?game=") + QUrl::toPercentEncoding(game)
+            + QString("/streams?game=") + QUrl::toPercentEncoding(gameName)
             + QString("&offset=%1").arg(offset)
             + QString("&limit=%1").arg(pageSize);
     request.setUrl(QUrl(url));
@@ -510,11 +521,15 @@ void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offse
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsReply);
 }
 
-void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit)
+void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language)
 {
+    const QString normalizedLanguage = language.trimmed().toLower();
     QUrl url(QString(HELIX_API) + "/streams");
     QUrlQuery query;
     query.addQueryItem("game_id", gameId);
+    if (!normalizedLanguage.isEmpty()) {
+        query.addQueryItem("language", normalizedLanguage);
+    }
     query.addQueryItem("first", QString::number(limit));
 
     const QString cursor = gameStreamsPageCursors.value(offset);
@@ -1593,6 +1608,7 @@ void NetworkManager::gameStreamsGameLookupReply()
     const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
     const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
     const QString game = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2)).toString();
+    const QString language = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3)).toString();
 
     QByteArray data = reply->readAll();
     auto result = JsonParser::parseGameResults(data);
@@ -1611,7 +1627,7 @@ void NetworkManager::gameStreamsGameLookupReply()
     qDeleteAll(result.items);
     reply->deleteLater();
 
-    getStreamsForGameId(gameId, offset, limit);
+    getStreamsForGameId(gameId, offset, limit, language);
 }
 
 void NetworkManager::featuredStreamsReply()

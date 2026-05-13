@@ -41,6 +41,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #232: the single-instance lock now uses an app-specific runtime/temp path instead of an opaque fixed temp filename, and startup warnings include the lock path.
 * #236: Ubuntu/Linux Mint build instructions include `libmpv-dev` for the `mpv/client.h` header, and the README now points users to `orion --debug` plus the Qt Labs Settings QML package when a build starts without showing a window.
 * #45: Windows desktop notifications are wired through the in-app QML notification surface again, with settings for notification corner and target screen so multi-monitor users can choose where alerts appear.
+* #240: Helix stream and channel language fields are parsed and shown in stream details, authenticated searches support `/language <code>` using Helix `Get Streams`, `/game <name> /language <code>` combines game and language filtering, and the Games view includes a stream-language selector.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
 * #284: kept the upstream localhost OAuth response fix from #272.
@@ -51,7 +52,6 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #101: added configurable command-line log levels, optional file logging, and optional Linux systemd journal output when built with `libsystemd`; no in-app log viewer was added.
 * #108: hidden live chat now sends desktop notifications for incoming whispers and `@username` mentions; a dedicated private-message inbox is still not implemented.
 * #187: the existing player selector is limited to backends compiled into the binary, and saved backend settings are now validated against that compiled list at startup; runtime detection of separately installed backend plugins is still not implemented.
-* #240: Helix stream and channel language fields are parsed and shown in stream details, and authenticated searches support `/language <code>` using Helix `Get Streams`; no dedicated language picker UI was added.
 * #212: bundled Noto Sans and Material Icons fonts are registered with Qt before QML loads to avoid startup fallback rendering of missing text/icons; the original openSUSE/KDE/Qt 5.9 rendering path has not been reproduced in this environment.
 * #74: QML context menus now run a one-time main-window position refresh before opening, matching the historical Qt multi-screen workaround; the original multi-monitor bug has not been reproduced in this environment.
 * #285: live and VOD playlist requests now use the current HTTPS `usher.ttvnw.net` host, the live `allow_audio_only` query parameter typo is fixed, and empty token-parser results now fail as token errors instead of fetching an empty URL; the old playback-token endpoints still need a deeper replacement.

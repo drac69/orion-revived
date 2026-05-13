@@ -14,6 +14,8 @@
 
 import QtQuick 2.5
 import QtQuick.Controls 2.1
+import QtQuick.Controls.Material 2.1
+import QtQuick.Layouts 1.1
 import "components"
 import app.orion 1.0
 
@@ -21,11 +23,36 @@ Page {
     id: root
     property int gamesCount: 0
     property bool checked: false
+    property var languageCodes: ["", "en", "es", "pt", "de", "fr", "it", "ru", "ja", "ko", "zh", "tr", "pl", "ar", "nl", "sv", "fi", "no", "da", "cs", "el"]
+    property var languageNames: ["Any language", "English", "Spanish", "Portuguese", "German", "French", "Italian", "Russian", "Japanese", "Korean", "Chinese", "Turkish", "Polish", "Arabic", "Dutch", "Swedish", "Finnish", "Norwegian", "Danish", "Czech", "Greek"]
 
-    header: SearchBar {
-        id: searchBar
-        input.placeholderText: "Search for games"
-        onSubmit: search(true)
+    header: Column {
+        width: parent.width
+
+        SearchBar {
+            id: searchBar
+            width: parent.width
+            input.placeholderText: "Search for games"
+            onSubmit: search(true)
+        }
+
+        ToolBar {
+            width: parent.width
+            padding: 8
+            Material.theme: rootWindow.Material.theme
+            Material.background: rootWindow.Material.background
+
+            RowLayout {
+                anchors.fill: parent
+
+                OptionCombo {
+                    id: languageOption
+                    text: "Stream language"
+                    model: root.languageNames
+                    Layout.fillWidth: true
+                }
+            }
+        }
     }
 
     function search(clear) {
@@ -38,7 +65,12 @@ Page {
     }
 
     function searchChannels(item) {
-        searchView.search("/game " + item.title)
+        var query = "/game " + item.title
+        var language = languageOption.currentIndex >= 0 ? languageCodes[languageOption.currentIndex] : ""
+        if (language) {
+            query += " /language " + language
+        }
+        searchView.search(query)
         requestSelectionChange(0)
     }
 

@@ -80,7 +80,7 @@ public:
     void searchGames(const QString&);
     void getFeaturedStreams();
     void getStreamsForLanguage(const QString&, const quint32&, const quint32&);
-    void getStreamsForGame(const QString&, const quint32&, const quint32&);
+    void getStreamsForGame(const QString&, const quint32&, const quint32&, const QString &language = QString());
     void getChannelPlaybackStream(const QString&);
     void getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit);
     void getBroadcastPlaybackStream(const QString &vod);
@@ -235,7 +235,7 @@ private:
 
     QNetworkReply *lastVodChatRequest;
 
-    void getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit);
+    void getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language = QString());
     void editUserBlockWithId(const quint64 myUserId, const QString & blockUsername, const quint64 blockUserId, const bool isBlock);
 };
 
