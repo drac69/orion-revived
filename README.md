@@ -15,7 +15,7 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 
 ## Downloads
 
-This fork currently validates source builds on Linux through GitHub Actions. Revalidated Windows, macOS, Android, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, followed-channel, and VOD metadata use Helix and require logging in; this desktop fork does not embed a client secret for unauthenticated app-token requests.
+This fork currently validates source builds on Linux through GitHub Actions. Revalidated Windows, macOS, Android, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, and VOD metadata use Helix and require either logging in or providing an app access token; followed-channel and account actions still require logging in.
 
 The maintained automation entry point is `.github/workflows/ci.yml`. Older release helper scripts under `ci/` are preserved for reference only, require an explicit legacy opt-in before running, and should not be treated as current build instructions.
 
@@ -114,6 +114,14 @@ Search commands:
 /game Just Chatting
 /language en
 ```
+
+Optional logged-out Twitch metadata:
+
+```
+ORION_TWITCH_CLIENT_ID=your_client_id ORION_TWITCH_APP_ACCESS_TOKEN=your_app_access_token orion
+```
+
+The app access token must belong to the same Twitch app as the client ID, and it expires according to Twitch's OAuth response. This is only used for public Helix metadata such as streams, categories, VOD listings, badges, emote sets, and Cheermotes; user-specific follows, chat login, and block-list actions still need the in-app Twitch login.
 
 Useful logging options:
 

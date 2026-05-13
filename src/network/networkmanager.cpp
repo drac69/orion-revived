@@ -18,6 +18,7 @@
 #include "../util/m3u8parser.h"
 #include <QEventLoop>
 #include <QSet>
+#include <QtGlobal>
 #include <QUrlQuery>
 #include "../model/settingsmanager.h"
 
@@ -26,6 +27,11 @@ NetworkManager *NetworkManager::singleton = 0;
 NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
 {
     operation = man;
+    app_access_token = qEnvironmentVariable("ORION_TWITCH_APP_ACCESS_TOKEN").trimmed();
+    app_client_id = qEnvironmentVariable("ORION_TWITCH_CLIENT_ID").trimmed();
+    if (!app_access_token.isEmpty() && app_client_id.isEmpty()) {
+        app_client_id = getClientId();
+    }
 
     connectionOK = false;
 
@@ -52,16 +58,50 @@ void NetworkManager::setAccessToken(const QString &accessToken)
     access_token = accessToken;
 }
 
-bool NetworkManager::requireAccessToken(const QString &operation)
+QString NetworkManager::helixAccessToken(HelixAuthMode mode) const
 {
     if (!access_token.isEmpty()) {
+        return access_token;
+    }
+    if (mode == HelixAuthMode::UserOrApp && !app_access_token.isEmpty()) {
+        return app_access_token;
+    }
+    return QString();
+}
+
+QString NetworkManager::helixClientId(HelixAuthMode mode) const
+{
+    if (!access_token.isEmpty()) {
+        return getClientId();
+    }
+    if (mode == HelixAuthMode::UserOrApp && !app_access_token.isEmpty() && !app_client_id.isEmpty()) {
+        return app_client_id;
+    }
+    return getClientId();
+}
+
+bool NetworkManager::requireHelixAccessToken(const QString &operation, HelixAuthMode mode)
+{
+    if (!helixAccessToken(mode).isEmpty()) {
         return true;
     }
 
-    const QString message = operation + " requires Twitch login";
+    const QString message = mode == HelixAuthMode::UserOnly
+            ? operation + " requires Twitch login"
+            : operation + " requires Twitch login or ORION_TWITCH_APP_ACCESS_TOKEN";
     qWarning().noquote() << message;
     emit error(message);
     return false;
+}
+
+void NetworkManager::addHelixHeaders(QNetworkRequest &request, HelixAuthMode mode) const
+{
+    request.setRawHeader("Accept", "application/json");
+    request.setRawHeader("Client-ID", helixClientId(mode).toUtf8());
+    const QString token = helixAccessToken(mode);
+    if (!token.isEmpty()) {
+        request.setRawHeader("Authorization", ("Bearer " + token).toUtf8());
+    }
 }
 
 NetworkManager::~NetworkManager()
@@ -135,7 +175,7 @@ void NetworkManager::checkVersion()
  */
 void NetworkManager::getStream(const quint64 channelId)
 {
-    if (!requireAccessToken("Stream status")) {
+    if (!requireHelixAccessToken("Stream status")) {
         emit streamGetOperationFinished(channelId, false);
         return;
     }
@@ -147,12 +187,9 @@ void NetworkManager::getStream(const quint64 channelId)
     url.setQuery(query);
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, channelId);
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -170,18 +207,15 @@ void NetworkManager::getStreams(const QString &url)
         emit allStreamsOperationFinished(empty);
         return;
     }
-    if (!requireAccessToken("Stream metadata")) {
+    if (!requireHelixAccessToken("Stream metadata")) {
         QList<Channel *> empty;
         emit allStreamsOperationFinished(empty);
         return;
     }
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
     request.setUrl(requestUrl);
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -190,7 +224,7 @@ void NetworkManager::getStreams(const QString &url)
 
 void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
 {
-    if (!requireAccessToken("Top games")) {
+    if (!requireHelixAccessToken("Top games")) {
         QList<Game *> empty;
         emit gamesOperationFinished(empty);
         return;
@@ -208,7 +242,7 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
     }
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
 
@@ -222,10 +256,6 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
     }
     url.setQuery(query);
 
-    request.setRawHeader("Accept", "application/json");
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
     request.setUrl(url);
 
     QNetworkReply *reply = operation->get(request);
@@ -235,7 +265,7 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
 
 void NetworkManager::searchChannels(const QString &query, const quint32 &offset, const quint32 &limit)
 {
-    if (!requireAccessToken("Channel search")) {
+    if (!requireHelixAccessToken("Channel search")) {
         QList<Channel *> empty;
         emit searchChannelsOperationFinished(empty, 0);
         return;
@@ -244,7 +274,7 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
 
@@ -264,10 +294,6 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
     }
     url.setQuery(urlQuery);
 
-    request.setRawHeader("Accept", "application/json");
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
     qDebug() << "requesting" << url;
     request.setUrl(url);
 
@@ -278,23 +304,19 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
 
 void NetworkManager::searchGames(const QString &query)
 {
-    if (!requireAccessToken("Category search")) {
+    if (!requireHelixAccessToken("Category search")) {
         QList<Game *> empty;
         emit searchGamesOperationFinished(empty);
         return;
     }
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
 
     QUrl url(QString(HELIX_API) + "/search/categories");
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("query", query);
     url.setQuery(urlQuery);
-
-    request.setRawHeader("Accept", "application/json");
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     request.setUrl(url);
 
@@ -305,23 +327,19 @@ void NetworkManager::searchGames(const QString &query)
 
 void NetworkManager::getFeaturedStreams()
 {
-    if (!requireAccessToken("Featured streams")) {
+    if (!requireHelixAccessToken("Featured streams")) {
         QList<Channel *> empty;
         emit featuredStreamsOperationFinished(empty, 0);
         return;
     }
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
 
     QUrl url(QString(HELIX_API) + "/streams");
     QUrlQuery query;
     query.addQueryItem("first", "25");
     url.setQuery(query);
-
-    request.setRawHeader("Accept", "application/json");
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     request.setUrl(url);
 
@@ -343,9 +361,8 @@ void NetworkManager::getStreamsForLanguage(const QString &language, const quint3
         return;
     }
 
-    if (access_token.isEmpty()) {
+    if (!requireHelixAccessToken("Language stream search")) {
         QList<Channel *> empty;
-        emit error("Language stream search requires Twitch login");
         emit gameStreamsOperationFinished(empty, offset);
         return;
     }
@@ -372,14 +389,10 @@ void NetworkManager::getStreamsForLanguage(const QString &language, const quint3
     url.setQuery(query);
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setRawHeader("Accept", "application/json");
+    addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
-
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -388,7 +401,7 @@ void NetworkManager::getStreamsForLanguage(const QString &language, const quint3
 
 void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offset, const quint32 &limit, const QString &language)
 {
-    if (!requireAccessToken("Game stream search")) {
+    if (!requireHelixAccessToken("Game stream search")) {
         QList<Channel *> empty;
         emit gameStreamsOperationFinished(empty, offset);
         return;
@@ -421,16 +434,12 @@ void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offse
     url.setQuery(query);
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setRawHeader("Accept", "application/json");
+    addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), gameName);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3), normalizedLanguage);
-
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -455,14 +464,10 @@ void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 of
     url.setQuery(query);
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setRawHeader("Accept", "application/json");
+    addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), limit);
-
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -487,7 +492,7 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
 
 void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type)
 {
-    if (!requireAccessToken("VOD listing")) {
+    if (!requireHelixAccessToken("VOD listing")) {
         emit broadcastsOperationFailed();
         return;
     }
@@ -508,7 +513,7 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
 
     QUrl url;
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
 
@@ -525,10 +530,6 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
         query.addQueryItem("after", cursor);
     }
     url.setQuery(query);
-
-    request.setRawHeader("Accept", "application/json");
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     request.setUrl(url);
 
@@ -556,13 +557,10 @@ void NetworkManager::getBroadcastPlaybackStream(const QString &vod)
 void NetworkManager::getUser()
 {
     QString url = QString(HELIX_API) + "/users";
-    QString auth = "Bearer " + access_token;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request, HelixAuthMode::UserOnly);
     request.setUrl(QUrl(url));
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -591,14 +589,10 @@ void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, qui
     url.setQuery(query);
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request, HelixAuthMode::UserOnly);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
-
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -606,13 +600,12 @@ void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, qui
 }
 
 void NetworkManager::getEmoteSets(const QStringList &emoteSetIDs) {
-    if (!requireAccessToken("Emote set loading")) {
+    if (!requireHelixAccessToken("Emote set loading")) {
         QMap<QString, QMap<QString, QString>> empty;
         emit getEmoteSetsOperationFinished(empty);
         return;
     }
 
-    QString auth = "Bearer " + access_token;
     pendingEmoteSets.clear();
     pendingEmoteSetReplies = (emoteSetIDs.size() + 24) / 25;
 
@@ -629,10 +622,8 @@ void NetworkManager::getEmoteSets(const QStringList &emoteSetIDs) {
         qDebug() << "Requesting" << url;
 
         QNetworkRequest request;
-        request.setRawHeader("Accept", "application/json");
-        request.setRawHeader("Client-ID", getClientId().toUtf8());
+        addHelixHeaders(request);
         request.setUrl(url);
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
         QNetworkReply *reply = operation->get(request);
 
@@ -678,15 +669,11 @@ void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offs
     qDebug() << "Request" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request, HelixAuthMode::UserOnly);
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), limit);
-
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -700,16 +687,12 @@ void NetworkManager::editUserBlock(const quint64 myUserId, const QString & block
     url.setQuery(query);
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request, HelixAuthMode::UserOnly);
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, myUserId);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), blockUsername);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), isBlock);
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
     QNetworkReply *reply = operation->get(request);
 
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::blockUserLookupReply);
@@ -755,16 +738,12 @@ void NetworkManager::editUserBlockWithId(const quint64 myUserId, const QString &
     qDebug() << "Request" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request, HelixAuthMode::UserOnly);
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, myUserId);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), blockUsername);
     request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), isBlock);
-
-    QString auth = "Bearer " + access_token;
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply;
     if (isBlock) {
@@ -863,8 +842,8 @@ const QString NetworkManager::GLOBAL_BADGES_BETA_URL = "https://badges.twitch.tv
 
 void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
     QUrl url;
-    QString auth = "Bearer " + access_token;
-    if (!access_token.isEmpty()) {
+    const bool useHelix = !helixAccessToken().isEmpty();
+    if (useHelix) {
         url = QUrl(QString(HELIX_API) + "/chat/badges");
         QUrlQuery query;
         query.addQueryItem("broadcaster_id", QString::number(channelID));
@@ -877,13 +856,15 @@ void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    if (useHelix) {
+        addHelixHeaders(request);
+    }
+    else {
+        request.setRawHeader("Accept", "application/json");
+        request.setRawHeader("Client-ID", getClientId().toUtf8());
+    }
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, channelID);
-    if (!access_token.isEmpty()) {
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-    }
 
     QNetworkReply *reply = operation->get(request);
 
@@ -892,8 +873,8 @@ void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
 
 void NetworkManager::getGlobalBadgesUrlsBeta() {
     QUrl url;
-    QString auth = "Bearer " + access_token;
-    if (!access_token.isEmpty()) {
+    const bool useHelix = !helixAccessToken().isEmpty();
+    if (useHelix) {
         url = QUrl(QString(HELIX_API) + "/chat/badges/global");
     }
     else {
@@ -903,12 +884,14 @@ void NetworkManager::getGlobalBadgesUrlsBeta() {
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(url);
-    if (!access_token.isEmpty()) {
-        request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
+    if (useHelix) {
+        addHelixHeaders(request);
     }
+    else {
+        request.setRawHeader("Accept", "application/json");
+        request.setRawHeader("Client-ID", getClientId().toUtf8());
+    }
+    request.setUrl(url);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -916,7 +899,7 @@ void NetworkManager::getGlobalBadgesUrlsBeta() {
 }
 
 void NetworkManager::getChannelBitsUrls(const int channelID) {
-    if (!requireAccessToken("Channel Cheermote metadata")) {
+    if (!requireHelixAccessToken("Channel Cheermote metadata")) {
         BitsQStringsMap emptyUrls;
         BitsQStringsMap emptyColors;
         emit getChannelBitsUrlsOperationFinished(channelID, emptyUrls, emptyColors);
@@ -928,16 +911,12 @@ void NetworkManager::getChannelBitsUrls(const int channelID) {
     query.addQueryItem("broadcaster_id", QString::number(channelID));
     url.setQuery(query);
 
-    QString auth = "Bearer " + access_token;
-
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setRawHeader("Accept", QString("application/json").toUtf8());
+    addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, channelID);
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 
@@ -985,7 +964,7 @@ void NetworkManager::channelBitsUrlsReply() {
 }
 
 void NetworkManager::getGlobalBitsUrls() {
-    if (!requireAccessToken("Global Cheermote metadata")) {
+    if (!requireHelixAccessToken("Global Cheermote metadata")) {
         BitsQStringsMap emptyUrls;
         BitsQStringsMap emptyColors;
         emit getGlobalBitsUrlsOperationFinished(emptyUrls, emptyColors);
@@ -993,15 +972,12 @@ void NetworkManager::getGlobalBitsUrls() {
     }
 
     QUrl url(QString(HELIX_API) + "/bits/cheermotes");
-    QString auth = "Bearer " + access_token;
 
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", QString("application/json").toUtf8());
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
+    addHelixHeaders(request);
     request.setUrl(url);
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
 
     QNetworkReply *reply = operation->get(request);
 

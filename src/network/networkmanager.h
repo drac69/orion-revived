@@ -53,15 +53,25 @@ class NetworkManager: public QObject
         VOD
     };
 
+    enum class HelixAuthMode {
+        UserOnly,
+        UserOrApp
+    };
+
     void getM3U8Data(const QString&, M3U8TYPE type);
     bool handleNetworkError(QNetworkReply *error);
-    bool requireAccessToken(const QString &operation);
+    bool requireHelixAccessToken(const QString &operation, HelixAuthMode mode = HelixAuthMode::UserOrApp);
+    QString helixAccessToken(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
+    QString helixClientId(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
+    void addHelixHeaders(QNetworkRequest &request, HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
 
     static NetworkManager *singleton;
 
     NetworkManager(QNetworkAccessManager *mgr);
 
     QString access_token;
+    QString app_access_token;
+    QString app_client_id;
     quint32 image_reload_token = 0;
 
 public:
