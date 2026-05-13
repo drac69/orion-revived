@@ -134,6 +134,8 @@ Item {
         text = ""
         text += "<b>" + channel.title + "</b><br/>";
         text += channel.game + "<br/>"
+        if (channel.vodType && channel.vodType !== "archive")
+            text += channel.vodType.charAt(0).toUpperCase() + channel.vodType.slice(1) + "<br/>"
         if (channel.duration)
             text += "Duration " + Util.getTime(channel.duration) + "<br/>"
 

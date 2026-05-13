@@ -18,6 +18,14 @@
 #include <QDateTime>
 #include <cmath>
 
+namespace {
+QString vodCacheKey(quint64 channelId, const QString &type)
+{
+    const QString normalizedType = type.trimmed().isEmpty() ? QStringLiteral("all") : type.trimmed();
+    return QString::number(channelId) + QStringLiteral("_") + normalizedType;
+}
+}
+
 VodManager::VodManager(QObject *parent) :
     QObject(parent),
     netman(NetworkManager::getInstance())
@@ -63,17 +71,19 @@ VodManager::~VodManager()
     delete _model;
 }
 
-void VodManager::search(const quint64 channelId, const quint32 offset, const quint32 limit)
+void VodManager::search(const quint64 channelId, const quint32 offset, const quint32 limit, const QString &type)
 {
+    const QString videoType = type.trimmed();
     currentSearchChannelId = channelId;
     currentSearchOffset = offset;
+    currentSearchType = videoType;
     if (offset == 0) {
         _model->clear();
-        loadCachedVods(channelId, limit);
+        loadCachedVods(channelId, videoType, limit);
         emit searchStarted();
     }
 
-    netman->getBroadcasts(channelId, offset, limit);
+    netman->getBroadcasts(channelId, offset, limit, videoType);
 }
 
 void VodManager::onSearchFinished(QList<Vod *> items)
@@ -83,7 +93,7 @@ void VodManager::onSearchFinished(QList<Vod *> items)
     }
     _model->addAll(items);
     if (currentSearchChannelId != 0) {
-        saveCachedVods(currentSearchChannelId);
+        saveCachedVods(currentSearchChannelId, currentSearchType);
     }
 
     qDeleteAll(items);
@@ -112,7 +122,7 @@ int VodManager::loadedCount() const
     return _model->count();
 }
 
-void VodManager::loadCachedVods(quint64 channelId, quint32 maxItems)
+void VodManager::loadCachedVods(quint64 channelId, const QString &type, quint32 maxItems)
 {
     if (channelId == 0 || maxItems == 0) {
         return;
@@ -120,7 +130,7 @@ void VodManager::loadCachedVods(quint64 channelId, quint32 maxItems)
 
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     settings.beginGroup("vodCache");
-    settings.beginGroup(QString::number(channelId));
+    settings.beginGroup(vodCacheKey(channelId, type));
 
     QList<Vod *> items;
     const int savedCount = settings.beginReadArray("items");
@@ -136,6 +146,7 @@ void VodManager::loadCachedVods(quint64 channelId, quint32 maxItems)
         vod->setId(id);
         vod->setTitle(settings.value("title").toString());
         vod->setGame(settings.value("game").toString());
+        vod->setType(settings.value("type").toString());
         vod->setDuration(settings.value("duration").toUInt());
         vod->setViews(settings.value("views").toULongLong());
         vod->setPreview(settings.value("preview").toString());
@@ -153,7 +164,7 @@ void VodManager::loadCachedVods(quint64 channelId, quint32 maxItems)
     settings.endGroup();
 }
 
-void VodManager::saveCachedVods(quint64 channelId) const
+void VodManager::saveCachedVods(quint64 channelId, const QString &type) const
 {
     if (channelId == 0) {
         return;
@@ -161,7 +172,7 @@ void VodManager::saveCachedVods(quint64 channelId) const
 
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     settings.beginGroup("vodCache");
-    settings.beginGroup(QString::number(channelId));
+    settings.beginGroup(vodCacheKey(channelId, type));
     settings.setValue("updatedAt", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
 
     const int count = _model->rowCount(QModelIndex());
@@ -172,6 +183,7 @@ void VodManager::saveCachedVods(quint64 channelId) const
         settings.setValue("id", _model->data(index, VodListModel::Id));
         settings.setValue("title", _model->data(index, VodListModel::Title));
         settings.setValue("game", _model->data(index, VodListModel::Game));
+        settings.setValue("type", _model->data(index, VodListModel::Type));
         settings.setValue("duration", _model->data(index, VodListModel::Duration));
         settings.setValue("views", _model->data(index, VodListModel::Views));
         settings.setValue("preview", _model->data(index, VodListModel::Preview));

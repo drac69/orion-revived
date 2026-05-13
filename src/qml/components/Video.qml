@@ -21,6 +21,7 @@ Channel {
     property int views
     property int duration
     property int position
+    property string vodType
     property string createdAt
     property string seekPreviews
     property string mutedSegments

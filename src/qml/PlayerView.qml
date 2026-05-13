@@ -368,6 +368,7 @@ Page {
             "_id": channel._id,
             "name": channel.name,
             "game": isVod ? vod.game : channel.game,
+            "vodType": isVod ? vod.type : "",
             "language": channel.language || "",
             "title": isVod ? vod.title : channel.title,
             "online": channel.online,

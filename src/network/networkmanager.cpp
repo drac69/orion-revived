@@ -554,7 +554,7 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::streamExtractReply);
 }
 
-void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit)
+void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type)
 {
     if (!requireAccessToken("VOD listing")) {
         emit broadcastsOperationFailed();
@@ -563,9 +563,11 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
 
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
-    if (offset == 0 || channelId != lastBroadcastsChannelId) {
+    const QString videoType = type.trimmed();
+    if (offset == 0 || channelId != lastBroadcastsChannelId || videoType != lastBroadcastsType) {
         broadcastsPageCursors.clear();
         lastBroadcastsChannelId = channelId;
+        lastBroadcastsType = videoType;
     }
     else if (!broadcastsPageCursors.contains(offset)) {
         QList<Vod *> empty;
@@ -583,8 +585,8 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
     QUrlQuery query;
     query.addQueryItem("user_id", QString::number(channelId));
     query.addQueryItem("first", QString::number(pageSize));
-    if (ONLY_BROADCASTS) {
-        query.addQueryItem("type", "archive");
+    if (!videoType.isEmpty()) {
+        query.addQueryItem("type", videoType);
     }
 
     const QString cursor = broadcastsPageCursors.value(offset);

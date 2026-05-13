@@ -56,6 +56,16 @@ void Vod::setGame(const QString &value)
     game = value;
 }
 
+QString Vod::getType() const
+{
+    return type;
+}
+
+void Vod::setType(const QString &value)
+{
+    type = value;
+}
+
 QString Vod::getId() const
 {
     return id;

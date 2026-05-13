@@ -66,6 +66,10 @@ QVariant VodListModel::data(const QModelIndex &index, int role) const
             var.setValue(vod->getGame());
             break;
 
+        case Type:
+            var.setValue(vod->getType());
+            break;
+
         case CreatedAt:
             var.setValue(vod->getCreatedAt());
             break;
@@ -95,6 +99,7 @@ QHash<int, QByteArray> VodListModel::roleNames() const
     roles[Preview] = "preview";
     roles[Id] = "id";
     roles[Game] = "game";
+    roles[Type] = "type";
     roles[Duration] = "duration";
     roles[Views] = "views";
     roles[CreatedAt] = "createdAt";

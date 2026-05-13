@@ -36,7 +36,6 @@
 #include "replaychat.h"
 #include "../model/singletonprovider.h"
 
-#define ONLY_BROADCASTS true
 #define USE_HLS true
 #define FOLLOWED_FETCH_LIMIT 25
 
@@ -83,7 +82,7 @@ public:
     void getStreamsForLanguage(const QString&, const quint32&, const quint32&);
     void getStreamsForGame(const QString&, const quint32&, const quint32&, const QString &language = QString());
     void getChannelPlaybackStream(const QString&);
-    void getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit);
+    void getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type = QStringLiteral("archive"));
     void getBroadcastPlaybackStream(const QString &vod);
 
     //Methods using oauth
@@ -220,6 +219,7 @@ private:
     QString lastLanguageStreamsQuery;
     QMap<quint32, QString> languageStreamsPageCursors;
     quint64 lastBroadcastsChannelId = 0;
+    QString lastBroadcastsType;
     QMap<quint32, QString> broadcastsPageCursors;
     QMap<int, QMap<int, QString>> pendingEmoteSets;
     int pendingEmoteSetReplies = 0;

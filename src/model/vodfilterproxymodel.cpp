@@ -81,6 +81,7 @@ bool VodFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sou
     const QString mutedSegments = sourceModel()->data(sourceIndex, VodListModel::MutedSegments).toString();
     const QString haystack = sourceModel()->data(sourceIndex, VodListModel::Title).toString()
             + "\n" + sourceModel()->data(sourceIndex, VodListModel::Game).toString()
+            + "\n" + sourceModel()->data(sourceIndex, VodListModel::Type).toString()
             + "\n" + sourceModel()->data(sourceIndex, VodListModel::CreatedAt).toString()
             + "\n" + (mutedSegments.isEmpty() ? QString() : QStringLiteral("muted ") + mutedSegments);
     const QStringList tokens = mFilterText.split(QRegExp("\\s+"), QString::SkipEmptyParts);

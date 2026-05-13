@@ -397,6 +397,9 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
     else if (!json["game"].isNull())
         vod->setGame(json["game"].toString());
 
+    if (!json["type"].isNull())
+        vod->setType(json["type"].toString());
+
     if (!json["view_count"].isNull())
         vod->setViews(json["view_count"].toInt());
     else if (!json["views"].isNull())

@@ -23,6 +23,7 @@ class Vod
     QString title = "";
     QString id = "";
     QString game = "";
+    QString type = "";
     quint32 duration = 0;
     quint64 views = 0;
     QString preview = "";
@@ -43,6 +44,8 @@ public:
     void setDuration(const quint32 &value);
     QString getGame() const;
     void setGame(const QString &value);
+    QString getType() const;
+    void setType(const QString &value);
     QString getId() const;
     void setId(const QString &value);
     QString getTitle() const;

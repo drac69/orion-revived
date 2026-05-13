@@ -28,10 +28,26 @@ Item{
     property int itemCount: 0
     property var channelVodPositions
     property bool vodSearchInProgress: false
+    property string selectedVodType: "archive"
+    property var vodTypeOptions: [
+        { "label": "VODs", "type": "archive" },
+        { "label": "Highlights", "type": "highlight" },
+        { "label": "Uploads", "type": "upload" },
+        { "label": "All", "type": "" }
+    ]
 
     function requestVods(offset, limit) {
         vodSearchInProgress = true
-        VodManager.search(selectedChannel._id, offset, limit)
+        VodManager.search(selectedChannel._id, offset, limit, selectedVodType)
+    }
+
+    function reloadVods() {
+        if (!selectedChannel) {
+            return
+        }
+
+        requestVods(0, 35)
+        itemCount = Math.max(35, VodManager.loadedCount())
     }
 
     function search(channel){
@@ -53,9 +69,7 @@ Item{
 
         channelVodPositions = VodManager.getChannelVodsLastPlaybackPositions(channel.name);
 
-        requestVods(0, 35)
-
-        itemCount = Math.max(35, VodManager.loadedCount())
+        reloadVods()
 
         requestSelectionChange(3)
     }
@@ -153,6 +167,18 @@ Item{
                     ToolTip.text: "Play filtered list"
                 }
 
+                ComboBox {
+                    id: vodTypeFilter
+                    model: vodTypeOptions
+                    textRole: "label"
+                    focusPolicy: Qt.NoFocus
+                    Layout.preferredWidth: Math.max(dp(120), implicitWidth)
+                    onActivated: {
+                        selectedVodType = vodTypeOptions[index].type
+                        reloadVods()
+                    }
+                }
+
                 ToolButton {
                     checkable: true
                     checked: vodsModel.oldestFirst
@@ -183,6 +209,7 @@ Item{
                 duration: model.duration
                 position: channelVodPositions[model.id] || 0
                 game: model.game
+                vodType: model.type
                 createdAt: model.createdAt
                 seekPreviews: model.seekPreviews
                 mutedSegments: model.mutedSegments

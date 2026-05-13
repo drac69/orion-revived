@@ -43,7 +43,7 @@ public:
 
     ~VodManager();
 
-    Q_INVOKABLE void search(const quint64 channelId, const quint32 offset, const quint32 limit);
+    Q_INVOKABLE void search(const quint64 channelId, const quint32 offset, const quint32 limit, const QString &type = QStringLiteral("archive"));
 
     Q_INVOKABLE QString getGame() const;
 
@@ -55,8 +55,8 @@ public:
 
 private:
     void saveSettings();
-    void loadCachedVods(quint64 channelId, quint32 maxItems);
-    void saveCachedVods(quint64 channelId) const;
+    void loadCachedVods(quint64 channelId, const QString &type, quint32 maxItems);
+    void saveCachedVods(quint64 channelId, const QString &type) const;
 
 public slots:
     void onSearchFinished(QList<Vod *>);
@@ -84,6 +84,7 @@ private:
     QString game;
     quint64 currentSearchChannelId = 0;
     quint32 currentSearchOffset = 0;
+    QString currentSearchType = QStringLiteral("archive");
     VodListModel *_model;
     VodFilterProxyModel *_filteredModel;
     NetworkManager *netman;

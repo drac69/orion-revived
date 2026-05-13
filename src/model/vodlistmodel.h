@@ -34,6 +34,7 @@ public:
         Preview,
         Id,
         Game,
+        Type,
         Duration,
         Views,
         CreatedAt,
