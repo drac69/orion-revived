@@ -211,7 +211,11 @@ void DownloadHandler::dataAvailable() {
         return;
     }
 
-    _file.write(buffer.data(), buffer.size());
+    const qint64 bytesWritten = _file.write(buffer);
+    if (bytesWritten != buffer.size()) {
+        hadError = true;
+        qDebug() << "could not write image cache data" << filename << ":" << _file.errorString();
+    }
 }
 
 void DownloadHandler::error(QNetworkReply::NetworkError /*code*/) {

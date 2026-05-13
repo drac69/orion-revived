@@ -93,6 +93,11 @@ if ! rg -q 'if \(!_file\.isOpen\(\)\)' "$image_provider"; then
     exit 1
 fi
 
+if ! rg -q 'bytesWritten != buffer\.size\(\)' "$image_provider"; then
+    printf 'DownloadHandler must treat short image-cache writes as failed downloads.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'if \(!_file\.commit\(\)\)' "$image_provider"; then
     printf 'DownloadHandler must treat cache-file commit failures as failed downloads.\n' >&2
     exit 1
