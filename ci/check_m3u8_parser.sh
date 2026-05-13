@@ -62,6 +62,6 @@ INCLUDEPATH += $repo_dir
 SOURCES += m3u8_parser_smoke.cpp
 EOF
 
-qmake "$tmpdir/m3u8_parser_smoke.pro" -o "$tmpdir/Makefile"
+"$repo_dir/ci/run_qmake.sh" "$tmpdir/m3u8_parser_smoke.pro" -o "$tmpdir/Makefile"
 make -C "$tmpdir"
 "$tmpdir/m3u8_parser_smoke"

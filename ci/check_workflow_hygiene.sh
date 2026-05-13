@@ -38,6 +38,7 @@ while IFS= read -r script; do
 done < <(
     git -C "$repo_dir" ls-files 'ci/check_*.sh'
     printf '%s\n' ci/install_ubuntu_ci_deps.sh
+    printf '%s\n' ci/run_qmake.sh
 )
 
 if ! rg -q 'package-ecosystem:\s*"github-actions"' "$dependabot" \

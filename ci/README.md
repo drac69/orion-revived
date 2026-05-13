@@ -25,6 +25,10 @@ survive the wrapper. The
 update/install timeouts can be tuned with `ORION_CI_APT_UPDATE_TIMEOUT` and
 `ORION_CI_APT_INSTALL_TIMEOUT`.
 
+Qmake invocations go through `ci/run_qmake.sh`, which accepts an explicit
+`QMAKE` override and otherwise selects the available Qt 5 `qmake` or
+`qmake-qt5` executable.
+
 GitHub Actions versions are monitored by Dependabot through
 `.github/dependabot.yml`, and the workflow hygiene guard verifies that weekly
 GitHub Actions update checks stay enabled. The workflow hygiene guard also

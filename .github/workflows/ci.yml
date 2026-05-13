@@ -104,7 +104,7 @@ jobs:
         run: ci/check_m3u8_parser.sh
 
       - name: Configure
-        run: qmake orion.pro ${{ matrix.config }}
+        run: ci/run_qmake.sh orion.pro ${{ matrix.config }}
 
       - name: Build
         run: make -j"$(nproc)"
