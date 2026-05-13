@@ -128,9 +128,7 @@ Item {
     }
 
     function reconnect() {
-        leaveChannel()
-        if (root.channel)
-            joinChannel(root.channel, root.channelId)
+        chat.reopenSocket()
     }
 
     function getBadgeLocalUrl(key) {
@@ -147,7 +145,6 @@ Item {
                         console.log("Reconnected; chat replay may resume")
                     } else {
                         console.log("Connected to chat")
-                        joinChannel(root.channel, root.channelId)
                     }
                 }
             } else {

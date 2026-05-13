@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QTcpSocket>
+#include <QSslSocket>
 #include <QNetworkReply>
 #include <QMap>
 #include <QRegularExpression>
@@ -188,6 +189,7 @@ private:
     QSet<QString> blockedUsers;
 
     void parseCommand(QString cmd);
+    void sendJoinCurrentRoom();
 
     struct CommandParse {
         QString channel;
@@ -210,6 +212,7 @@ private:
     QString room;
     QString roomChannelId;
     bool replayMode = false;
+    bool joinedRoom = false;
     // map of channel name -> list of pairs (badge name, badge version)
     QMap<QString, QList<QPair<QString, QString>>> badgesByChannel;
     bool logged_in;

@@ -37,4 +37,19 @@ if (( networkmanager_macro_count > 2 )); then
     fail=1
 fi
 
+if ! rg -q 'const qint16 IrcChat::PORT = 6697;' src/model/ircchat.cpp; then
+    printf 'Twitch IRC TLS connections must use the documented IRC port 6697.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'RECONNECT' src/model/ircchat.cpp; then
+    printf 'Twitch IRC RECONNECT command handling is required for server-requested reconnects.\n' >&2
+    fail=1
+fi
+
+if rg -q 'joinChannel\(root\.channel' src/qml/irc/Chat.qml; then
+    printf 'QML connected-state handling must not issue duplicate chat JOIN commands.\n' >&2
+    fail=1
+fi
+
 exit "$fail"

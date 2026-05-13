@@ -45,7 +45,7 @@ const QString IrcChat::IMAGE_PROVIDER_FFZ_EMOTE = "ffzemote";
 const QString IrcChat::FFZ_EMOTES_URL_FORMAT_LODPI = "https://cdn.frankerfacez.com/emote/%1/1";
 const QString IrcChat::FFZ_EMOTES_URL_FORMAT_HIDPI = "https://cdn.frankerfacez.com/emote/%1/2";
 
-const qint16 IrcChat::PORT = 443;
+const qint16 IrcChat::PORT = 6697;
 const QString IrcChat::HOST = "irc.chat.twitch.tv";
 
 IrcChat::IrcChat(QObject *parent) :
@@ -173,15 +173,26 @@ void IrcChat::join(const QString channel, const QString channelId) {
 
     roomInitCommon(channel, channelId);
     if (!connected()) {
-        reopenSocket();
+        if (sock && sock->state() == QAbstractSocket::UnconnectedState) {
+            reopenSocket();
+        }
+        qDebug() << "Queued channel join" << channel;
+        return;
     }
 
-    // Join channel's chat room
-    if (sock) {
-        sock->write(("JOIN #" + channel + "\r\n").toStdString().c_str());
+    sendJoinCurrentRoom();
+}
+
+void IrcChat::sendJoinCurrentRoom()
+{
+    if (!sock || room.isEmpty() || replayMode || joinedRoom || !logged_in || !connected()) {
+        return;
     }
 
-    qDebug() << "Joined channel " << channel;
+    sock->write(("JOIN #" + room + "\r\n").toStdString().c_str());
+    joinedRoom = true;
+
+    qDebug() << "Joined channel" << room;
 }
 
 void IrcChat::replay(const QString channel, const QString channelId, const quint64 /*vodId*/, double /*vodStartEpochTime*/, double /*playbackOffset*/) {
@@ -205,9 +216,10 @@ void IrcChat::replayStop() {
 void IrcChat::leave()
 {
     msgQueue.clear();
-    if (sock) {
+    if (sock && joinedRoom && !room.isEmpty() && connected()) {
         sock->write(("PART #" + room + "\r\n").toStdString().c_str());
     }
+    joinedRoom = false;
     room = "";
 }
 
@@ -216,11 +228,15 @@ void IrcChat::disconnect() {
     if (sock) {
         sock->close();
     }
+    logged_in = false;
+    joinedRoom = false;
 }
 
 void IrcChat::reopenSocket() {
     if (sock) {
         qDebug() << "Reopening socket";
+        logged_in = false;
+        joinedRoom = false;
         if (sock->isOpen())
             sock->close();
         sock->open(QIODevice::ReadWrite);
@@ -249,7 +265,7 @@ void IrcChat::setAnonymous(bool newAnonymous) {
 
 bool IrcChat::connected() {
     if (sock) {
-        return sock->state() == QTcpSocket::ConnectedState;
+        return sock->state() == QAbstractSocket::ConnectedState && sock->isEncrypted();
     }
     else {
         return false;
@@ -494,6 +510,10 @@ void IrcChat::sendMessage(const QString &msg, const QVariantMap &relevantEmotes)
 
 void IrcChat::onSockStateChanged() {
     // We don't check if connected property actually changed because this slot should only be awaken when it did
+    if (!connected()) {
+        logged_in = false;
+        joinedRoom = false;
+    }
     emit connectedChanged();
 }
 
@@ -516,9 +536,7 @@ void IrcChat::login()
 
     logged_in = true;
 
-    //Join room automatically, if given
-    if (!room.isEmpty() && !replayMode)
-        join(room, roomChannelId);
+    sendJoinCurrentRoom();
 }
 
 void IrcChat::receive() {
@@ -963,8 +981,14 @@ void IrcChat::parseMessageCommand(const QString cmd, const QString cmdKeyword, C
 }
 
 void IrcChat::parseCommand(QString cmd) {
+    if (cmd == ":tmi.twitch.tv RECONNECT" || cmd.endsWith(" RECONNECT")) {
+        qDebug() << "Twitch IRC requested reconnect";
+        reopenSocket();
+        return;
+    }
+
     if(cmd.startsWith("PING ")) {
-        sock->write("PONG\r\n");
+        sock->write(("PONG " + cmd.mid(5) + "\r\n").toStdString().c_str());
         return;
     }
 
