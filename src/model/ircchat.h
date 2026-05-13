@@ -26,6 +26,7 @@
 #include <QMap>
 #include <QRegExp>
 #include <QColor>
+#include <QStringList>
 #include <QQmlListProperty>
 #include <QImage>
 #include <QFile>
@@ -39,7 +40,7 @@
 
 #define BLOCKED_USER_LIST_FETCH_LIMIT 100
 
-//#define TWITCH_EMOTE_URI "https://static-cdn.jtvnw.net/emoticons/v1/%d/1.0"
+//#define TWITCH_EMOTE_URI "https://static-cdn.jtvnw.net/emoticons/v2/%1/static/dark/1.0"
 
 struct ChatMessage {
     QString name;
@@ -64,7 +65,7 @@ class IrcChat : public QObject
     //emote download
     QDir emoteDir;
     QString emoteDirPathImpl;
-    QList<int> _emoteSetIDs;
+    QStringList _emoteSetIDs;
     QList<QString> blockedUserListLoading;
 
 public:
@@ -77,7 +78,7 @@ public:
     Q_PROPERTY(bool connected READ connected NOTIFY connectedChanged)
     Q_PROPERTY(bool inRoom READ inRoom)
     Q_PROPERTY(QString emoteDirPath MEMBER emoteDirPathImpl)
-    Q_PROPERTY(QList<int> emoteSetIDs READ emoteSetIDs NOTIFY emoteSetIDsChanged)
+    Q_PROPERTY(QStringList emoteSetIDs READ emoteSetIDs NOTIFY emoteSetIDsChanged)
 
     Q_INVOKABLE void join(const QString channel, const QString channelId);
     Q_INVOKABLE void replay(const QString channel, const QString channelId, const quint64 vodId, double vodStartEpochTime, double playbackOffset);
@@ -104,7 +105,7 @@ public:
     bool connected();
     inline bool inRoom() { return !room.isEmpty(); }
 
-    QList<int> emoteSetIDs();
+    QStringList emoteSetIDs();
 
     void RegisterEngineProviders(QQmlEngine & engine);
 
@@ -201,8 +202,8 @@ private:
 
     void initSocket();
     void parseMessageCommand(const QString cmd, const QString cmdKeyword, CommandParse & commandParse);
-    QMap<int, QPair<int, int>> parseEmotesTag(const QString emotes);
-    void createMessageList(const QMap<int, QPair<int, int>> & emotePositionsMap, QString bitsNumber, QVariantList & messageList, const QString message);
+    QMap<int, QPair<int, QString>> parseEmotesTag(const QString emotes);
+    void createMessageList(const QMap<int, QPair<int, QString>> & emotePositionsMap, QString bitsNumber, QVariantList & messageList, const QString message);
     void addWordSplit(const QString & s, const QChar & sep, QVariantList & l);
     QString getParamValue(QString params, QString param);
     QSslSocket *sock;

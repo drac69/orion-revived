@@ -70,20 +70,20 @@ bool BadgeContainer::getChannelBitsColor(const int channelId, const QString &pre
     return false;
 }
 
-QVariantMap convertEmoteSets(const QMap<int, QMap<int, QString>> emoteSets) {
+QVariantMap convertEmoteSets(const QMap<QString, QMap<QString, QString>> emoteSets) {
     QVariantMap out;
     for (auto setEntry = emoteSets.begin(); setEntry != emoteSets.end(); setEntry++) {
         QVariantMap cur;
         auto set = setEntry.value();
         for (auto emote = set.begin(); emote != set.end(); emote++) {
-            cur.insert(QString::number(emote.key()), emote.value());
+            cur.insert(emote.key(), emote.value());
         }
-        out.insert(QString::number(setEntry.key()), cur);
+        out.insert(setEntry.key(), cur);
     }
     return out;
 }
 
-bool BadgeContainer::loadEmoteSets(bool reload, const QList<int> &emoteSetIDs) {
+bool BadgeContainer::loadEmoteSets(bool reload, const QStringList &emoteSetIDs) {
     if (!haveEmoteSets || (emoteSetIDs != lastRequestedEmoteSetIDs)) {
         reload = true;
     }
@@ -256,7 +256,7 @@ bool BadgeContainer::loadChannelBitsUrls(int channel) {
     return out;
 }
 
-void BadgeContainer::onEmoteSetsUpdated(const QMap<int, QMap<int, QString>> updatedEmoteSets)
+void BadgeContainer::onEmoteSetsUpdated(const QMap<QString, QMap<QString, QString>> updatedEmoteSets)
 {
     lastEmoteSets = updatedEmoteSets;
     haveEmoteSets = true;

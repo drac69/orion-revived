@@ -669,9 +669,9 @@ void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, qui
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::favouritesReply);
 }
 
-void NetworkManager::getEmoteSets(const QList<int> &emoteSetIDs) {
+void NetworkManager::getEmoteSets(const QStringList &emoteSetIDs) {
     if (!requireAccessToken("Emote set loading")) {
-        QMap<int, QMap<int, QString>> empty;
+        QMap<QString, QMap<QString, QString>> empty;
         emit getEmoteSetsOperationFinished(empty);
         return;
     }
@@ -681,12 +681,12 @@ void NetworkManager::getEmoteSets(const QList<int> &emoteSetIDs) {
     pendingEmoteSetReplies = (emoteSetIDs.size() + 24) / 25;
 
     for (int pos = 0; pos < emoteSetIDs.size(); pos += 25) {
-        const QList<int> chunk = emoteSetIDs.mid(pos, 25);
+        const QStringList chunk = emoteSetIDs.mid(pos, 25);
 
         QUrl url(QString(HELIX_API) + "/chat/emotes/set");
         QUrlQuery query;
-        for (auto id : chunk) {
-            query.addQueryItem("emote_set_id", QString::number(id));
+        for (const auto &id : chunk) {
+            query.addQueryItem("emote_set_id", id);
         }
         url.setQuery(query);
 

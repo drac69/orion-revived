@@ -711,8 +711,8 @@ QList<quint64> JsonParser::parseUsers(const QByteArray &data)
     return out;
 }
 
-QMap<int, QMap<int, QString>> JsonParser::parseEmoteSets(const QByteArray &data) {
-    QMap<int, QMap<int, QString>> out;
+QMap<QString, QMap<QString, QString>> JsonParser::parseEmoteSets(const QByteArray &data) {
+    QMap<QString, QMap<QString, QString>> out;
 
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(data, &error);
@@ -724,10 +724,10 @@ QMap<int, QMap<int, QString>> JsonParser::parseEmoteSets(const QByteArray &data)
         if (json["data"].isArray()) {
             for (const auto &emoteEntry : json["data"].toArray()) {
                 const QJsonObject emote = emoteEntry.toObject();
-                const int setId = emote["emote_set_id"].toString().toInt();
-                const int emoteId = emote["id"].toString().toInt();
+                const QString setId = emote["emote_set_id"].toString();
+                const QString emoteId = emote["id"].toString();
                 const QString name = emote["name"].toString();
-                if (setId != 0 && emoteId != 0 && !name.isEmpty()) {
+                if (!setId.isEmpty() && !emoteId.isEmpty() && !name.isEmpty()) {
                     out[setId].insert(emoteId, name);
                 }
             }
@@ -736,19 +736,21 @@ QMap<int, QMap<int, QString>> JsonParser::parseEmoteSets(const QByteArray &data)
             auto emoticon_sets = json["emoticon_sets"].toObject();
             for (auto emoticonSetEntry = emoticon_sets.begin(); emoticonSetEntry != emoticon_sets.end(); emoticonSetEntry++) {
                 auto emoticonSetID = emoticonSetEntry.key();
-                QMap<int, QString> curSetEmoticons;
+                QMap<QString, QString> curSetEmoticons;
                 auto emoticons = emoticonSetEntry.value().toArray();
                 for (auto emoticonEntry = emoticons.begin(); emoticonEntry != emoticons.end(); emoticonEntry++) {
                     auto emoticonObj = emoticonEntry->toObject();
                     auto id = emoticonObj["id"];
                     auto code = emoticonObj["code"];
-                    if (id.isDouble() && code.isString()) {
-                        curSetEmoticons.insert(id.toInt(), code.toString());
+                    if ((id.isDouble() || id.isString()) && code.isString()) {
+                        const QString emoteId = id.isString()
+                                ? id.toString()
+                                : QString::number(static_cast<qulonglong>(id.toDouble()));
+                        curSetEmoticons.insert(emoteId, code.toString());
                     }
                 }
-                int setId = emoticonSetID.toInt();
-                //qDebug() << "saving set id" << setId;
-                out.insert(setId, curSetEmoticons);
+                //qDebug() << "saving set id" << emoticonSetID;
+                out.insert(emoticonSetID, curSetEmoticons);
             }
         }
     }

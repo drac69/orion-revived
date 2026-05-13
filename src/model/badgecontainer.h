@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QStringList>
 #include "../network/networkmanager.h"
 #include "imageprovider.h"
 #include "badgeimageprovider.h"
@@ -13,8 +14,8 @@ class BadgeContainer: public QObject
     Q_OBJECT
 
     bool haveEmoteSets;
-    QList<int> lastRequestedEmoteSetIDs;
-    QMap<int, QMap<int, QString>> lastEmoteSets;
+    QStringList lastRequestedEmoteSetIDs;
+    QMap<QString, QMap<QString, QString>> lastEmoteSets;
     QMap<QString, QMap<QString, QMap<QString, QMap<QString, QString>>>> channelBadgeBetaUrls;
     QMap<QString, QMap<QString, QString>> channelBttvEmotes;
     QMap<QString, QMap<QString, QString>> channelFfzEmotes;
@@ -49,7 +50,7 @@ public:
     bool getChannelBitsColor(const int channelId, const QString & prefix, const QString & minBits, QString & outColor);
 
 public slots:
-    void onEmoteSetsUpdated(const QMap<int, QMap<int, QString>>);
+    void onEmoteSetsUpdated(const QMap<QString, QMap<QString, QString>>);
     void innerChannelBadgeBetaUrlsLoaded(const int channelId, const QMap<QString, QMap<QString, QMap<QString, QString>>> badgeData);
     void innerGlobalBadgeBetaUrlsLoaded(const QMap<QString, QMap<QString, QMap<QString, QString>>> badgeData);
     void innerChannelBitsDataLoaded(int channelID, BitsQStringsMap channelBitsUrls, BitsQStringsMap channelBitsColors);
@@ -58,7 +59,7 @@ public slots:
     void innerGlobalBttvEmotesLoaded(QMap<QString, QString> & emotesByCode);
     void innerChannelFfzEmotesLoaded(const QString channel, QMap<QString, QString> emotesByCode);
     void innerGlobalFfzEmotesLoaded(QMap<QString, QString> emotesByCode);
-    bool loadEmoteSets(bool reload, const QList<int> &emoteSetIDs);
+    bool loadEmoteSets(bool reload, const QStringList &emoteSetIDs);
     bool loadChannelBetaBadgeUrls(int channel);
     bool loadChannelBitsUrls(int channel);
     bool loadChannelBttvEmotes(const QString channel);

@@ -36,8 +36,8 @@
 
 const QString IrcChat::IMAGE_PROVIDER_EMOTE = "emote";
 const QString IrcChat::IMAGE_PROVIDER_BITS = "bits";
-const QString IrcChat::EMOTICONS_URL_FORMAT_LODPI = "https://static-cdn.jtvnw.net/emoticons/v1/%1/1.0";
-const QString IrcChat::EMOTICONS_URL_FORMAT_HIDPI = "https://static-cdn.jtvnw.net/emoticons/v1/%1/2.0";
+const QString IrcChat::EMOTICONS_URL_FORMAT_LODPI = "https://static-cdn.jtvnw.net/emoticons/v2/%1/static/dark/1.0";
+const QString IrcChat::EMOTICONS_URL_FORMAT_HIDPI = "https://static-cdn.jtvnw.net/emoticons/v2/%1/static/dark/2.0";
 const QString IrcChat::IMAGE_PROVIDER_BTTV_EMOTE = "bttvemote";
 const QString IrcChat::BTTV_EMOTES_URL_FORMAT_LODPI = "https://cdn.betterttv.net/emote/%1/1x";
 const QString IrcChat::BTTV_EMOTES_URL_FORMAT_HIDPI = "https://cdn.betterttv.net/emote/%1/2x";
@@ -616,8 +616,8 @@ QList<QPair<QString, QString>> parseBadges(const QString badgesStr) {
     return badges;
 }
 
-QMap<int, QPair<int, int>> IrcChat::parseEmotesTag(const QString emotes) {
-    QMap<int, QPair<int, int>> emotePositionsMap;
+QMap<int, QPair<int, QString>> IrcChat::parseEmotesTag(const QString emotes) {
+    QMap<int, QPair<int, QString>> emotePositionsMap;
     if (emotes != "") {
         auto emoteList = emotes.split('/');
 
@@ -634,7 +634,7 @@ QMap<int, QPair<int, int>> IrcChat::parseEmotesTag(const QString emotes) {
                 int first = firstAndLast[0].toInt();
                 int last = firstAndLast.length() > 1 ? firstAndLast[1].toInt() : first;
 
-                emotePositionsMap.insert(first, qMakePair(last, key.toInt()));
+                emotePositionsMap.insert(first, qMakePair(last, key));
             }
         }
     }
@@ -756,7 +756,7 @@ void IrcChat::handleChannelBitsUrlsLoaded(const int channelID, BitsQStringsMap b
     }
 }
 
-void IrcChat::createMessageList(const QMap<int, QPair<int, int>> & emotePositionsMap, QString bitsNumber, QVariantList & messageList, const QString message) {
+void IrcChat::createMessageList(const QMap<int, QPair<int, QString>> & emotePositionsMap, QString bitsNumber, QVariantList & messageList, const QString message) {
     // cut up message into an ordered list of text fragments and images
 
     // put together all kinds of image entries so we can go through them in order
@@ -768,7 +768,7 @@ void IrcChat::createMessageList(const QMap<int, QPair<int, int>> & emotePosition
         // also convert positions to utf-16 domain at this time
         int start = counter.toUtf16Offset(emoteEntry.key());
         int end = counter.toUtf16Offset(emoteEntry.value().first + 1);
-        QString key = QString::number(emoteEntry.value().second);
+        QString key = emoteEntry.value().second;
 
         InlineImageInfo info;
         info.kind = ImageEntryKind::emote;
@@ -1106,10 +1106,8 @@ void IrcChat::parseCommand(QString cmd) {
 			}
 			else if (tag.key == "emote-sets") {
                 qDebug() << "GLOBALUSERSTATE emote-sets" << tag.value;
-                const QStringList & entries = tag.value.split(',');
-				for (const auto & entry : entries) {
-					_emoteSetIDs.append(entry.toInt());
-				}
+                const QStringList entries = tag.value.split(',', QString::SkipEmptyParts);
+                _emoteSetIDs = entries;
                 emit emoteSetIDsChanged();
             }
             else if (tag.key == "color") {
@@ -1204,7 +1202,7 @@ QString IrcChat::getParamValue(QString params, QString param) {
     return paramValue;
 }
 
-QList<int> IrcChat::emoteSetIDs() {
+QStringList IrcChat::emoteSetIDs() {
     return _emoteSetIDs;
 }
 
