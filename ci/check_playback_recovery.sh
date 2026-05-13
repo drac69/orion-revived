@@ -130,3 +130,13 @@ if ! rg -q 'file\.cancelWriting\(\)' "$vod_manager"; then
     printf 'VodManager must cancel partial playback-position snapshots before returning.\n' >&2
     exit 1
 fi
+
+if ! rg -q 'warnSettingsSyncFailure\(settings, "VOD cache settings"\)' "$vod_manager"; then
+    printf 'VodManager must warn when cached VOD settings fail to sync.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'warnSettingsSyncFailure\(settings, "VOD position settings"\)' "$vod_manager"; then
+    printf 'VodManager must warn when VOD position settings fail to sync.\n' >&2
+    exit 1
+fi

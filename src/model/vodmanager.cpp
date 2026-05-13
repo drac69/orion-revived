@@ -34,6 +34,13 @@ QString vodCacheKey(quint64 channelId, const QString &type)
     const QString normalizedType = type.trimmed().isEmpty() ? QStringLiteral("all") : type.trimmed();
     return QString::number(channelId) + QStringLiteral("_") + normalizedType;
 }
+
+void warnSettingsSyncFailure(const QSettings &settings, const char *context)
+{
+    if (settings.status() != QSettings::NoError) {
+        qWarning() << context << "sync failed with status" << settings.status();
+    }
+}
 }
 
 VodManager::VodManager(QObject *parent) :
@@ -231,6 +238,7 @@ void VodManager::saveCachedVods(quint64 channelId, const QString &type) const
     settings.endGroup();
     settings.endGroup();
     settings.sync();
+    warnSettingsSyncFailure(settings, "VOD cache settings");
 }
 
 void VodManager::saveSettings() {
@@ -259,6 +267,7 @@ void VodManager::saveSettings() {
     }
     settings.endArray();
     settings.sync();
+    warnSettingsSyncFailure(settings, "VOD position settings");
 
     savePlaybackPositionSnapshot();
 }
