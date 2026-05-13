@@ -118,10 +118,12 @@ void VodManager::saveSettings() {
                 settings.setValue("channel", channelEntry.key());
                 settings.setValue("vod", vodEntry.key());
                 settings.setValue("position", vodEntry.value().lastPosition);
+                lastPosition.modified = false;
             }
         }
     }
     settings.endArray();
+    settings.sync();
 
 }
 
