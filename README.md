@@ -119,7 +119,15 @@ Useful logging options:
 orion --debug
 orion --log-level debug --log-file /tmp/orion.log
 orion --journal
+orion --stdout-log-level info --stderr-log-level warning
+orion --log-file /tmp/orion.log --file-log-level debug
+orion --journal-log-level warning
 ```
+
+Valid log levels are `debug`, `info`, `warning`, `critical`, `fatal`, and `off`.
+`--stdout-log-level` controls debug/info messages, while `--stderr-log-level` controls
+warning/fatal messages. `--quiet` disables stdout and stderr without disabling the
+in-app log viewer, file logging, or journal logging.
 
 Load an mpv config file when using the mpv backend:
 

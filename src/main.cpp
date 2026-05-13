@@ -209,9 +209,11 @@ enum class LogLevel {
 };
 
 struct LogConfig {
-    LogLevel minLevel = LogLevel::Warning;
-    bool console = true;
-    bool journal = false;
+    LogLevel stdoutLevel = LogLevel::Warning;
+    LogLevel stderrLevel = LogLevel::Warning;
+    LogLevel fileLevel = LogLevel::Warning;
+    LogLevel journalLevel = LogLevel::Off;
+    LogLevel bufferLevel = LogLevel::Warning;
     FILE *file = nullptr;
 };
 
@@ -293,6 +295,30 @@ bool parseLogLevel(const QString &value, LogLevel &level)
     return true;
 }
 
+bool shouldLogToSink(LogLevel messageLevel, LogLevel sinkLevel)
+{
+    return sinkLevel != LogLevel::Off
+            && static_cast<int>(messageLevel) >= static_cast<int>(sinkLevel);
+}
+
+bool parseLogLevelOption(const QCommandLineParser &parser,
+                         const QCommandLineOption &option,
+                         LogLevel &level)
+{
+    if (!parser.isSet(option)) {
+        return true;
+    }
+
+    if (parseLogLevel(parser.value(option), level)) {
+        return true;
+    }
+
+    qWarning().noquote() << "Invalid log level" << parser.value(option)
+                         << "for" << QString("--") + option.names().first()
+                         << "- keeping previous value";
+    return false;
+}
+
 QString logContextText(const QMessageLogContext &context)
 {
     if (!context.file) {
@@ -325,26 +351,45 @@ void closeLogFile()
 
 void msgHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    if (messageLogLevel(type) < logConfig.minLevel || logConfig.minLevel == LogLevel::Off) {
+    const LogLevel level = messageLogLevel(type);
+    const bool isErrorStream = static_cast<int>(level) >= static_cast<int>(LogLevel::Warning);
+    const bool writeBuffer = shouldLogToSink(level, logConfig.bufferLevel);
+    const bool writeStdout = !isErrorStream && shouldLogToSink(level, logConfig.stdoutLevel);
+    const bool writeStderr = isErrorStream && shouldLogToSink(level, logConfig.stderrLevel);
+    const bool writeFile = logConfig.file && shouldLogToSink(level, logConfig.fileLevel);
+
+#ifdef SYSTEMD_JOURNAL
+    const bool writeJournal = shouldLogToSink(level, logConfig.journalLevel);
+#else
+    const bool writeJournal = false;
+#endif
+
+    if (!writeBuffer && !writeStdout && !writeStderr && !writeFile && !writeJournal) {
         return;
     }
 
     const QByteArray line = formatLogLine(type, context, msg);
-    LogBuffer::getInstance()->appendLine(QString::fromLocal8Bit(line.constData(), line.size()));
-
-    if (logConfig.console) {
-        FILE *stream = messageLogLevel(type) >= LogLevel::Warning ? stderr : stdout;
-        fputs(line.constData(), stream);
-        fflush(stream);
+    if (writeBuffer) {
+        LogBuffer::getInstance()->appendLine(QString::fromLocal8Bit(line.constData(), line.size()));
     }
 
-    if (logConfig.file) {
+    if (writeStdout) {
+        fputs(line.constData(), stdout);
+        fflush(stdout);
+    }
+
+    if (writeStderr) {
+        fputs(line.constData(), stderr);
+        fflush(stderr);
+    }
+
+    if (writeFile) {
         fputs(line.constData(), logConfig.file);
         fflush(logConfig.file);
     }
 
 #ifdef SYSTEMD_JOURNAL
-    if (logConfig.journal) {
+    if (writeJournal) {
         const QByteArray journalMsg = msg.toLocal8Bit();
         sd_journal_send("MESSAGE=%s", journalMsg.constData(),
                         "PRIORITY=%i", journalPriority(type),
@@ -459,14 +504,29 @@ int main(int argc, char *argv[])
     parser.addOption(quietOption);
 
     QCommandLineOption logLevelOption(QStringList() << "log-level",
-                                      "set log level: debug, info, warning, critical, fatal, off",
+                                      "set the default log level: debug, info, warning, critical, fatal, off",
                                       "level");
     parser.addOption(logLevelOption);
+
+    QCommandLineOption stdoutLogLevelOption(QStringList() << "stdout-log-level",
+                                            "set stdout log level for debug/info messages",
+                                            "level");
+    parser.addOption(stdoutLogLevelOption);
+
+    QCommandLineOption stderrLogLevelOption(QStringList() << "stderr-log-level",
+                                            "set stderr log level for warning/fatal messages",
+                                            "level");
+    parser.addOption(stderrLogLevelOption);
 
     QCommandLineOption logFileOption(QStringList() << "log-file",
                                      "append log output to a file",
                                      "path");
     parser.addOption(logFileOption);
+
+    QCommandLineOption fileLogLevelOption(QStringList() << "file-log-level",
+                                          "set log-file level",
+                                          "level");
+    parser.addOption(fileLogLevelOption);
 
 #ifdef MPV_PLAYER
     QCommandLineOption mpvConfigOption(QStringList() << "libmpv-config" << "mpv-config",
@@ -479,6 +539,11 @@ int main(int argc, char *argv[])
     QCommandLineOption journalOption(QStringList() << "journal",
                                      "send log output to the systemd journal when supported by this build");
     parser.addOption(journalOption);
+
+    QCommandLineOption journalLogLevelOption(QStringList() << "journal-log-level",
+                                             "set systemd journal log level and enable journal output",
+                                             "level");
+    parser.addOption(journalLogLevelOption);
 #endif
 
     parser.process(QCoreApplication::arguments());
@@ -495,24 +560,37 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    LogLevel minLogLevel = LogLevel::Warning;
+    LogLevel defaultLogLevel = LogLevel::Warning;
     if (parser.isSet(debugOption)) {
-        minLogLevel = LogLevel::Debug;
+        defaultLogLevel = LogLevel::Debug;
     }
-    if (parser.isSet(logLevelOption) && !parseLogLevel(parser.value(logLevelOption), minLogLevel)) {
+    if (parser.isSet(logLevelOption) && !parseLogLevel(parser.value(logLevelOption), defaultLogLevel)) {
         qWarning().noquote() << "Invalid log level" << parser.value(logLevelOption) << "- using warning";
-        minLogLevel = LogLevel::Warning;
+        defaultLogLevel = LogLevel::Warning;
     }
 
-    logConfig.minLevel = minLogLevel;
-    logConfig.console = !parser.isSet(quietOption);
+    logConfig.stdoutLevel = defaultLogLevel;
+    logConfig.stderrLevel = defaultLogLevel;
+    logConfig.fileLevel = defaultLogLevel;
+    logConfig.bufferLevel = defaultLogLevel;
+    parseLogLevelOption(parser, stdoutLogLevelOption, logConfig.stdoutLevel);
+    parseLogLevelOption(parser, stderrLogLevelOption, logConfig.stderrLevel);
+    parseLogLevelOption(parser, fileLogLevelOption, logConfig.fileLevel);
+
+    if (parser.isSet(quietOption)) {
+        logConfig.stdoutLevel = LogLevel::Off;
+        logConfig.stderrLevel = LogLevel::Off;
+    }
 
 #ifdef Q_OS_LINUX
-    logConfig.journal = parser.isSet(journalOption);
+    logConfig.journalLevel = (parser.isSet(journalOption) || parser.isSet(journalLogLevelOption))
+            ? defaultLogLevel
+            : LogLevel::Off;
+    parseLogLevelOption(parser, journalLogLevelOption, logConfig.journalLevel);
 #ifndef SYSTEMD_JOURNAL
-    if (logConfig.journal) {
+    if (logConfig.journalLevel != LogLevel::Off) {
         qWarning() << "--journal requested but this build was compiled without systemd journal support";
-        logConfig.journal = false;
+        logConfig.journalLevel = LogLevel::Off;
     }
 #endif
 #endif
@@ -535,7 +613,9 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef Q_OS_WIN
-    if (logConfig.console && (parser.isSet(debugOption) || logConfig.minLevel <= LogLevel::Info)) {
+    if ((parser.isSet(debugOption)
+         || shouldLogToSink(LogLevel::Info, logConfig.stdoutLevel)
+         || shouldLogToSink(LogLevel::Info, logConfig.stderrLevel))) {
         // windows doesn't pass message strings to normal console, so open our own when -d is enabled
         if (!parser.isSet(noConsoleOption)) {
             showConsole();
