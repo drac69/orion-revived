@@ -27,6 +27,7 @@ jobs:
             libsystemd-dev \
             libmpv-dev \
             pkg-config \
+            ripgrep \
             qt5-qmake \
             qtbase5-dev \
             qtdeclarative5-dev \
