@@ -40,6 +40,7 @@
 #include "model/mprismanager.h"
 #include "network/httpserver.h"
 #include "model/viewersmodel.h"
+#include "model/logbuffer.h"
 #include "power/power.h"
 
 #ifndef Q_OS_ANDROID
@@ -329,6 +330,7 @@ void msgHandler(QtMsgType type, const QMessageLogContext &context, const QString
     }
 
     const QByteArray line = formatLogLine(type, context, msg);
+    LogBuffer::getInstance()->appendLine(QString::fromLocal8Bit(line.constData(), line.size()));
 
     if (logConfig.console) {
         FILE *stream = messageLogLevel(type) >= LogLevel::Warning ? stderr : stdout;
@@ -361,6 +363,7 @@ void registerQmlComponents(QObject *parent)
     qmlRegisterSingletonType<ChannelManager>("app.orion", 1, 0, "ChannelManager", &ChannelManager::provider);
     qmlRegisterSingletonType<BadgeContainer>("app.orion", 1, 0, "Emotes", &BadgeContainer::provider);
     qmlRegisterSingletonType<ViewersModel>("app.orion", 1, 0, "Viewers", &ViewersModel::provider);
+    qmlRegisterSingletonType<LogBuffer>("app.orion", 1, 0, "LogBuffer", &LogBuffer::provider);
     qmlRegisterSingletonType<VodManager>("app.orion", 1, 0, "VodManager", &VodManager::provider);
     qmlRegisterSingletonType<MprisManager>("app.orion", 1, 0, "MprisManager", &MprisManager::provider);
     qmlRegisterSingletonType<SettingsManager>("app.orion", 1, 0, "Settings", &SettingsManager::provider);
@@ -377,6 +380,7 @@ void registerQmlComponents(QObject *parent)
     ChannelManager::getInstance()->setParent(parent);
     BadgeContainer::getInstance()->setParent(parent);
     ViewersModel::getInstance()->setParent(parent);
+    LogBuffer::getInstance()->setParent(parent);
     VodManager::getInstance()->setParent(parent);
     MprisManager::getInstance()->setParent(parent);
     SettingsManager::getInstance()->setParent(parent);

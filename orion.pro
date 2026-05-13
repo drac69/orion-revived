@@ -40,6 +40,7 @@ SOURCES += src/main.cpp\
     src/model/viewersmodel.cpp \
     src/model/mprismanager.cpp \
     src/model/settingsmanager.cpp \
+    src/model/logbuffer.cpp \
     src/network/httpserver.cpp \
     src/power/power.cpp
 
@@ -65,6 +66,7 @@ HEADERS  += src/model/channel.h \
     src/model/viewersmodel.h \
     src/model/mprismanager.h \
     src/model/settingsmanager.h \
+    src/model/logbuffer.h \
     src/model/singletonprovider.h \
     src/power/power.h
 

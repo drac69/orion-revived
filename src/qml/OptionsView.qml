@@ -433,6 +433,51 @@ Page {
             }
 
             GroupBox {
+                title: "Logs"
+                padding: 10
+                Layout.fillWidth: true
+                Layout.maximumWidth: 500
+                Layout.alignment: Qt.AlignCenter
+
+                Column {
+                    width: parent.width
+
+                    TextArea {
+                        width: parent.width
+                        height: 160
+                        text: LogBuffer.text
+                        readOnly: true
+                        selectByMouse: true
+                        wrapMode: TextEdit.NoWrap
+                        font.family: "monospace"
+                        font.pointSize: 9
+                    }
+
+                    RowLayout {
+                        width: parent.width
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        Button {
+                            text: "Copy"
+                            font.pointSize: 9
+                            enabled: LogBuffer.text.length > 0
+                            onClicked: Settings.copyToClipboard(LogBuffer.text)
+                        }
+
+                        Button {
+                            text: "Clear"
+                            font.pointSize: 9
+                            enabled: LogBuffer.text.length > 0
+                            onClicked: LogBuffer.clear()
+                        }
+                    }
+                }
+            }
+
+            GroupBox {
                 title: "Chat"
                 padding: 10
                 Layout.fillWidth: true
