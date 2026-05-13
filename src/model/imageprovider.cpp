@@ -93,6 +93,8 @@ bool ImageProvider::download(QString key) {
         dh, &DownloadHandler::replyFinished);
     connect(dh, &DownloadHandler::downloadComplete,
         this, &ImageProvider::individualDownloadComplete);
+    connect(dh, &DownloadHandler::downloadComplete,
+        dh, &QObject::deleteLater);
 
     return true;
 }
@@ -123,11 +125,7 @@ void ImageProvider::bulkDownload(const QList<QString> & keys) {
 }
 
 
-void ImageProvider::individualDownloadComplete(QString filename, bool hadError) {
-    DownloadHandler * dh = qobject_cast<DownloadHandler*>(sender());
-    const QString emoteKey = dh->getKey();
-    delete dh;
-
+void ImageProvider::individualDownloadComplete(QString filename, QString emoteKey, bool hadError) {
     if (hadError) {
         // delete partial download if any
         QFile(filename).remove();
@@ -222,7 +220,7 @@ void DownloadHandler::replyFinished() {
     if (!_reply) {
         hadError = true;
         _file.cancelWriting();
-        emit downloadComplete(_file.fileName(), true);
+        emit downloadComplete(_file.fileName(), key, true);
         return;
     }
 
@@ -232,7 +230,7 @@ void DownloadHandler::replyFinished() {
     //might need something for windows for the forwardslash..
     qDebug() << "download of" << _file.fileName() << "complete";
 
-    emit downloadComplete(_file.fileName(), hadError);
+    emit downloadComplete(_file.fileName(), key, hadError);
 }
 
 

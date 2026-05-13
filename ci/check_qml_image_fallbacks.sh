@@ -62,3 +62,23 @@ if ! rg -q '_file\.cancelWriting\(\)' "$image_provider"; then
     printf 'ImageProvider must cancel partial writes when a download finishes without a reply sender.\n' >&2
     exit 1
 fi
+
+if rg -q 'qobject_cast<DownloadHandler\*>\(sender\(\)\)' "$image_provider"; then
+    printf 'ImageProvider must pass download keys through typed signals instead of recovering them from sender().\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'emit downloadComplete\(_file\.fileName\(\), key, hadError\)' "$image_provider"; then
+    printf 'DownloadHandler must emit the image key with successful download completion.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'emit downloadComplete\(_file\.fileName\(\), key, true\)' "$image_provider"; then
+    printf 'DownloadHandler must emit the image key with failed download completion.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'dh, &QObject::deleteLater' "$image_provider"; then
+    printf 'ImageProvider must delete DownloadHandler instances through a typed completion connection.\n' >&2
+    exit 1
+fi

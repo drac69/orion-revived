@@ -38,13 +38,12 @@ private:
     bool hadError;
 
 signals:
-    void downloadComplete(QString filename, bool hadError);
+    void downloadComplete(QString filename, QString key, bool hadError);
 
 public slots:
     void dataAvailable();
     void replyFinished();
     void error(QNetworkReply::NetworkError code);
-    const QString getKey() { return key; }
 };
 
 class ImageProvider;
@@ -86,7 +85,7 @@ signals:
 
 public slots:
     void bulkDownload(const QList<QString> & keys);
-    void individualDownloadComplete(QString filename, bool hadError);
+    void individualDownloadComplete(QString filename, QString key, bool hadError);
 
 protected slots:
     void bulkDownloadStep();
