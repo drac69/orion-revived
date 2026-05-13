@@ -56,6 +56,7 @@ public slots:
 
 signals:
     void onUpdate();
+    void playbackError(const QString &message);
 
 private slots:
     void doUpdate();

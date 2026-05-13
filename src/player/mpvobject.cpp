@@ -313,7 +313,13 @@ bool MpvObject::event(QEvent *event)
             case MPV_EVENT_START_FILE:
                 break;
             case MPV_EVENT_END_FILE:
+            {
+                mpv_event_end_file *endFile = reinterpret_cast<mpv_event_end_file *>(event->data);
+                if (endFile && endFile->reason == MPV_END_FILE_REASON_ERROR) {
+                    emit playbackError(QString::fromUtf8(mpv_error_string(endFile->error)));
+                }
                 break;
+            }
             case MPV_EVENT_SHUTDOWN:
                 QCoreApplication::quit();
                 break;

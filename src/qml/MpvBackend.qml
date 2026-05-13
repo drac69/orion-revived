@@ -264,6 +264,7 @@ Item {
         onIdleActiveChanged: Qt.callLater(updateStatus)
         onSeekingChanged: Qt.callLater(updateStatus)
         onVolumeChanged: root.volumeChangedInternally()
+        onPlaybackError: root.backendError(message || "mpv playback failed")
 
         property real bufferingState: 0
         property bool coreIdle: true

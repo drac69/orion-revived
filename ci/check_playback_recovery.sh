@@ -7,6 +7,8 @@ status_changed_block=$(sed -n '/onStatusChanged:/,/^        }/p' "$player_view")
 multimedia_backend="$repo_dir/src/qml/MultimediaBackend.qml"
 qtav_backend="$repo_dir/src/qml/QtAVBackend.qml"
 mpv_backend="$repo_dir/src/qml/MpvBackend.qml"
+mpv_object_header="$repo_dir/src/player/mpvobject.h"
+mpv_object_source="$repo_dir/src/player/mpvobject.cpp"
 
 if ! printf '%s\n' "$status_changed_block" | rg -q 'renderer\.status === "BUFFERING"'; then
     printf 'PlayerView must restart stall recovery when active playback returns to BUFFERING.\n' >&2
@@ -67,5 +69,22 @@ fi
 
 if ! rg -q 'root\.status = "STOPPED"' "$multimedia_backend"; then
     printf 'Qt Multimedia backend errors must leave BUFFERING state after surfacing the error.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'void playbackError\(const QString &message\)' "$mpv_object_header"; then
+    printf 'MpvObject must expose mpv playback errors to QML.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'MPV_EVENT_END_FILE' "$mpv_object_source" \
+    || ! rg -q 'MPV_END_FILE_REASON_ERROR' "$mpv_object_source" \
+    || ! rg -q 'mpv_error_string\(endFile->error\)' "$mpv_object_source"; then
+    printf 'MpvObject must turn MPV_EVENT_END_FILE error reasons into readable playback errors.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'onPlaybackError: root\.backendError' "$mpv_backend"; then
+    printf 'MpvBackend.qml must forward libmpv playback errors through backendError.\n' >&2
     exit 1
 fi
