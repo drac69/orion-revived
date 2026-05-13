@@ -7,7 +7,8 @@ least-privilege workflow permissions and stale-run cancellation,
 desktop/AppStream metadata, checks the install target, runs the Twitch API and emote-ID regression
 guards, validates the local OAuth callback parser and stored-token validation,
 verifies that preserved legacy release helpers keep their explicit opt-in
-guard, checks that the upstream issue triage covers every audited open issue,
+guard, validates source-build documentation, checks that the upstream issue
+triage covers every audited open issue,
 validates Android package metadata, validates the QML resource manifest
 and Ubuntu runtime module dependencies, validates bundled-font setup, checks
 remote-image and notification-image fallback handling, checks window/menu

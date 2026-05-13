@@ -71,7 +71,7 @@ If using backend other than mpv, install those packages instead. Packagers can b
 If a FreeBSD build fails at runtime with unresolved `QSslSocket` or OpenSSL symbols, check that the runtime Qt Network package and OpenSSL libraries come from the same package set. Old FreeBSD 11-era reports of `SSL_CTX_set1_groups` failures were consistent with an SSL runtime mismatch rather than an Orion-only crash.
 
 #### Choosing player backend (optional)
-To select one or more backends, pass suitable CONFIG variables to qmake (alternatively edit straight to `.pro` file):
+To select one or more backends, pass suitable CONFIG variables to the Qt 5 qmake wrapper (alternatively edit straight to `.pro` file):
 
 * MPV: `CONFIG+=mpv`
 * QtAV: `CONFIG+=qtav`
@@ -87,7 +87,7 @@ On Ubuntu/Linux Mint, the Qt Multimedia backend also needs `qtmultimedia5-dev` a
 git clone https://github.com/belagrf/orion
 cd orion
 mkdir build && cd build
-qmake ../
+../ci/run_qmake.sh ../
 make -j"$(nproc)"
 ```
 
@@ -172,7 +172,7 @@ Make sure the Qt 5 `qmake` is on `PATH`.
 git clone https://github.com/belagrf/orion
 cd orion
 mkdir build && cd build
-qmake ../
+../ci/run_qmake.sh ../
 make
 ```
 
