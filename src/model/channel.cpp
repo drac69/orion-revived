@@ -167,7 +167,7 @@ const QString Channel::getServiceName() const{
 }
 
 const QString Channel::getFullUri() const{
-    return "http://twitch.tv/" + serviceName;
+    return "https://www.twitch.tv/" + serviceName;
 }
 
 const QString Channel::getInfo() const{

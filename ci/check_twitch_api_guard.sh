@@ -17,6 +17,8 @@ check_absent() {
 
 check_absent "Kraken/v5 API constants and Accept headers" 'TWITCH_API_V5|application/vnd\.twitchtv\.v5|api\.twitch\.tv/kraken|\bkraken\b'
 check_absent "unsupported VOD replay chat/comments API" 'replaychat|vodChatPiece|getVodChatPiece|getNextVodChatPiece|cancelLastVodChatRequest|resetVodChat|/comments'
+check_absent "plain HTTP Twitch web links" 'http://(www\.)?twitch\.tv'
+check_absent "plain HTTP Twitch CDN image links" 'http://static-cdn\.jtvnw\.net'
 
 legacy_host_files=$(rg -l 'api\.twitch\.tv/api' src || true)
 if [[ "$legacy_host_files" != "src/network/urls.h" ]]; then

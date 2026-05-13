@@ -26,7 +26,7 @@
 
 #include "singletonprovider.h"
 
-#define DEFAULT_LOGO_URL    "http://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_150x150.png"
+#define DEFAULT_LOGO_URL    "https://static-cdn.jtvnw.net/jtv_user_pictures/xarth/404_user_150x150.png"
 
 class ChannelManager: public QObject
 {
