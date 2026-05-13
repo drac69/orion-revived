@@ -226,8 +226,7 @@ CachedImageProvider::CachedImageProvider(ImageProvider const* provider) : QQuick
 
 }
 
-QImage CachedImageProvider::requestImage(const QString &id, QSize * size, const QSize & /*requestedSize*/) {
-    // TODO figure out something sensible to do re requestedSize
+QImage CachedImageProvider::requestImage(const QString &id, QSize * size, const QSize & requestedSize) {
     //qDebug() << "Requested id" << id << "from image provider";
 
     QString key = id;
@@ -238,8 +237,33 @@ QImage CachedImageProvider::requestImage(const QString &id, QSize * size, const 
 
     auto result = _provider->_imageTable.find(key);
     if (result != _provider->_imageTable.end()) {
-        *size = result.value().size();
-        return result.value();
+        const QImage image = result.value();
+        if (size) {
+            *size = image.size();
+        }
+
+        const bool hasRequestedWidth = requestedSize.width() > 0;
+        const bool hasRequestedHeight = requestedSize.height() > 0;
+        if (!hasRequestedWidth && !hasRequestedHeight) {
+            return image;
+        }
+
+        QSize targetSize = image.size();
+        if (hasRequestedWidth && hasRequestedHeight) {
+            targetSize = requestedSize;
+        } else if (hasRequestedWidth && image.width() > 0) {
+            targetSize.setWidth(requestedSize.width());
+            targetSize.setHeight(qMax(1, image.height() * requestedSize.width() / image.width()));
+        } else if (hasRequestedHeight && image.height() > 0) {
+            targetSize.setWidth(qMax(1, image.width() * requestedSize.height() / image.height()));
+            targetSize.setHeight(requestedSize.height());
+        }
+
+        if (!targetSize.isValid() || targetSize.isEmpty() || targetSize == image.size()) {
+            return image;
+        }
+
+        return image.scaled(targetSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
     return QImage();
 }
