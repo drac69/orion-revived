@@ -58,6 +58,19 @@ assertEqual(context.decodeHtml('left &unterminated'),
             'left &unterminated',
             'decodeHtml preserves unterminated entities');
 
+assertEqual(context.makeUrl('twitch.tv'),
+            '<a href="https://twitch.tv">twitch.tv</a>',
+            'makeUrl defaults bare domains to HTTPS');
+assertEqual(context.makeUrl('www.example.org/path'),
+            '<a href="https://www.example.org/path">www.example.org/path</a>',
+            'makeUrl defaults www domains to HTTPS');
+assertEqual(context.makeUrl('http://example.com'),
+            '<a href="http://example.com">http://example.com</a>',
+            'makeUrl preserves explicit HTTP URLs');
+assertEqual(context.makeUrl('this.is.not.a.url'),
+            'this.is.not.a.url',
+            'makeUrl preserves likely false positives');
+
 assert(context.regexContainsHtmlEntity('(?:foo|&lt;3)'), 'regexContainsHtmlEntity scans alternatives');
 assert(context.regexContainsHtmlEntity('foo&#60;bar'), 'regexContainsHtmlEntity detects decimal entities');
 assert(context.regexContainsHtmlEntity('foo&#x3c;bar'), 'regexContainsHtmlEntity detects hex entities');

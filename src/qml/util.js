@@ -79,7 +79,7 @@ function makeUrl(str) {
         // while still allowing some short urls like "google.com", "twitch.tv" etc.
         if (!hasHttp && !match.startsWith("www.") && match.indexOf("/") === -1 && !match.endsWith(".com") && !match.endsWith(".tv") && !match.endsWith(".org"))
             return match
-        return '<a href="' + (hasHttp ? match : ("http://" + match)) + '">' + match + '</a>';
+        return '<a href="' + (hasHttp ? match : ("https://" + match)) + '">' + match + '</a>';
     });
 
     // console.log("makeUrl", str, out);
