@@ -96,7 +96,7 @@ namespace m3u8 {
         QVariantMap streams;
 
         QString streamName;
-        foreach(QString str, QString(data).split("\n")){
+        for (QString str : QString(data).split("\n")) {
             str = str.trimmed();
 
             if (str.startsWith("#EXT-X-STREAM-INF")){

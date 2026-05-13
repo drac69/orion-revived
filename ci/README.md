@@ -10,8 +10,9 @@ guard, checks that the upstream issue triage covers every audited open issue,
 validates Android package metadata, validates the QML resource manifest
 and Ubuntu runtime module dependencies, validates bundled-font setup, checks
 remote-image and notification-image fallback handling, checks window/menu
-contracts, validates HTML entity helpers, guards playback recovery behavior, and smoke-tests the HLS
-master-playlist parser.
+contracts, validates modern Qt helper code, validates HTML entity helpers,
+guards playback recovery behavior, and smoke-tests the HLS master-playlist
+parser.
 
 The Ubuntu dependency installer uses bounded apt timeouts plus apt download
 retries so a transient package mirror stall fails cleanly instead of hanging a

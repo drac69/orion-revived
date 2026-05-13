@@ -55,7 +55,7 @@ PagedResult<Channel*> JsonParser::parseStreams(const QByteArray &data)
         if (json.contains("data")) {
             // Helix Get Streams response.
             const QJsonArray arr = json["data"].toArray();
-            foreach (const QJsonValue &item, arr) {
+            for (const QJsonValue &item : arr) {
                 out.items.append(JsonParser::parseStreamJson(item.toObject(), true));
             }
 
@@ -65,7 +65,7 @@ PagedResult<Channel*> JsonParser::parseStreams(const QByteArray &data)
         else {
             //Online streams
             QJsonArray arr = json["streams"].toArray();
-            foreach (const QJsonValue &item, arr){
+            for (const QJsonValue &item : arr) {
                 out.items.append(JsonParser::parseStreamJson(item.toObject(), true));
             }
 
@@ -194,7 +194,7 @@ PagedResult<Game*> JsonParser::parseGameResults(const QByteArray &data)
 
         if (!arg.isEmpty()){
             QJsonArray arr = json[arg].toArray();
-            foreach (const QJsonValue &item, arr){
+            for (const QJsonValue &item : arr) {
                 Game* game = parseGame(item.toObject());
                 if (!game->getName().isEmpty()){
                     out.items.append(game);
@@ -459,7 +459,7 @@ PagedResult<Channel*> JsonParser::parseChannels(const QByteArray &data)
 
         if (json.contains("data")) {
             QJsonArray arr = json["data"].toArray();
-            foreach (const QJsonValue &item, arr){
+            for (const QJsonValue &item : arr) {
                 out.items.append(JsonParser::parseChannelJson(item.toObject()));
             }
 
@@ -468,7 +468,7 @@ PagedResult<Channel*> JsonParser::parseChannels(const QByteArray &data)
         }
         else {
             QJsonArray arr = json["channels"].toArray();
-            foreach (const QJsonValue &item, arr){
+            for (const QJsonValue &item : arr) {
                 out.items.append(JsonParser::parseChannelJson(item.toObject()));
             }
 
@@ -490,7 +490,7 @@ PagedResult<Channel *> JsonParser::parseFavourites(const QByteArray &data)
 
         if (json.contains("data")) {
             const QJsonArray arr = json["data"].toArray();
-            foreach (const QJsonValue &item, arr) {
+            for (const QJsonValue &item : arr) {
                 const QJsonObject follow = item.toObject();
                 const QString login = follow["broadcaster_login"].toString();
                 const QString displayName = follow["broadcaster_name"].toString();
@@ -514,7 +514,7 @@ PagedResult<Channel *> JsonParser::parseFavourites(const QByteArray &data)
             out.total = json["_total"].toInt();
 
             QJsonArray arr = json["follows"].toArray();
-            foreach (const QJsonValue &item, arr){
+            for (const QJsonValue &item : arr) {
                 out.items.append(JsonParser::parseChannelJson(item.toObject()["channel"].toObject()));
             }
         }
@@ -533,7 +533,7 @@ QList<Channel *> JsonParser::parseFeatured(const QByteArray &data)
         QJsonObject json = doc.object();
 
         if (!json["featured"].isNull()){
-            foreach (const QJsonValue &item, json["featured"].toArray()){
+            for (const QJsonValue &item : json["featured"].toArray()) {
                 channels.append(JsonParser::parseStreamJson(item.toObject()["stream"].toObject(), true));
             }
         }
@@ -557,7 +557,7 @@ PagedResult<Vod *> JsonParser::parseVodResults(const QByteArray &data)
         QJsonObject json = doc.object();
 
         if (json.contains("data")) {
-            foreach (const QJsonValue &item, json["data"].toArray()){
+            for (const QJsonValue &item : json["data"].toArray()) {
                 out.items.append(JsonParser::parseVod(item.toObject()));
             }
 
@@ -565,7 +565,7 @@ PagedResult<Vod *> JsonParser::parseVodResults(const QByteArray &data)
             out.total = out.items.size();
         }
         else if (!json["videos"].isNull()){
-            foreach (const QJsonValue &item, json["videos"].toArray()){
+            for (const QJsonValue &item : json["videos"].toArray()) {
                 out.items.append(JsonParser::parseVod(item.toObject()));
             }
         }
