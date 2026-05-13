@@ -633,7 +633,7 @@ public:
 
 QList<QPair<QString, QString>> parseBadges(const QString badgesStr) {
     QList<QPair<QString, QString>> badges;
-    foreach(const QString & badgeStr, badgesStr.split(",")) {
+    for (const QString &badgeStr : badgesStr.split(",")) {
         int splitPos = badgeStr.indexOf('/');
         if (splitPos == -1) continue;
         badges.append(QPair<QString, QString>(badgeStr.left(splitPos), badgeStr.mid(splitPos + 1)));
@@ -910,7 +910,7 @@ void IrcChat::parseMessageCommand(const QString cmd, const QString cmdKeyword, C
     chatMessage.isChannelNotice = false;
     chatMessage.isWhisper = false;
 
-    foreach(const QString & tagStr, commandParse.tags) {
+    for (const QString &tagStr : commandParse.tags) {
         Tag tag(tagStr);
         if (!tag.valid) continue;
         if (tag.key == "display-name") {
@@ -1078,7 +1078,7 @@ void IrcChat::parseCommand(QString cmd) {
         QString noticeId;
         QString raidChannel;
 
-        foreach(const QString & tagStr, parse.tags) {
+        for (const QString &tagStr : parse.tags) {
             Tag tag(tagStr);
             if (tag.key == "msg-id") {
                 noticeId = tag.value;
@@ -1153,7 +1153,8 @@ void IrcChat::parseCommand(QString cmd) {
     if(cmd.contains("GLOBALUSERSTATE")) {
 		// Structure of message: @badges=turbo/1;color=#4100CC;display-name=user_name;emote-sets=0,1,22,345;user-id=12345678;user-type= :tmi.twitch.tv GLOBALUSERSTATE
 		// We want this for the emote ids
-        foreach(const QString & tagStr, getTags(cmd)) {
+        const QList<QString> tags = getTags(cmd);
+        for (const QString &tagStr : tags) {
             Tag tag(tagStr);
             if (!tag.valid) continue;
 			if (tag.key == "badges") {
@@ -1197,7 +1198,8 @@ void IrcChat::parseCommand(QString cmd) {
         userChannelMod.remove(channel);
         userChannelSubscriber.remove(channel);
         userChannelDisplayName.remove(channel);
-        foreach(const QString & tagStr, getTags(cmd)) {
+        const QList<QString> tags = getTags(cmd);
+        for (const QString &tagStr : tags) {
             Tag tag(tagStr);
             if (!tag.valid) continue;
             if (tag.key == "badges") {
