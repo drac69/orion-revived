@@ -48,6 +48,9 @@ jobs:
       - name: Validate Twitch API usage
         run: ci/check_twitch_api_guard.sh
 
+      - name: Validate OAuth callback parser
+        run: ci/check_oauth_callback_parser.sh
+
       - name: Validate Twitch emote ID handling
         run: ci/check_twitch_emote_ids.sh
 

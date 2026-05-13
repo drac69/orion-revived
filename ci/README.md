@@ -4,7 +4,7 @@ The maintained CI entry point for this fork is `.github/workflows/ci.yml`. It
 builds Linux Qt 5/mpv, Qt 5/Qt Multimedia, and combined mpv plus Qt Multimedia
 targets on Ubuntu 24.04, validates
 desktop/AppStream metadata, checks the install target, runs the Twitch API and emote-ID regression
-guards, verifies that preserved legacy release helpers keep their explicit opt-in
+guards, validates the local OAuth callback parser, verifies that preserved legacy release helpers keep their explicit opt-in
 guard, checks that the upstream issue triage covers every audited open issue,
 validates Android package metadata, validates the QML resource manifest
 and Ubuntu runtime module dependencies, validates bundled-font setup, checks

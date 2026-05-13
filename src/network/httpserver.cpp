@@ -1,6 +1,37 @@
 #include "httpserver.h"
 
-#include <QRegularExpression>
+#include <QUrl>
+#include <QUrlQuery>
+
+namespace {
+
+QString requestTarget(const QByteArray &request)
+{
+    const QList<QByteArray> lines = request.split('\n');
+    if (lines.isEmpty())
+        return QString();
+
+    const QList<QByteArray> parts = lines.first().trimmed().split(' ');
+    if (parts.size() < 2 || parts.first() != "GET")
+        return QString();
+
+    return QString::fromUtf8(parts.at(1));
+}
+
+QString accessTokenFromTarget(const QString &target)
+{
+    if (target.isEmpty())
+        return QString();
+
+    QUrl callbackUrl(QStringLiteral("http://localhost") + target);
+    QUrlQuery query(callbackUrl);
+    if (!query.hasQueryItem(QStringLiteral("access_token")) && !callbackUrl.fragment().isEmpty())
+        query = QUrlQuery(callbackUrl.fragment());
+
+    return query.queryItemValue(QStringLiteral("access_token"), QUrl::FullyDecoded).trimmed();
+}
+
+}
 
 HttpServer::HttpServer(QObject *parent): QObject(parent)
 {
@@ -33,9 +64,12 @@ void HttpServer::start() {
 
     connect(server, &QTcpServer::newConnection, this, &HttpServer::onConnect);
     if (!server->listen(QHostAddress::LocalHost, port)) {
+        listenError = true;
         emit error();
+        return;
     }
 
+    listenError = false;
     m_port = QString::number(port);
 
     qDebug() << "listening port" << m_port;
@@ -61,34 +95,11 @@ void HttpServer::onRead() {
     socket->connect(socket, &QTcpSocket::disconnected, &QObject::deleteLater);
 
     /// Read data
-    QString code;
-    QStringList tokens = QString(socket->readAll()).split(QRegularExpression(QStringLiteral("[ \r\n][ \r\n]*")));
-    if (tokens[0] == "GET") {
-        if (tokens.length() >= 1) {
-            QString params = tokens[1];
-
-            //params to map
-            QMap<QString,QString> map;
-            params = params.mid(params.indexOf("?")+1);
-
-            foreach (const QString & s, params.split("&")) {
-                QStringList pair = s.split("=");
-                if (pair.length() == 2){
-                    map.insert(pair[0], pair[1]);
-                }
-            }
-
-            if (map.contains("access_token")) {
-                //Code found
-                qDebug() << "Found code!";
-                code = map["access_token"];
-            }
-        }
-    }
+    const QString code = accessTokenFromTarget(requestTarget(socket->readAll()));
+    if (!code.isEmpty())
+        qDebug() << "Found OAuth access token";
 
     // Respond with 200
-    QByteArray block;
-
     // http payload message body
     QByteArray content;
     if (code.isEmpty()) {
@@ -115,7 +126,7 @@ void HttpServer::onRead() {
 
     // Check if we have the api code ready
     if (!code.isEmpty()) {
-        qDebug() << "Got code" << code;
+        qDebug() << "Received OAuth access token";
         emit codeReceived(code);
 
         // Spin down server

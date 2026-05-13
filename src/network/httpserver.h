@@ -3,8 +3,6 @@
 
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QDataStream>
-#include <QMap>
 #include <QDebug>
 
 #include "../model/singletonprovider.h"
