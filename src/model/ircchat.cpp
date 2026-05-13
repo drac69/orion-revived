@@ -697,7 +697,7 @@ void IrcChat::sendMessage(const QString &msg, const QVariantMap &relevantEmotes)
 
         bool isChannelMessage = isWhisper;
         QString systemMessage = isWhisper ? ("Whispered to " + recipient + ":") : "";
-        disposeOfMessage({ displayName, message, color, subscriber, turbo, mod, isAction, userBadges, isChannelMessage, systemMessage, false, "" });
+        disposeOfMessage({ displayName, message, color, subscriber, turbo, mod, isAction, userBadges, isChannelMessage, systemMessage, isWhisper, "" });
     }
 }
 

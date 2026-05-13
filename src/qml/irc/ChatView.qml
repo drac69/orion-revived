@@ -31,7 +31,7 @@ Page {
         opacity: Settings.chatOpacity
     }
     property bool pinned: pinBtn.checked && chatdrawer.position > 0
-    property alias hasUnreadMessages: chatList.hasUnreadMessages
+    property bool hasUnreadMessages: chatList.hasUnreadMessages || whisperList.hasUnreadMessages
     signal raidReceived(string channel)
 
     onVisibleChanged: {
@@ -201,6 +201,21 @@ Page {
                 focusPolicy: Qt.NoFocus
                 onClicked: chatContainer.currentIndex = 1
             }
+
+            TabButton {
+                text: "\ue0be"
+                focusPolicy: Qt.NoFocus
+                onClicked: chatContainer.currentIndex = 2
+                Rectangle {
+                    visible: whisperList.hasUnreadMessages
+                    anchors.horizontalCenter: parent.contentItem.right
+                    anchors.verticalCenter: parent.contentItem.top
+                    color: Material.accent
+                    radius: width * 0.5
+                    width: 9
+                    height: 9
+                }
+            }
         }
         }
     }
@@ -215,6 +230,10 @@ Page {
 
         ViewerList {
             id: viewerList
+        }
+
+        ChatMessagesView {
+            id: whisperList
         }
 
         Chat {
@@ -528,7 +547,11 @@ Page {
                     }
                 }
 
-                chatList.chatModel.addMessage({"user": user, "message": message, "isAction": isAction, "badgeEntries": badgeEntries, "isChannelNotice": isChannelNotice, "systemMessage": systemMessage, "isWhisper": isWhisper})
+                var messageObj = {"user": user, "message": message, "isAction": isAction, "badgeEntries": badgeEntries, "isChannelNotice": isChannelNotice, "systemMessage": systemMessage, "isWhisper": isWhisper}
+                chatList.chatModel.addMessage(messageObj)
+                if (isWhisper) {
+                    whisperList.chatModel.addMessage(messageObj)
+                }
             }
 
             onEmoteSetIDsChanged: {
