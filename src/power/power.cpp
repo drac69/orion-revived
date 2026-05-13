@@ -116,7 +116,7 @@ void Power::timerEvent(QTimerEvent *event)
 
 #ifdef Q_OS_LINUX
 #ifndef Q_OS_ANDROID
-    QProcess::startDetached("xdg-screensaver reset");
+    QProcess::startDetached(QStringLiteral("xdg-screensaver"), QStringList() << QStringLiteral("reset"));
 #endif
 #endif
 

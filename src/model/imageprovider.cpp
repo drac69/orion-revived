@@ -35,8 +35,8 @@ ImageProvider::ImageProvider(const QString imageProviderName, const QString exte
     _bulkDownloadTimer.setSingleShot(true);
     connect(&_bulkDownloadTimer, &QTimer::timeout, this, &ImageProvider::bulkDownloadStep);
 
-    QString useCacheDirName = cacheDirName != "" ? cacheDirName : imageProviderName;
-    _cacheDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + QString("/" + useCacheDirName);
+    const QString useCacheDirName = cacheDirName.isEmpty() ? imageProviderName : cacheDirName;
+    _cacheDir.setPath(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + QStringLiteral("/") + useCacheDirName);
 }
 
 ImageProvider::~ImageProvider() {
@@ -87,7 +87,7 @@ bool ImageProvider::download(QString key) {
 
     connect(_reply, &QNetworkReply::readyRead,
         dh, &DownloadHandler::dataAvailable);
-    connect(_reply, static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error),
+    connect(_reply, &QNetworkReply::errorOccurred,
         dh, &DownloadHandler::error);
     connect(_reply, &QNetworkReply::finished,
         dh, &DownloadHandler::replyFinished);

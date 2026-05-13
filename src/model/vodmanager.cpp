@@ -17,6 +17,7 @@
 #include <QSettings>
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QRegularExpression>
 #include <cmath>
 
 namespace {
@@ -242,7 +243,7 @@ QString VodManager::getGame() const
 void VodManager::getBroadcasts(QString vod)
 {
     //Remove leading NaN characters
-    vod.remove(QRegExp("[^0-9]"));
+    vod.remove(QRegularExpression(QStringLiteral("[^0-9]")));
 
     netman->getBroadcastPlaybackStream(vod);
 }

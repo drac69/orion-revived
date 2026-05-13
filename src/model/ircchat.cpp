@@ -91,7 +91,7 @@ void IrcChat::initSocket() {
     else {
         sock->setPeerVerifyMode(QSslSocket::VerifyPeer);
         connect(sock, &QSslSocket::readyRead, this, &IrcChat::receive);
-        connect(sock, static_cast<void (QSslSocket::*)(QAbstractSocket::SocketError)>(&QSslSocket::error), this, &IrcChat::processError);
+        connect(sock, &QAbstractSocket::errorOccurred, this, &IrcChat::processError);
         connect(sock, static_cast<void (QSslSocket::*)(const QList<QSslError> &errors)>(&QSslSocket::sslErrors), this, &IrcChat::processSslErrors);
         connect(sock, &QSslSocket::encrypted, this, &IrcChat::login);
         connect(sock, &QSslSocket::encrypted, this, &IrcChat::onSockStateChanged);
@@ -668,13 +668,13 @@ private:
     const QString s;
 };
 
-QRegExp createBitsRegex(const QString bitsPrefix) {
+QRegularExpression createBitsRegex(const QString bitsPrefix) {
     const QString lowerPrefix = bitsPrefix.toLower();
     const QString BITS_REGEX_FORMAT = "(^|\\s)(%1)(\\d+)(\\s|$)";
-    const QString regexStr = BITS_REGEX_FORMAT.arg(QRegExp::escape(lowerPrefix));
+    const QString regexStr = BITS_REGEX_FORMAT.arg(QRegularExpression::escape(lowerPrefix));
     qDebug() << "creating bits regex for" << bitsPrefix << ":" << regexStr;
 
-    return QRegExp(regexStr);
+    return QRegularExpression(regexStr);
 }
 
 const int BITS_LEVELS[] = {10000, 5000, 1000, 100};
@@ -689,18 +689,16 @@ QString minBitsForBits(QString bitsStr) {
     return "1";
 }
 
-void IrcChat::checkBitsRegex(const QRegExp & regex, const QString & prefix, const QString & message, ImagePositionsMap & mapToUpdate) {
+void IrcChat::checkBitsRegex(const QRegularExpression & regex, const QString & prefix, const QString & message, ImagePositionsMap & mapToUpdate) {
     int pos = 0;
     while (true) {
-        pos = regex.indexIn(message, pos);
-        if (pos == -1) break;
+        const QRegularExpressionMatch match = regex.match(message, pos);
+        if (!match.hasMatch()) break;
 
-        const QStringList & match = regex.capturedTexts();
+        int prefixStart = match.capturedStart(2);
 
-        int prefixStart = regex.pos(2);
-
-        QString bitsCount = match[3];
-        int bitsCountEnd = regex.pos(3) + bitsCount.length();
+        QString bitsCount = match.captured(3);
+        int bitsCountEnd = match.capturedEnd(3);
         QString minBits = minBitsForBits(bitsCount);
 
         qDebug() << "found bits prefix" << prefix << "with count" << bitsCount << "; using minBits" << minBits << "start" << prefixStart << "end" << bitsCountEnd << "resuming at" << bitsCountEnd;
@@ -738,7 +736,7 @@ void IrcChat::handleFfzEmote(const QString & id, ImagePositionsMap & mapToUpdate
     _ffzEmoteProvider.makeAvailable(id);
 }
 
-void updateBitsRegexes(const BitsQStringsMap & bitsUrls, QMap<QString, QRegExp> & mapToUpdate) {
+void updateBitsRegexes(const BitsQStringsMap & bitsUrls, QMap<QString, QRegularExpression> & mapToUpdate) {
     mapToUpdate.clear();
     
     for (auto actionEntry = bitsUrls.constBegin(); actionEntry != bitsUrls.constEnd(); actionEntry++) {
@@ -779,7 +777,7 @@ void IrcChat::createMessageList(const QMap<int, QPair<int, QString>> & emotePosi
     }
 
     if (bitsNumber.length() > 0) {
-        for (const QMap<QString, QRegExp> & map : { lastCurChannelBitsRegexes, lastGlobalBitsRegexes }) {
+        for (const QMap<QString, QRegularExpression> & map : { lastCurChannelBitsRegexes, lastGlobalBitsRegexes }) {
             for (auto mapEntry = map.constBegin(); mapEntry != map.constEnd(); mapEntry++) {
                 const auto & prefix = mapEntry.key();
                 const auto & regex = mapEntry.value();
@@ -1079,8 +1077,8 @@ void IrcChat::parseCommand(QString cmd) {
         return;
 
     }
-    if(cmd.contains("NOTICE") && !cmd.contains(QRegExp("\\bban_success"))
-        && !cmd.contains(QRegExp("\\btimeout_success")))
+    if(cmd.contains("NOTICE") && !cmd.contains(QRegularExpression(QStringLiteral("\\bban_success")))
+        && !cmd.contains(QRegularExpression(QStringLiteral("\\btimeout_success"))))
     {
         QString text = cmd.remove(0, cmd.indexOf(':', cmd.indexOf("NOTICE")) + 1);
         emit noticeReceived(text);
@@ -1106,7 +1104,7 @@ void IrcChat::parseCommand(QString cmd) {
 			}
 			else if (tag.key == "emote-sets") {
                 qDebug() << "GLOBALUSERSTATE emote-sets" << tag.value;
-                const QStringList entries = tag.value.split(',', QString::SkipEmptyParts);
+                const QStringList entries = tag.value.split(',', Qt::SkipEmptyParts);
                 _emoteSetIDs = entries;
                 emit emoteSetIDsChanged();
             }
@@ -1332,7 +1330,7 @@ void IrcChat::addBlockedUserResults(const QList<QString> & list, const quint32 n
         netman->getBlockedUserList(user_id, nextOffset, BLOCKED_USER_LIST_FETCH_LIMIT);
     }
     else {
-        blockedUsersLoaded(blockedUserListLoading.toSet());
+        blockedUsersLoaded(QSet<QString>(blockedUserListLoading.constBegin(), blockedUserListLoading.constEnd()));
     }
 }
 

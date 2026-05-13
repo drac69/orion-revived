@@ -1,5 +1,7 @@
 #include "httpserver.h"
 
+#include <QRegularExpression>
+
 HttpServer::HttpServer(QObject *parent): QObject(parent)
 {
 
@@ -60,7 +62,7 @@ void HttpServer::onRead() {
 
     /// Read data
     QString code;
-    QStringList tokens = QString(socket->readAll()).split(QRegExp("[ \r\n][ \r\n]*"));
+    QStringList tokens = QString(socket->readAll()).split(QRegularExpression(QStringLiteral("[ \r\n][ \r\n]*")));
     if (tokens[0] == "GET") {
         if (tokens.length() >= 1) {
             QString params = tokens[1];

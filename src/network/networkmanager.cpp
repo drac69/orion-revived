@@ -1331,7 +1331,7 @@ void NetworkManager::streamReply()
 
 void addOfflineChannels(QList<Channel *> & channels, const QList<quint64> & expectedChannelIds) {
     if (channels.count() < expectedChannelIds.count()) {
-        QSet<quint64> unseenChannelIds = expectedChannelIds.toSet();
+        QSet<quint64> unseenChannelIds(expectedChannelIds.constBegin(), expectedChannelIds.constEnd());
 
         foreach(const Channel* channel, channels) {
             unseenChannelIds.remove(channel->getId());

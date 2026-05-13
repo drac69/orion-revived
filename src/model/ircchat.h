@@ -24,7 +24,7 @@
 #include <QTcpSocket>
 #include <QNetworkReply>
 #include <QMap>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QColor>
 #include <QStringList>
 #include <QQmlListProperty>
@@ -223,8 +223,8 @@ private:
     QMap<QString, bool> userChannelSubscriber;
     bool allDownloadsComplete();
 
-    QMap<QString, QRegExp> lastCurChannelBitsRegexes;
-    QMap<QString, QRegExp> lastGlobalBitsRegexes;
+    QMap<QString, QRegularExpression> lastCurChannelBitsRegexes;
+    QMap<QString, QRegularExpression> lastGlobalBitsRegexes;
 
     QMap<QString, QString> lastGlobalBttvEmoteFixedStrings;
     QMap<QString, QString> lastCurChannelBttvEmoteFixedStrings;
@@ -244,7 +244,7 @@ private:
 
     typedef QMap<int, QPair<int, InlineImageInfo>> ImagePositionsMap;
 
-    void checkBitsRegex(const QRegExp & regex, const QString & prefix, const QString & message, ImagePositionsMap & mapToUpdate);
+    void checkBitsRegex(const QRegularExpression & regex, const QString & prefix, const QString & message, ImagePositionsMap & mapToUpdate);
 
     void handleBttvEmote(const QString & id, ImagePositionsMap & mapToUpdate, int pos, int end);
     QString bttvEmoteUrl(const QString &id) const;
