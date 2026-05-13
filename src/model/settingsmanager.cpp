@@ -76,6 +76,14 @@ SettingsManager *SettingsManager::getInstance()
     return &instance;
 }
 
+void SettingsManager::syncSettings(const char *context)
+{
+    settings.sync();
+    if (settings.status() != QSettings::NoError) {
+        qWarning() << context << "settings sync failed with status" << settings.status();
+    }
+}
+
 void SettingsManager::load()
 {
     //Load values from settings, notifying changes as needed
@@ -484,6 +492,7 @@ void SettingsManager::setAccessToken(const QString accessToken)
     if (mAccessToken != accessToken) {
         mAccessToken = accessToken;
         settings.setValue("accessToken", accessToken);
+        syncSettings("access token");
         emit accessTokenChanged(accessToken);
         qDebug() << "accessToken changed!";
     }

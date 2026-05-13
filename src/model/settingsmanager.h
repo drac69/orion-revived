@@ -262,6 +262,7 @@ public slots:
     bool isNewerVersion(QString version) const;
 
 private:
+    void syncSettings(const char *context);
     QSettings settings;
 };
 

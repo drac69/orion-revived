@@ -22,6 +22,26 @@ do
     fi
 done
 
+settings_source="$repo_dir/src/model/settingsmanager.cpp"
+settings_header="$repo_dir/src/model/settingsmanager.h"
+
+for required in \
+    'void SettingsManager::syncSettings(const char *context)' \
+    'settings.sync()' \
+    'settings.status() != QSettings::NoError' \
+    'syncSettings("access token")'
+do
+    if ! rg -qF "$required" "$settings_source"; then
+        printf 'OAuth token persistence is missing required settings sync token: %s\n' "$required" >&2
+        fail=1
+    fi
+done
+
+if ! rg -qF 'void syncSettings(const char *context);' "$settings_header"; then
+    printf 'SettingsManager must declare the settings sync helper.\n' >&2
+    fail=1
+fi
+
 for required in \
     'void validateAccessToken();' \
     'bool access_token_validation_pending = false;' \
