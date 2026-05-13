@@ -43,6 +43,17 @@ for qml_import in "${qml_external_imports[@]}"; do
     fi
 done
 
+require_registration_for_import() {
+    local import_name=$1
+    local registration_pattern=$2
+
+    if rg -q "^import ${import_name//./\\.}\\b" "$repo_dir/src/qml" \
+            && ! rg -q "$registration_pattern" "$repo_dir/src/main.cpp"; then
+        printf 'QML import %s must have a matching C++ registration in src/main.cpp.\n' "$import_name" >&2
+        exit 1
+    fi
+}
+
 require_package_for_import() {
     local import_pattern=$1
     local package_name=$2
@@ -59,10 +70,15 @@ require_package_for_import() {
     fi
 }
 
+require_registration_for_import 'aldrog.twitchtube.ircchat' 'qmlRegisterType<IrcChat>\("aldrog\.twitchtube\.ircchat"'
+require_registration_for_import 'app.orion' 'qmlRegisterSingletonType<.*>\("app\.orion"'
+require_registration_for_import 'mpv' 'qmlRegisterType<MpvObject>\("mpv"'
+
 require_package_for_import '^import Qt\.labs\.settings\b' 'qml-module-qt-labs-settings'
 require_package_for_import '^import QtGraphicalEffects\b' 'qml-module-qtgraphicaleffects'
 require_package_for_import '^import QtQuick\b' 'qml-module-qtquick2'
 require_package_for_import '^import QtQuick\.Controls\b' 'qml-module-qtquick-controls2'
+require_package_for_import '^import QtQuick\.Controls\.Material\b' 'qml-module-qtquick-controls2'
 require_package_for_import '^import QtQuick\.Layouts\b' 'qml-module-qtquick-layouts'
 require_package_for_import '^import QtQuick\.Window\b' 'qml-module-qtquick-window2'
 require_package_for_import '^import QtMultimedia\b' 'qml-module-qtmultimedia'
