@@ -1039,7 +1039,7 @@ void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", access_token.isEmpty() ? "application/vnd.twitchtv.v5+json" : "application/json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, channelID);
@@ -1065,7 +1065,7 @@ void NetworkManager::getGlobalBadgesUrlsBeta() {
     qDebug() << "Requesting" << url;
 
     QNetworkRequest request;
-    request.setRawHeader("Accept", access_token.isEmpty() ? "application/vnd.twitchtv.v5+json" : "application/json");
+    request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Client-ID", getClientId().toUtf8());
     request.setUrl(url);
     if (!access_token.isEmpty()) {
