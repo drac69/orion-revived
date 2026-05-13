@@ -61,7 +61,6 @@ Item{
     property bool itemInView: isItemInView(this)
     onItemInViewChanged: {
         if (itemInView) {
-            vodgrid.positionViewAtBeginning()
             vodgrid.checkScroll()
         }
     }

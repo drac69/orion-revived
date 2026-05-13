@@ -56,6 +56,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #74: QML context menus now run a one-time main-window position refresh before opening, matching the historical Qt multi-screen workaround; the original multi-monitor bug has not been reproduced in this environment.
 * #285: live and VOD playlist requests now use the current HTTPS `usher.ttvnw.net` host, the live `allow_audio_only` query parameter typo is fixed, and empty token-parser results now fail as token errors instead of fetching an empty URL; the old playback-token endpoints still need a deeper replacement.
 * #167: fixed a network-recovery condition that always reloaded playback on network-up events, and guarded stream-status polling against stale/no current channel state; hosted-channel IRC behavior still needs live reproduction.
+* #271: returning to the VOD view no longer forces the grid back to the beginning, so the current scroll position is preserved while navigating away and back; broader VOD filtering, sorting, playlist, chapter, muted-section, and cache work remains.
 
 ## Already covered by the final upstream code
 
@@ -85,7 +86,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #271, #226, #210.
+* #278, #226, #210.
 
 ## Administrative
 
