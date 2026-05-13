@@ -783,6 +783,7 @@ void NetworkManager::blockUserLookupReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        reply->deleteLater();
         return;
     }
 
@@ -848,6 +849,7 @@ void NetworkManager::blockUserReply() {
         if (statusCode == 401) {
             qWarning() << "Warning: Not authorized to edit blocked users list; logout and log in again to update OAuth scopes";
         }
+        reply->deleteLater();
         return;
     }
 
@@ -869,6 +871,9 @@ void NetworkManager::chatterListReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QMap<QString, QList<QString>> empty;
+        emit chatterListLoadOperationFinished(empty);
+        reply->deleteLater();
         return;
     }
 
@@ -891,6 +896,10 @@ void NetworkManager::blockedUserListReply() {
         if (statusCode == 401) {
             qWarning() << "Warning: Not authorized to read blocked users list; logout and log in again to update OAuth scopes";
         }
+        QList<QString> empty;
+        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+        emit blockedUserListLoadOperationFinished(empty, offset, offset);
+        reply->deleteLater();
         return;
     }
 
@@ -1003,6 +1012,11 @@ void NetworkManager::channelBitsUrlsReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        BitsQStringsMap emptyUrls;
+        BitsQStringsMap emptyColors;
+        const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+        emit getChannelBitsUrlsOperationFinished(channelID, emptyUrls, emptyColors);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1062,6 +1076,10 @@ void NetworkManager::globalBitsUrlsReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        BitsQStringsMap emptyUrls;
+        BitsQStringsMap emptyColors;
+        emit getGlobalBitsUrlsOperationFinished(emptyUrls, emptyColors);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1095,6 +1113,12 @@ void NetworkManager::channelBttvEmotesReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        auto url = reply->url();
+        const QString urlString = url.toString();
+        const QString channel = urlString.mid(urlString.lastIndexOf("/") + 1);
+        QMap<QString, QString> empty;
+        emit getChannelBttvEmotesOperationFinished(channel, empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1127,6 +1151,9 @@ void NetworkManager::globalBttvEmotesReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QMap<QString, QString> empty;
+        emit getGlobalBttvEmotesOperationFinished(empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1155,6 +1182,12 @@ void NetworkManager::channelFfzEmotesReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        auto url = reply->url();
+        const QString urlString = url.toString();
+        const QString channel = QUrl::fromPercentEncoding(urlString.mid(urlString.lastIndexOf("/") + 1).toUtf8());
+        QMap<QString, QString> empty;
+        emit getChannelFfzEmotesOperationFinished(channel, empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1187,6 +1220,9 @@ void NetworkManager::globalFfzEmotesReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QMap<QString, QString> empty;
+        emit getGlobalFfzEmotesOperationFinished(empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1547,6 +1583,7 @@ void NetworkManager::streamExtractReply()
 
     if (!handleNetworkError(reply)) {
         emit error("token_error");
+        reply->deleteLater();
         return;
     }
 
@@ -1586,6 +1623,7 @@ void NetworkManager::m3u8Reply()
     if (!handleNetworkError(reply)) {
 
         emit error("playlist_error");
+        reply->deleteLater();
 
         return;
     }
@@ -1672,6 +1710,7 @@ void NetworkManager::userReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1721,6 +1760,10 @@ void NetworkManager::channelBadgeUrlsBetaReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+        QMap<QString, QMap<QString, QMap<QString, QString>>> empty;
+        emit getChannelBadgeBetaUrlsOperationFinished(channelID, empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1756,6 +1799,9 @@ void NetworkManager::globalBadgeUrlsBetaReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QMap<QString, QMap<QString, QMap<QString, QString>>> empty;
+        emit getGlobalBadgeBetaUrlsOperationFinished(empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
