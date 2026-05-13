@@ -47,6 +47,8 @@ Page {
     property bool suppressVodQueueAdvance: false
     property int startupRetryAttempts: 0
     property int maxStartupRetryAttempts: 2
+    property int unexpectedStopRetryAttempts: 0
+    property int maxUnexpectedStopRetryAttempts: 2
 
     Material.theme: rootWindow.Material.theme
 
@@ -90,6 +92,22 @@ Page {
         }
     }
 
+    Timer {
+        id: unexpectedStopRecoveryTimer
+        interval: 3000
+        repeat: false
+        onTriggered: {
+            if (!shouldRecoverUnexpectedStop()) {
+                return
+            }
+
+            unexpectedStopRetryAttempts += 1
+            console.warn("Playback stopped unexpectedly; reloading", unexpectedStopRetryAttempts, "of", maxUnexpectedStopRetryAttempts)
+            setHeaderText("Reloading: " + getWatchingTitle())
+            loadAndPlay()
+        }
+    }
+
     function suppressNextVodQueueAdvance() {
         suppressVodQueueAdvance = true
         suppressVodQueueAdvanceTimer.restart()
@@ -97,6 +115,7 @@ Page {
 
     function stopRendererWithoutQueueAdvance() {
         if (renderer) {
+            unexpectedStopRecoveryTimer.stop()
             suppressNextVodQueueAdvance()
             renderer.stop()
         }
@@ -194,6 +213,7 @@ Page {
         if (!isRetry) {
             startupRetryAttempts = 0
         }
+        unexpectedStopRecoveryTimer.stop()
 
         var description = setWatchingTitle();
 
@@ -312,11 +332,13 @@ Page {
 
     function getStreams(channel, vod, startPos){
         clearVodQueue()
+        unexpectedStopRetryAttempts = 0
         getChannel(channel, vod, true, startPos);
     }
 
     function getChat(channel) {
         clearVodQueue()
+        unexpectedStopRetryAttempts = 0
         getChannel(channel, null, false, 0);
     }
 
@@ -344,6 +366,7 @@ Page {
 
         var vod = vodQueue[vodQueueIndex]
         var startPos = useSavedPosition ? VodManager.getVodLastPlaybackPosition(vodQueueChannel.name, vod._id) : 0
+        unexpectedStopRetryAttempts = 0
         getChannel(vodQueueChannel, vod, true, startPos || 0)
     }
 
@@ -362,7 +385,34 @@ Page {
         }
 
         vodQueueIndex += 1
+        unexpectedStopRetryAttempts = 0
         playQueuedVod(false)
+        return true
+    }
+
+    function shouldRecoverUnexpectedStop() {
+        if (!renderer || renderer.status !== "STOPPED" || !currentChannel || !streamMap || playbackError || !Network.up) {
+            return false
+        }
+        if (unexpectedStopRetryAttempts >= maxUnexpectedStopRetryAttempts) {
+            return false
+        }
+        if (!isVod && !streamOnline) {
+            return false
+        }
+        if (isVod && duration > 0 && renderer.position >= Math.max(0, duration - 5)) {
+            return false
+        }
+        return true
+    }
+
+    function scheduleUnexpectedStopRecovery() {
+        if (!shouldRecoverUnexpectedStop()) {
+            return false
+        }
+
+        setHeaderText("Stopped unexpectedly, retrying: " + getWatchingTitle())
+        unexpectedStopRecoveryTimer.restart()
         return true
     }
 
@@ -515,6 +565,7 @@ Page {
     function reloadStream() {
         playbackError = ""
         startupRetryAttempts = 0
+        unexpectedStopRetryAttempts = 0
         stopRendererWithoutQueueAdvance()
         loadAndPlay()
     }
@@ -577,6 +628,7 @@ Page {
         }
 
         onPlayingResumed: {
+            unexpectedStopRecoveryTimer.stop()
             setWatchingTitle()
         }
 
@@ -589,6 +641,8 @@ Page {
                 suppressVodQueueAdvance = false
                 suppressVodQueueAdvanceTimer.stop()
             } else if (advanceVodQueue()) {
+                return
+            } else if (scheduleUnexpectedStopRecovery()) {
                 return
             }
             setHeaderText("Stopped: " + getWatchingTitle());
