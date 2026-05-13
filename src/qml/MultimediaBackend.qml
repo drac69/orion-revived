@@ -32,6 +32,7 @@ Signals needed:
 playingResumed()    -- Signaled when playback toggles from paused / stopped to playing
 playingPaused()     -- Signaled when playback pauses
 playingStopped()    -- Signaled when playback stops (stream ends)
+backendError(message) -- Signaled when the backend reports a playback failure
 volumeChanged()     -- Signaled when volume changes internally
 
 Variables needed:
@@ -102,7 +103,15 @@ Item {
     signal playingResumed()
     signal playingPaused()
     signal playingStopped()
+    signal backendError(string message)
     signal volumeChangedInternally()
+
+    function reportBackendError(message) {
+        var detail = message || "Qt Multimedia playback failed"
+        console.error(detail)
+        backendError(detail)
+        root.status = "STOPPED"
+    }
 
     property string status: "STOPPED"
     onStatusChanged: {
@@ -134,7 +143,7 @@ Item {
         id: renderer
 
         onError: {
-            console.error(errorString)
+            root.reportBackendError(errorString)
         }
 
         function updateStatus() {

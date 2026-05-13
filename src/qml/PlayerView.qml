@@ -693,6 +693,9 @@ Page {
         }
 
         onPlayingStopped: {
+            if (playbackError) {
+                return
+            }
             if (suppressVodQueueAdvance) {
                 suppressVodQueueAdvance = false
                 suppressVodQueueAdvanceTimer.stop()
@@ -712,6 +715,13 @@ Page {
             } else if (renderer.status !== "BUFFERING") {
                 startupRetryTimer.stop()
             }
+        }
+
+        onBackendError: {
+            startupRetryTimer.stop()
+            unexpectedStopRecoveryTimer.stop()
+            var backendName = Settings.backend === "multimedia" ? "Qt Multimedia" : (Settings.backend === "qtav" ? "QtAV" : "mpv")
+            showPlaybackError("backend_error", backendName + " playback error: " + message)
         }
     }
 
