@@ -181,7 +181,7 @@ int ChannelListModel::addAll(const QList<Channel *> &list)
 void ChannelListModel::mergeAll(const QList<Channel *> &list)
 {
     if (!list.isEmpty()){
-        foreach (Channel* channel, list){
+        for (Channel *channel : list) {
             Channel *c = find(channel->getId());
             if (c) {
                 c->updateWith(*channel);
@@ -292,7 +292,7 @@ void ChannelListModel::updateChannel(Channel *item)
 void ChannelListModel::updateChannels(const QList<Channel *> &list)
 {
     if (!channels.isEmpty()){
-        foreach(Channel *channel, list){
+        for (Channel *channel : list) {
             updateChannel(channel);
         }
     }
@@ -345,15 +345,14 @@ bool ChannelListModel::updateStream(Channel *item)
 
 void ChannelListModel::setAllChannelsOffline()
 {
-    int i = 0;
-    foreach(Channel *channel, channels) {
+    for (int i = 0; i < channels.size(); i++) {
+        Channel *channel = channels.at(i);
         if (channel->isOnline()) {
             channel->setOnline(false);
             //updateChannelForView(channel);
             emit dataChanged(index(i), index(i));
             emit channelOnlineStateChanged(channel);
         }
-        i++;
     }
 }
 
@@ -363,7 +362,7 @@ void ChannelListModel::updateStreams(const QList<Channel *> &list)
     QList<Channel*> offlineChannels;
 
     if (!channels.isEmpty()){
-        foreach(Channel *channel, list){
+        for (Channel *channel : list) {
             if (updateStream(channel)) {
                 //Channel online status has changed
 

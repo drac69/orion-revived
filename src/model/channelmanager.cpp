@@ -291,7 +291,7 @@ void ChannelManager::removeFromFavourites(const quint32 &id){
 
 QString commaSeparatedChannelIds(const QList<Channel *> & channels) {
     QStringList channelIdStrs;
-    foreach(Channel* channel, channels) {
+    for (Channel *channel : channels) {
         channelIdStrs.append(QString::number(channel->getId()));
     }
     return channelIdStrs.join(',');
@@ -315,7 +315,7 @@ void ChannelManager::checkStreams(const QList<Channel *> &list)
         QUrl helixUrl(QString(HELIX_API) + "/streams");
         QUrlQuery query;
         query.addQueryItem("first", QString::number(sublist.length()));
-        foreach(Channel* channel, sublist) {
+        for (Channel *channel : sublist) {
             query.addQueryItem("user_id", QString::number(channel->getId()));
         }
         helixUrl.setQuery(query);
@@ -372,7 +372,7 @@ void ChannelManager::addSearchResults(const QList<Channel*> &list, const int tot
 {
     bool needsStreamCheck = false;
 
-    foreach (Channel *channel, list){
+    for (Channel *channel : list) {
         if (favouritesModel->find(channel->getId()))
             channel->setFavourite(true);
 
@@ -397,8 +397,9 @@ void ChannelManager::findPlaybackStream(const QString &serviceName)
 
 void ChannelManager::updateFavourites(const QList<Channel*> &list)
 {
-    foreach (Channel *c, list)
+    for (Channel *c : list) {
         c->setFavourite(true);
+    }
 
     favouritesModel->updateChannels(list);
     qDeleteAll(list);
@@ -458,7 +459,7 @@ void ChannelManager::notifyMultipleChannelsOnline(const QList<Channel*> &channel
         //Send multi-notification
         QString str;
 
-        foreach (Channel *c, channels) {
+        for (Channel *c : channels) {
 
             //Omit channels after enough characters in message body
             if (str.size() > 80) {
@@ -502,8 +503,9 @@ void ChannelManager::addFollowedResults(const QList<Channel *> &list, const quin
     //    qDebug() << "Merging channel data for " << list.size()
     //             << " items with " << offset << " offset.";
 
-    foreach (Channel *c, list)
+    for (Channel *c : list) {
         c->setFavourite(true);
+    }
 
     favouritesModel->mergeAll(list);
 
