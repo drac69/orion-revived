@@ -659,7 +659,7 @@ int main(int argc, char *argv[])
     rootContext->setContextProperty("g_favourites", ChannelManager::getInstance()->getFavouritesProxy());
     rootContext->setContextProperty("g_results", ChannelManager::getInstance()->getResultsModel());
     rootContext->setContextProperty("g_games", ChannelManager::getInstance()->getGamesModel());
-    rootContext->setContextProperty("vodsModel", VodManager::getInstance()->getModel());
+    rootContext->setContextProperty("vodsModel", VodManager::getInstance()->getFilteredModel());
     rootContext->setContextProperty("g_startupChannel", startupChannel);
     
     

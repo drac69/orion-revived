@@ -14,6 +14,7 @@
 
 import QtQuick.Controls 2.1
 import QtQuick 2.5
+import QtQuick.Layouts 1.1
 import "components"
 import "util.js" as Util
 
@@ -77,51 +78,101 @@ Item{
         }
     }
 
-    CommonGrid {
-        id: vodgrid
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 0
 
-        anchors {
-            fill: parent
+        ToolBar {
+            visible: !!selectedChannel
+            Layout.fillWidth: true
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                spacing: 8
+
+                TextField {
+                    id: filterInput
+                    Layout.fillWidth: true
+                    placeholderText: "Filter VODs"
+                    text: vodsModel.filterText
+                    selectByMouse: true
+                    onTextChanged: {
+                        if (vodsModel.filterText !== text) {
+                            vodsModel.filterText = text
+                        }
+                    }
+                }
+
+                ToolButton {
+                    visible: filterInput.text.length > 0
+                    font.family: "Material Icons"
+                    text: "\ue14c"
+                    focusPolicy: Qt.NoFocus
+                    onClicked: filterInput.text = ""
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Clear filter"
+                }
+
+                ToolButton {
+                    checkable: true
+                    checked: vodsModel.oldestFirst
+                    font.family: "Material Icons"
+                    text: checked ? "\ue5d8" : "\ue5db"
+                    focusPolicy: Qt.NoFocus
+                    onClicked: vodsModel.oldestFirst = checked
+                    ToolTip.visible: hovered
+                    ToolTip.text: checked ? "Oldest first" : "Newest first"
+                }
+            }
         }
 
-        model: vodsModel
+        CommonGrid {
+            id: vodgrid
 
-        delegate: Video {
-            _id: model.id
-            title: model.title
-            views: model.views
-            preview: model.preview
-            logo: preview
-            duration: model.duration
-            position: channelVodPositions[model.id] || 0
-            game: model.game
-            createdAt: model.createdAt
-            seekPreviews: model.seekPreviews
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-            width: vodgrid.cellWidth
-        }
+            model: vodsModel
 
-        function playItem(item) {
-            var lastPlaybackPosition = getLastPlaybackPosition(selectedChannel, item);
-            playerView.getStreams(selectedChannel, item, lastPlaybackPosition || 0);
-        }
+            delegate: Video {
+                _id: model.id
+                title: model.title
+                views: model.views
+                preview: model.preview
+                logo: preview
+                duration: model.duration
+                position: channelVodPositions[model.id] || 0
+                game: model.game
+                createdAt: model.createdAt
+                seekPreviews: model.seekPreviews
 
-        onItemClicked: playItem(clickedItem)
-        onItemDoubleClicked: playItem(clickedItem)
+                width: vodgrid.cellWidth
+            }
 
-        onItemTooltipHover: {
-            if (g_tooltip)
-                g_tooltip.displayVod(item, getPosition)
-        }
+            function playItem(item) {
+                var lastPlaybackPosition = getLastPlaybackPosition(selectedChannel, item);
+                playerView.getStreams(selectedChannel, item, lastPlaybackPosition || 0);
+            }
 
-        onAtYEndChanged: checkScroll()
+            onItemClicked: playItem(clickedItem)
+            onItemDoubleClicked: playItem(clickedItem)
 
-        onUpdateTriggered: search(selectedChannel)
+            onItemTooltipHover: {
+                if (g_tooltip)
+                    g_tooltip.displayVod(item, getPosition)
+            }
 
-        function checkScroll(){
-            if (atYEnd && model.count() === itemCount && itemCount > 0){
-                VodManager.search(selectedChannel._id, itemCount, 25)
-                itemCount += 25
+            onAtYEndChanged: checkScroll()
+
+            onUpdateTriggered: search(selectedChannel)
+
+            function checkScroll(){
+                if (atYEnd && VodManager.loadedCount() === itemCount && itemCount > 0){
+                    VodManager.search(selectedChannel._id, itemCount, 25)
+                    itemCount += 25
+                }
             }
         }
     }

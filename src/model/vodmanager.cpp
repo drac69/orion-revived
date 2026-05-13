@@ -23,6 +23,8 @@ VodManager::VodManager(QObject *parent) :
 {
     qmlRegisterInterface<VodListModel>("VodListModel");
     _model = new VodListModel(this);
+    _filteredModel = new VodFilterProxyModel(this);
+    _filteredModel->setSourceModel(_model);
 
     connect(netman, &NetworkManager::broadcastsOperationFinished, this, &VodManager::onSearchFinished);
     connect(netman, &NetworkManager::m3u8OperationBFinished, this, &VodManager::streamsGetFinished);
@@ -55,6 +57,7 @@ VodManager *VodManager::getInstance() {
 VodManager::~VodManager()
 {
     saveSettings();
+    delete _filteredModel;
     delete _model;
 }
 
@@ -81,6 +84,16 @@ void VodManager::onSearchFinished(QList<Vod *> items)
 VodListModel *VodManager::getModel() const
 {
     return _model;
+}
+
+VodFilterProxyModel *VodManager::getFilteredModel() const
+{
+    return _filteredModel;
+}
+
+int VodManager::loadedCount() const
+{
+    return _model->count();
 }
 
 void VodManager::saveSettings() {

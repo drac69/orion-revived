@@ -17,6 +17,7 @@
 
 #include <QObject>
 #include "../network/networkmanager.h"
+#include "vodfilterproxymodel.h"
 #include "vodlistmodel.h"
 #include "singletonprovider.h"
 
@@ -49,6 +50,8 @@ public:
     Q_INVOKABLE void getBroadcasts(QString vod);
 
     VodListModel *getModel() const;
+    VodFilterProxyModel *getFilteredModel() const;
+    Q_INVOKABLE int loadedCount() const;
 
 private:
     void saveSettings();
@@ -76,6 +79,7 @@ signals:
 private:
     QString game;
     VodListModel *_model;
+    VodFilterProxyModel *_filteredModel;
     NetworkManager *netman;
 };
 

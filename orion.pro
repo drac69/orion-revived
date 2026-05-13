@@ -31,6 +31,7 @@ SOURCES += src/main.cpp\
     src/model/channellistmodel.cpp \
     src/model/gamelistmodel.cpp \
     src/model/vod.cpp \
+    src/model/vodfilterproxymodel.cpp \
     src/model/vodlistmodel.cpp \
     src/model/vodmanager.cpp \
     src/model/ircchat.cpp \
@@ -55,6 +56,7 @@ HEADERS  += src/model/channel.h \
     src/model/gamelistmodel.h \
     src/util/m3u8parser.h \
     src/model/vod.h \
+    src/model/vodfilterproxymodel.h \
     src/model/vodlistmodel.h \
     src/model/vodmanager.h \
     src/network/urls.h \
