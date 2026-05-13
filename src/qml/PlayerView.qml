@@ -40,6 +40,7 @@ Page {
     property int lastSetPosition
     property bool headersVisible: true
     property bool showPlaybackStats: false
+    property string playbackError: ""
 
     Material.theme: rootWindow.Material.theme
 
@@ -105,9 +106,11 @@ Page {
             switch (error) {
 
             case "token_error":
+                playbackError = error
                 setHeaderText("Token issue. Error getting stream")
                 break;
             case "playlist_error":
+                playbackError = error
                 //Todo: verify message
                 if (isVod) {
                     setHeaderText("Unavailable: " + getWatchingTitle())
@@ -263,6 +266,7 @@ Page {
             return
         }
 
+        playbackError = ""
         renderer.stop()
 
         if (wantVideo) {
@@ -365,6 +369,7 @@ Page {
     }
 
     function loadStreams(streams) {
+        playbackError = ""
         var sourceNames = []
         for (var k in streams) {
             sourceNames.splice(0, 0, k) //revert order
@@ -385,7 +390,21 @@ Page {
         }
     }
 
+    function currentTwitchUrl() {
+        if (isVod && curVodId) {
+            var vodId = String(curVodId).replace(/^v/, "")
+            return "https://www.twitch.tv/videos/" + encodeURIComponent(vodId)
+        }
+
+        return app.channelPageUrl(currentChannel)
+    }
+
+    function openCurrentOnTwitch() {
+        Qt.openUrlExternally(currentTwitchUrl())
+    }
+
     function reloadStream() {
+        playbackError = ""
         renderer.stop()
         loadAndPlay()
     }
@@ -892,6 +911,16 @@ Page {
                             }
                         }
                     }
+                }
+
+                IconButtonFlat {
+                    id: externalBtn
+                    visible: currentChannel !== undefined
+                    text: "\ue89e"
+                    highlighted: playbackError !== ""
+                    onClicked: openCurrentOnTwitch()
+                    ToolTip.visible: hovered
+                    ToolTip.text: isVod ? "Open VOD on Twitch" : "Open channel on Twitch"
                 }
 
                 IconButtonFlat {

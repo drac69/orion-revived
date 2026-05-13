@@ -63,6 +63,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests; the heavier prefetch segment/proxy approach remains unimplemented.
 * #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; Android playback pause/resume, call-audio handling, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
 * #268: Twitch `USERNOTICE` raid messages now append a channel URL from the raid `msg-param-login` tag, and chat system notices render URLs as selectable/clickable links; automatic in-client raid redirection is still not implemented.
+* #283: the player header now offers a direct Twitch fallback for the current live channel or VOD, giving users a supported path when Orion's native playlist-token flow fails; a documented native HLS playback-token replacement remains unavailable.
 
 ## Already covered by the final upstream code
 
@@ -79,7 +80,7 @@ These issues remained open upstream but the final `master` code already contains
 
 ## Needs Twitch API modernization
 
-These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VOD endpoints and should be handled as a dedicated Helix/EventSub/chat migration rather than one-off fixes:
+Twitch documents Helix metadata APIs and embeddable players, but not a supported native HLS playback-token API. The remaining playback-token work therefore needs either an official Twitch replacement API or a product decision to embed/open Twitch's player instead of preserving native HLS playback.
 
 * #283.
 
