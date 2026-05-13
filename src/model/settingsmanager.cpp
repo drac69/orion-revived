@@ -404,6 +404,7 @@ void SettingsManager::setChannelQuality(const QString &channel, const QString &q
     settings.beginGroup("channelQualities");
     settings.setValue(key, quality);
     settings.endGroup();
+    syncSettings("channel quality");
 }
 
 QString SettingsManager::decoder() const

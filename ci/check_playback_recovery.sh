@@ -11,6 +11,7 @@ mpv_object_header="$repo_dir/src/player/mpvobject.h"
 mpv_object_source="$repo_dir/src/player/mpvobject.cpp"
 mpv_qt_helper="$repo_dir/src/player/qthelper.hpp"
 vod_manager="$repo_dir/src/model/vodmanager.cpp"
+settings_manager="$repo_dir/src/model/settingsmanager.cpp"
 
 if ! printf '%s\n' "$status_changed_block" | rg -q 'renderer\.status === "BUFFERING"'; then
     printf 'PlayerView must restart stall recovery when active playback returns to BUFFERING.\n' >&2
@@ -138,5 +139,10 @@ fi
 
 if ! rg -q 'warnSettingsSyncFailure\(settings, "VOD position settings"\)' "$vod_manager"; then
     printf 'VodManager must warn when VOD position settings fail to sync.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'syncSettings\("channel quality"\)' "$settings_manager"; then
+    printf 'SettingsManager must immediately sync per-channel stream quality changes.\n' >&2
     exit 1
 fi
