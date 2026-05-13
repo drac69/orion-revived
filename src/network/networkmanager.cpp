@@ -1756,6 +1756,8 @@ void NetworkManager::broadcastsReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        emit broadcastsOperationFailed();
+        reply->deleteLater();
         return;
     }
 

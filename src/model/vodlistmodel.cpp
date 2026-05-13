@@ -100,9 +100,24 @@ QHash<int, QByteArray> VodListModel::roleNames() const
 
 void VodListModel::addAll(QList<Vod *> &items)
 {
-    if (!items.isEmpty()){
-        beginInsertRows(QModelIndex(), vods.size(), vods.size() + items.size() - 1);
-        foreach (Vod *vod, items) {
+    QList<Vod *> newItems;
+    foreach (Vod *vod, items) {
+        Vod *existing = find(vod->getId());
+        if (existing) {
+            *existing = *vod;
+            const int row = vods.indexOf(existing);
+            if (row >= 0) {
+                const QModelIndex itemIndex = index(row, 0);
+                emit dataChanged(itemIndex, itemIndex);
+            }
+        } else {
+            newItems.append(vod);
+        }
+    }
+
+    if (!newItems.isEmpty()){
+        beginInsertRows(QModelIndex(), vods.size(), vods.size() + newItems.size() - 1);
+        foreach (Vod *vod, newItems) {
             vods.append(new Vod(*vod));
         }
         endInsertRows();
@@ -131,4 +146,3 @@ int VodListModel::count() const
 {
     return rowCount();
 }
-

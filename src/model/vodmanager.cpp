@@ -15,6 +15,7 @@
 #include "vodmanager.h"
 #include <QSettings>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <cmath>
 
 VodManager::VodManager(QObject *parent) :
@@ -27,6 +28,7 @@ VodManager::VodManager(QObject *parent) :
     _filteredModel->setSourceModel(_model);
 
     connect(netman, &NetworkManager::broadcastsOperationFinished, this, &VodManager::onSearchFinished);
+    connect(netman, &NetworkManager::broadcastsOperationFailed, this, &VodManager::onSearchFailed);
     connect(netman, &NetworkManager::m3u8OperationBFinished, this, &VodManager::streamsGetFinished);
     connect(netman, &NetworkManager::vodChatPieceGetOperationFinished, this, &VodManager::vodChatPieceGetOperationFinished);
 
@@ -63,8 +65,11 @@ VodManager::~VodManager()
 
 void VodManager::search(const quint64 channelId, const quint32 offset, const quint32 limit)
 {
+    currentSearchChannelId = channelId;
+    currentSearchOffset = offset;
     if (offset == 0) {
         _model->clear();
+        loadCachedVods(channelId, limit);
         emit searchStarted();
     }
 
@@ -73,12 +78,23 @@ void VodManager::search(const quint64 channelId, const quint32 offset, const qui
 
 void VodManager::onSearchFinished(QList<Vod *> items)
 {
+    if (currentSearchOffset == 0) {
+        _model->clear();
+    }
     _model->addAll(items);
+    if (currentSearchChannelId != 0) {
+        saveCachedVods(currentSearchChannelId);
+    }
 
     qDeleteAll(items);
     items.clear();
 
     emit searchFinished();
+}
+
+void VodManager::onSearchFailed()
+{
+    emit searchFailed();
 }
 
 VodListModel *VodManager::getModel() const
@@ -94,6 +110,77 @@ VodFilterProxyModel *VodManager::getFilteredModel() const
 int VodManager::loadedCount() const
 {
     return _model->count();
+}
+
+void VodManager::loadCachedVods(quint64 channelId, quint32 maxItems)
+{
+    if (channelId == 0 || maxItems == 0) {
+        return;
+    }
+
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    settings.beginGroup("vodCache");
+    settings.beginGroup(QString::number(channelId));
+
+    QList<Vod *> items;
+    const int savedCount = settings.beginReadArray("items");
+    const int count = qMin(savedCount, static_cast<int>(maxItems));
+    for (int i = 0; i < count; i++) {
+        settings.setArrayIndex(i);
+        const QString id = settings.value("id").toString();
+        if (id.isEmpty()) {
+            continue;
+        }
+
+        Vod *vod = new Vod();
+        vod->setId(id);
+        vod->setTitle(settings.value("title").toString());
+        vod->setGame(settings.value("game").toString());
+        vod->setDuration(settings.value("duration").toUInt());
+        vod->setViews(settings.value("views").toULongLong());
+        vod->setPreview(settings.value("preview").toString());
+        vod->setCreatedAt(settings.value("createdAt").toString());
+        vod->setSeekPreviews(settings.value("seekPreviews").toString());
+        items.append(vod);
+    }
+    settings.endArray();
+
+    _model->addAll(items);
+    qDeleteAll(items);
+
+    settings.endGroup();
+    settings.endGroup();
+}
+
+void VodManager::saveCachedVods(quint64 channelId) const
+{
+    if (channelId == 0) {
+        return;
+    }
+
+    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
+    settings.beginGroup("vodCache");
+    settings.beginGroup(QString::number(channelId));
+    settings.setValue("updatedAt", QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+
+    const int count = _model->rowCount(QModelIndex());
+    settings.beginWriteArray("items", count);
+    for (int row = 0; row < count; row++) {
+        const QModelIndex index = _model->index(row, 0);
+        settings.setArrayIndex(row);
+        settings.setValue("id", _model->data(index, VodListModel::Id));
+        settings.setValue("title", _model->data(index, VodListModel::Title));
+        settings.setValue("game", _model->data(index, VodListModel::Game));
+        settings.setValue("duration", _model->data(index, VodListModel::Duration));
+        settings.setValue("views", _model->data(index, VodListModel::Views));
+        settings.setValue("preview", _model->data(index, VodListModel::Preview));
+        settings.setValue("createdAt", _model->data(index, VodListModel::CreatedAt));
+        settings.setValue("seekPreviews", _model->data(index, VodListModel::SeekPreviews));
+    }
+    settings.endArray();
+    settings.endGroup();
+    settings.endGroup();
+    settings.sync();
 }
 
 void VodManager::saveSettings() {

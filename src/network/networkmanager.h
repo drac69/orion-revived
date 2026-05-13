@@ -124,6 +124,7 @@ signals:
     void searchChannelsOperationFinished(const QList<Channel *>&, const int total);
     void searchGamesOperationFinished(const QList<Game *>&);
     void broadcastsOperationFinished(const QList<Vod *>&);
+    void broadcastsOperationFailed();
     void m3u8OperationFinished(const QVariantMap&);
     void m3u8OperationBFinished(const QVariantMap&);
     void fileOperationFinished(const QByteArray&);

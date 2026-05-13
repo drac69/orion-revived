@@ -55,9 +55,12 @@ public:
 
 private:
     void saveSettings();
+    void loadCachedVods(quint64 channelId, quint32 maxItems);
+    void saveCachedVods(quint64 channelId) const;
 
 public slots:
     void onSearchFinished(QList<Vod *>);
+    void onSearchFailed();
     void cancelLastVodChatRequest();
     void resetVodChat();
     void getVodChatPiece(quint64 vodId, quint64 offset);
@@ -71,6 +74,7 @@ signals:
     void modelChanged();
     void searchStarted();
     void searchFinished();
+    void searchFailed();
     void streamsGetFinished(QVariantMap items);
 
     void vodChatPieceGetOperationFinished(ReplayChatPiece);
@@ -78,6 +82,8 @@ signals:
 
 private:
     QString game;
+    quint64 currentSearchChannelId = 0;
+    quint32 currentSearchOffset = 0;
     VodListModel *_model;
     VodFilterProxyModel *_filteredModel;
     NetworkManager *netman;

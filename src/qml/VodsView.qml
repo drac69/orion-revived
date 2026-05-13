@@ -27,6 +27,12 @@ Item{
     property variant selectedChannel
     property int itemCount: 0
     property var channelVodPositions
+    property bool vodSearchInProgress: false
+
+    function requestVods(offset, limit) {
+        vodSearchInProgress = true
+        VodManager.search(selectedChannel._id, offset, limit)
+    }
 
     function search(channel){
 
@@ -47,9 +53,9 @@ Item{
 
         channelVodPositions = VodManager.getChannelVodsLastPlaybackPositions(channel.name);
 
-        VodManager.search(selectedChannel._id, 0, 35)
+        requestVods(0, 35)
 
-        itemCount = 35
+        itemCount = Math.max(35, VodManager.loadedCount())
 
         requestSelectionChange(3)
     }
@@ -83,6 +89,13 @@ Item{
 
     Connections {
         target: VodManager
+        onSearchFinished: {
+            vodSearchInProgress = false
+            vodgrid.checkScroll()
+        }
+
+        onSearchFailed: vodSearchInProgress = false
+
         onVodLastPositionUpdated: {
             //console.log("onVodLastPositionUpdated", channel, vod, position);
             if (selectedChannel.name === channel) {
@@ -194,8 +207,8 @@ Item{
             onUpdateTriggered: search(selectedChannel)
 
             function checkScroll(){
-                if (atYEnd && VodManager.loadedCount() === itemCount && itemCount > 0){
-                    VodManager.search(selectedChannel._id, itemCount, 25)
+                if (!vodSearchInProgress && atYEnd && VodManager.loadedCount() === itemCount && itemCount > 0){
+                    requestVods(itemCount, 25)
                     itemCount += 25
                 }
             }
