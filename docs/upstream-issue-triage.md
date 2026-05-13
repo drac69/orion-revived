@@ -50,7 +50,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #101: added configurable log levels, per-sink stdout/stderr/file/journal log thresholds, optional file logging, optional Linux systemd journal output when built with `libsystemd`, and an in-app recent-log viewer with copy/clear actions.
 * #278: added optional compact and desktop side-navigation settings; combined with the existing right-side chat position, this covers the requested 1.5.x-style left-nav/right-chat layout without changing the default layout.
 * #142: the emote picker now includes a common Unicode emoji subset that inserts real Unicode text while displaying image-backed Twemoji assets with font fallback when an image cannot be loaded.
-* #187: documented multi-backend builds, kept the manual player selector for builds with more than one backend, added runtime fallback that removes a compiled backend from the selector when its QML module fails to load, and wired Qt Multimedia plus libmpv playback errors into the common player error surface.
+* #187: documented multi-backend builds, kept the manual player selector for builds with more than one backend, added runtime fallback that removes a compiled backend from the selector when its QML module fails to load, and wired Qt Multimedia, QtAV, and libmpv playback errors into the common player error surface.
 
 ## Partially addressed
 

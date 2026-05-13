@@ -72,6 +72,16 @@ if ! rg -q 'root\.status = "STOPPED"' "$multimedia_backend"; then
     exit 1
 fi
 
+if ! rg -q 'onError:' "$qtav_backend" || ! rg -q 'backendError\(detail\)' "$qtav_backend"; then
+    printf 'QtAV backend must forward MediaPlayer errors to PlayerView.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'root\.status = "STOPPED"' "$qtav_backend"; then
+    printf 'QtAV backend errors must leave BUFFERING state after surfacing the error.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'void playbackError\(const QString &message\)' "$mpv_object_header"; then
     printf 'MpvObject must expose mpv playback errors to QML.\n' >&2
     exit 1

@@ -131,6 +131,13 @@ Item {
     signal backendError(string message)
     signal volumeChangedInternally()
 
+    function reportBackendError(message) {
+        var detail = message || "QtAV playback failed"
+        console.error(detail)
+        backendError(detail)
+        root.status = "STOPPED"
+    }
+
     property string status: "STOPPED"
     onStatusChanged: {
         switch (status) {
@@ -159,6 +166,12 @@ Item {
 
     MediaPlayer {
         id: renderer
+
+        onError: {
+            if (error !== MediaPlayer.NoError) {
+                root.reportBackendError(errorString)
+            }
+        }
 
         function updateStatus() {
             if (status === MediaPlayer.Buffering) {
