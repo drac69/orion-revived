@@ -35,7 +35,14 @@ void SettingsManager::load()
     setAlertScreen(settings.value("alertScreen", mAlertScreen).toInt());
     setMultipleInstances(settings.value("multipleInstances", mMultipleInstances).toBool());
     setMinimizeOnStartup(settings.value("minimizeOnStartup", mMinimizeOnStartup).toBool());
-    setOpengl(settings.value("opengl", mOpengl).toString());
+    QString savedOpengl = settings.value("opengl", mOpengl).toString();
+#ifdef Q_OS_WIN
+    if (savedOpengl == "angle (d3d9)") {
+        savedOpengl = mOpengl;
+        settings.setValue("opengl", savedOpengl);
+    }
+#endif
+    setOpengl(savedOpengl);
     setQuality(settings.value("quality", mQuality).toString());
     setRememberChannelQuality(settings.value("rememberChannelQuality", mRememberChannelQuality).toBool());
     const QString savedDecoder = settings.value("decoder", mDecoder).toString();

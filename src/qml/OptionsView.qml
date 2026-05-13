@@ -300,7 +300,7 @@ Page {
                             model: {
                                 var opengl = [ ]
                                 if (Qt.platform.os === "windows") {
-                                    opengl = ["angle", "angle (d3d11)", "angle (d3d9)", "angle (warp)"]
+                                    opengl = ["angle (d3d11)", "angle", "angle (d3d9)", "angle (warp)"]
                                 } else {
                                     opengl = ["opengl es"]
                                 }

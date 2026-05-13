@@ -52,7 +52,7 @@ class SettingsManager : public QObject
     bool mChatNotifications = true;
     double mTextScaleFactor = 1.0;
 #ifdef Q_OS_WIN
-    QString mOpengl = "angle (d3d9)";
+    QString mOpengl = "angle (d3d11)";
 #else
     QString mOpengl = "opengl es";
 #endif

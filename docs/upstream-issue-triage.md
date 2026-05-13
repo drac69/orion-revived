@@ -58,6 +58,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #167: fixed a network-recovery condition that always reloaded playback on network-up events, and guarded stream-status polling against stale/no current channel state; hosted-channel IRC behavior still needs live reproduction.
 * #271: returning to the VOD view no longer forces the grid back to the beginning, so the current scroll position is preserved while navigating away and back; broader VOD filtering, sorting, playlist, chapter, muted-section, and cache work remains.
 * #119: the README now explains that the GitHub build commands are terminal commands, separates build/run/install steps, and documents that revalidated Windows/macOS installers are not published yet.
+* #210: new Windows installs now default to ANGLE D3D11 instead of the older D3D9 renderer, and saved D3D9 defaults are migrated to D3D11 to reduce exposure to the Fraps/Qt render-thread crash path; the Fraps-specific crash has not been reproduced in this environment.
 
 ## Already covered by the final upstream code
 
@@ -87,7 +88,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #226, #210.
+* #278, #226.
 
 ## Administrative
 
