@@ -55,7 +55,7 @@ public:
 
 private:
     void saveSettings();
-    void loadCachedVods(quint64 channelId, const QString &type, quint32 maxItems);
+    void loadCachedVods(quint64 channelId, const QString &type);
     void saveCachedVods(quint64 channelId, const QString &type) const;
 
 public slots:

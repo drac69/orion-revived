@@ -13,6 +13,7 @@
  */
 
 #include "vodlistmodel.h"
+#include <QSet>
 
 VodListModel::VodListModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -132,6 +133,37 @@ void VodListModel::addAll(QList<Vod *> &items)
         }
         endInsertRows();
     }
+}
+
+void VodListModel::mergePage(QList<Vod *> &items, quint32 offset)
+{
+    if (items.isEmpty()) {
+        return;
+    }
+
+    QSet<QString> incomingIds;
+    foreach (Vod *vod, items) {
+        if (vod) {
+            incomingIds.insert(vod->getId());
+        }
+    }
+
+    for (int row = vods.size() - 1; row >= 0; row--) {
+        Vod *vod = vods.at(row);
+        if (vod && incomingIds.contains(vod->getId())) {
+            beginRemoveRows(QModelIndex(), row, row);
+            delete vods.takeAt(row);
+            endRemoveRows();
+        }
+    }
+
+    const int requestedRow = static_cast<int>(offset);
+    const int insertRow = qMax(0, qMin(requestedRow, vods.size()));
+    beginInsertRows(QModelIndex(), insertRow, insertRow + items.size() - 1);
+    for (int i = 0; i < items.size(); i++) {
+        vods.insert(insertRow + i, new Vod(*items.at(i)));
+    }
+    endInsertRows();
 }
 
 Vod *VodListModel::find(const QString id)

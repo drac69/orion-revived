@@ -47,7 +47,7 @@ Item{
         }
 
         requestVods(0, 35)
-        itemCount = Math.max(35, VodManager.loadedCount())
+        itemCount = 35
     }
 
     function search(channel){
@@ -235,7 +235,7 @@ Item{
             onUpdateTriggered: search(selectedChannel)
 
             function checkScroll(){
-                if (!vodSearchInProgress && atYEnd && VodManager.loadedCount() === itemCount && itemCount > 0){
+                if (!vodSearchInProgress && atYEnd && VodManager.loadedCount() >= itemCount && itemCount > 0){
                     requestVods(itemCount, 25)
                     itemCount += 25
                 }

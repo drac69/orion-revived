@@ -78,7 +78,7 @@ void VodManager::search(const quint64 channelId, const quint32 offset, const qui
     currentSearchType = videoType;
     if (offset == 0) {
         _model->clear();
-        loadCachedVods(channelId, videoType, limit);
+        loadCachedVods(channelId, videoType);
         emit searchStarted();
     }
 
@@ -87,10 +87,7 @@ void VodManager::search(const quint64 channelId, const quint32 offset, const qui
 
 void VodManager::onSearchFinished(QList<Vod *> items)
 {
-    if (currentSearchOffset == 0) {
-        _model->clear();
-    }
-    _model->addAll(items);
+    _model->mergePage(items, currentSearchOffset);
     if (currentSearchChannelId != 0) {
         saveCachedVods(currentSearchChannelId, currentSearchType);
     }
@@ -121,9 +118,9 @@ int VodManager::loadedCount() const
     return _model->count();
 }
 
-void VodManager::loadCachedVods(quint64 channelId, const QString &type, quint32 maxItems)
+void VodManager::loadCachedVods(quint64 channelId, const QString &type)
 {
-    if (channelId == 0 || maxItems == 0) {
+    if (channelId == 0) {
         return;
     }
 
@@ -133,8 +130,7 @@ void VodManager::loadCachedVods(quint64 channelId, const QString &type, quint32 
 
     QList<Vod *> items;
     const int savedCount = settings.beginReadArray("items");
-    const int count = qMin(savedCount, static_cast<int>(maxItems));
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < savedCount; i++) {
         settings.setArrayIndex(i);
         const QString id = settings.value("id").toString();
         if (id.isEmpty()) {

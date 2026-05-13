@@ -48,6 +48,7 @@ public:
     QHash<int,QByteArray> roleNames() const;
 
     void addAll(QList<Vod *> &items);
+    void mergePage(QList<Vod *> &items, quint32 offset);
     Vod *find(const QString id);
     void clear();
 
