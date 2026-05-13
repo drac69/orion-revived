@@ -17,7 +17,6 @@
 
 #include <QObject>
 #include <QtNetwork/QNetworkAccessManager>
-//#include <QtWebKitWidgets/QtWebKitWidgets>
 #include <QUrl>
 #include <QtNetwork/QNetworkReply>
 #include <QJsonDocument>
