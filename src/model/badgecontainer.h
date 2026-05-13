@@ -10,7 +10,7 @@
 
 class BadgeContainer: public QObject
 {
-    QML_SINGLETON
+    ORION_QML_SINGLETON
     Q_OBJECT
 
     bool haveEmoteSets;

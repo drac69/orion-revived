@@ -44,7 +44,7 @@ typedef QMap<QString, QMap<QString, QString>> BitsQStringsMap;
 
 class NetworkManager: public QObject
 {
-    QML_SINGLETON
+    ORION_QML_SINGLETON
     Q_OBJECT
 
     Q_PROPERTY(bool up READ networkAccess NOTIFY networkAccessChanged)

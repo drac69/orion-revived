@@ -7,7 +7,7 @@
 
 class SettingsManager : public QObject
 {
-    QML_SINGLETON
+    ORION_QML_SINGLETON
     Q_OBJECT
 
     Q_PROPERTY(bool alert READ alert WRITE setAlert NOTIFY alertChanged)

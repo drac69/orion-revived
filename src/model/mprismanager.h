@@ -8,7 +8,7 @@
 
 class MprisManager : public QObject
 {
-    QML_SINGLETON
+    ORION_QML_SINGLETON
     Q_OBJECT
     Q_PROPERTY(QString playbackStatus READ playbackStatus WRITE setPlaybackStatus NOTIFY playbackStatusChanged)
     Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)

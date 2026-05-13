@@ -9,7 +9,7 @@
 
 class Power: public QObject
 {
-    QML_SINGLETON
+    ORION_QML_SINGLETON
     Q_OBJECT
 
     Q_PROPERTY(bool screensaver WRITE setScreensaver)
