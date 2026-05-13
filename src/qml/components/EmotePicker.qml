@@ -274,7 +274,8 @@ Page {
 
             Image {
                 id: _itemImage
-                source: model.imageUrl
+                visible: !_itemEmoji.visible
+                source: visible ? model.imageUrl : ""
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
@@ -283,6 +284,13 @@ Page {
                 height: sourceSize.height / root.devicePixelRatio
             }
 
+            Label {
+                id: _itemEmoji
+                visible: model.emojiText !== ""
+                text: model.emojiText
+                anchors.centerIn: parent
+                font.pixelSize: Math.max(16, Math.round(parent.width * 0.68))
+            }
 
 //                Label {
 //                    text: model.imageUrl
@@ -302,7 +310,7 @@ Page {
 
         TextField {
             id: _filterTextInput
-            placeholderText: "Filter emotes"
+            placeholderText: "Filter emotes and emoji"
             Material.foreground: rootWindow.Material.foreground
             inputMethodHints: Qt.ImhNoPredictiveText
             selectByMouse: true

@@ -14,6 +14,44 @@ RoundButton {
     property var lastEmoteSets
     property int curDownloading
     property ListModel setsVisible: ListModel { }
+    property var unicodeEmoji: [
+        { "name": "😀 grinning face", "text": "😀" },
+        { "name": "😄 smiling eyes", "text": "😄" },
+        { "name": "😂 joy", "text": "😂" },
+        { "name": "🤣 rofl", "text": "🤣" },
+        { "name": "🙂 slight smile", "text": "🙂" },
+        { "name": "😉 wink", "text": "😉" },
+        { "name": "😍 heart eyes", "text": "😍" },
+        { "name": "😘 kiss", "text": "😘" },
+        { "name": "😎 sunglasses", "text": "😎" },
+        { "name": "🤔 thinking", "text": "🤔" },
+        { "name": "😅 sweat smile", "text": "😅" },
+        { "name": "😭 sob", "text": "😭" },
+        { "name": "😡 angry", "text": "😡" },
+        { "name": "😱 scream", "text": "😱" },
+        { "name": "🥳 party", "text": "🥳" },
+        { "name": "😴 sleeping", "text": "😴" },
+        { "name": "👍 thumbs up", "text": "👍" },
+        { "name": "👎 thumbs down", "text": "👎" },
+        { "name": "👏 clap", "text": "👏" },
+        { "name": "🙌 raised hands", "text": "🙌" },
+        { "name": "🙏 pray", "text": "🙏" },
+        { "name": "💪 flex", "text": "💪" },
+        { "name": "👀 eyes", "text": "👀" },
+        { "name": "💯 hundred", "text": "💯" },
+        { "name": "🔥 fire", "text": "🔥" },
+        { "name": "✨ sparkles", "text": "✨" },
+        { "name": "⭐ star", "text": "⭐" },
+        { "name": "🎉 celebration", "text": "🎉" },
+        { "name": "❤️ heart", "text": "❤️" },
+        { "name": "💜 purple heart", "text": "💜" },
+        { "name": "💔 broken heart", "text": "💔" },
+        { "name": "☕ coffee", "text": "☕" },
+        { "name": "🍕 pizza", "text": "🍕" },
+        { "name": "🍿 popcorn", "text": "🍿" },
+        { "name": "🎮 game", "text": "🎮" },
+        { "name": "🏆 trophy", "text": "🏆" }
+    ]
     
     property bool pickerLoaded: false
     property var pickerChannelLoaded: null
@@ -30,6 +68,25 @@ RoundButton {
     flat: true
     text: "\ue87c"
 
+    Component.onCompleted: addUnicodeEmoji()
+
+    function appendVisibleItem(imageUrl, emoteName, insertText, emojiText) {
+        setsVisible.append({
+            "imageUrl": imageUrl,
+            "emoteName": emoteName,
+            "insertText": insertText || emoteName,
+            "emojiText": emojiText || ""
+        });
+    }
+
+    function addUnicodeEmoji() {
+        for (var i = 0; i < unicodeEmoji.length; i++) {
+            var emoji = unicodeEmoji[i];
+            appendVisibleItem("", emoji.name, emoji.text, emoji.text);
+        }
+        _emotePicker.updateFilter();
+    }
+
     Connections {
         target: chat
         onChannelChanged: Qt.callLater(loadEmotes);
@@ -40,28 +97,28 @@ RoundButton {
         switch(lastSet) {
         case "bttvGlobal":
             for (var i in chat.lastBttvGlobalEmotes) {
-                setsVisible.append({"imageUrl": "image://bttvemote/" + chat.lastBttvGlobalEmotes[i], "emoteName": i});
+                appendVisibleItem("image://bttvemote/" + chat.lastBttvGlobalEmotes[i], i);
             }
             break;
         case "bttvChannel":
             for (var i in chat.lastBttvChannelEmotes) {
-                setsVisible.append({"imageUrl": "image://bttvemote/" + chat.lastBttvChannelEmotes[i], "emoteName": i});
+                appendVisibleItem("image://bttvemote/" + chat.lastBttvChannelEmotes[i], i);
             }
             break;
         case "ffzGlobal":
             for (var i in chat.lastFfzGlobalEmotes) {
-                setsVisible.append({"imageUrl": "image://ffzemote/" + chat.lastFfzGlobalEmotes[i], "emoteName": i});
+                appendVisibleItem("image://ffzemote/" + chat.lastFfzGlobalEmotes[i], i);
             }
             break;
         case "ffzChannel":
             for (var i in chat.lastFfzChannelEmotes) {
-                setsVisible.append({"imageUrl": "image://ffzemote/" + chat.lastFfzChannelEmotes[i], "emoteName": i});
+                appendVisibleItem("image://ffzemote/" + chat.lastFfzChannelEmotes[i], i);
             }
             break;
         default:
             var lastSetMap = lastEmoteSets[lastSet];
             for (var i in lastSetMap) {
-                setsVisible.append({"imageUrl": "image://emote/" + i, "emoteName": Util.decodeHtml(Util.inverseRegex(lastSetMap[i]))})
+                appendVisibleItem("image://emote/" + i, Util.decodeHtml(Util.inverseRegex(lastSetMap[i])));
             }
             break;
         }

@@ -624,7 +624,7 @@ Page {
 
                 onItemClicked: {
                     var item = _emoteButton.setsVisible.get(index);
-                    addEmoteToChat(item.emoteName);
+                    addEmoteToChat(item.insertText || item.emoteName);
                 }
 
                 onMoveFocusDown: {

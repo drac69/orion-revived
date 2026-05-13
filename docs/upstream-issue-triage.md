@@ -64,6 +64,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; the Android Activity now uses `FLAG_KEEP_SCREEN_ON` instead of a deprecated wakelock, and Qt background running is disabled so playback is suspended when Android backgrounds the Activity. Android playback pause/resume, call-audio behavior, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
 * #268: Twitch `USERNOTICE` raid messages now append a channel URL from the raid `msg-param-login` tag, and chat system notices render URLs as selectable/clickable links; automatic in-client raid redirection is still not implemented.
 * #283: the player header now offers a direct Twitch fallback for the current live channel or VOD, giving users a supported path when Orion's native playlist-token flow fails; a documented native HLS playback-token replacement remains unavailable.
+* #142: the emote picker now includes a small common Unicode emoji set that inserts the selected emoji into chat; a bundled emoji image/font set and full Unicode emoji catalog remain unimplemented.
 
 ## Already covered by the final upstream code
 
@@ -101,7 +102,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #226, #257, #142.
+* #278, #226, #257.
 
 ## Administrative
 
