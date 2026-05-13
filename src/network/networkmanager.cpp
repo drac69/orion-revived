@@ -1267,7 +1267,11 @@ bool NetworkManager::handleNetworkError(QNetworkReply *reply)
                 offlinePoller.start();
         }
 
-        qDebug() << reply->errorString();
+        const QString message = reply->errorString();
+        qDebug() << message;
+        if (!(reply->error() >= 1 && reply->error() <= 199)) {
+            emit error(message);
+        }
 
         return false;
     }
