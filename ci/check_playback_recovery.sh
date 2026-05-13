@@ -10,6 +10,7 @@ mpv_backend="$repo_dir/src/qml/MpvBackend.qml"
 mpv_object_header="$repo_dir/src/player/mpvobject.h"
 mpv_object_source="$repo_dir/src/player/mpvobject.cpp"
 mpv_qt_helper="$repo_dir/src/player/qthelper.hpp"
+vod_manager="$repo_dir/src/model/vodmanager.cpp"
 
 if ! printf '%s\n' "$status_changed_block" | rg -q 'renderer\.status === "BUFFERING"'; then
     printf 'PlayerView must restart stall recovery when active playback returns to BUFFERING.\n' >&2
@@ -117,5 +118,15 @@ fi
 
 if rg -q 'USE_OPENGL_CB|mpv_opengl_cb|MPV_SUB_API_OPENGL_CB|opengl-cb' "$mpv_object_header" "$mpv_object_source"; then
     printf 'MpvObject must use the modern libmpv render API instead of the deprecated OpenGL callback API.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'bytesWritten != snapshotData\.size\(\)' "$vod_manager"; then
+    printf 'VodManager must treat short playback-position snapshot writes as failed saves.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'file\.cancelWriting\(\)' "$vod_manager"; then
+    printf 'VodManager must cancel partial playback-position snapshots before returning.\n' >&2
     exit 1
 fi

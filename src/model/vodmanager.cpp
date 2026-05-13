@@ -333,7 +333,14 @@ void VodManager::savePlaybackPositionSnapshot() const
         return;
     }
 
-    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    const QByteArray snapshotData = QJsonDocument(root).toJson(QJsonDocument::Indented);
+    const qint64 bytesWritten = file.write(snapshotData);
+    if (bytesWritten != snapshotData.size()) {
+        qWarning() << "Could not write VOD playback position snapshot:" << file.errorString();
+        file.cancelWriting();
+        return;
+    }
+
     if (!file.commit()) {
         qWarning() << "Could not commit VOD playback position snapshot:" << file.errorString();
     }
