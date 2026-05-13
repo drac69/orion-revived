@@ -10,6 +10,9 @@ window/menu contracts, validates HTML entity helpers, guards playback recovery
 behavior, and smoke-tests the HLS
 master-playlist parser.
 
+GitHub Actions versions are monitored by Dependabot through
+`.github/dependabot.yml`.
+
 The other scripts in this directory are legacy upstream Travis/AppVeyor release
 helpers. They reference old Qt, Android, OpenSSL, mpv, and deployment tooling
 and are not used by the current GitHub Actions workflow. They now require an
