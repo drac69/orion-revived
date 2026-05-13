@@ -1289,6 +1289,11 @@ Page {
     ChatDrawer {
         parent: root
         id: chatdrawer
+        onRaidReceived: {
+            if (Settings.autoRaidRedirect && channel && !isVod) {
+                rootWindow.openChannelName(channel)
+            }
+        }
         Labs.Settings {
             property alias chatVisible: chatdrawer.opened
             property alias chatWidth: chatdrawer.width

@@ -117,6 +117,7 @@ signals:
     void anonymousChanged();
     void messageReceived(QString user, QVariantList message, QString chatColor, bool subscriber, bool turbo, bool mod, bool isAction, QVariantList badges, bool isChannelNotice, QString systemMessage, bool isWhisper);
     void noticeReceived(QString message);
+    void raidReceived(QString channel);
 
     void myBadgesForChannel(QString channel, QList<QPair<QString, QString>> badges);
     void downloadComplete();

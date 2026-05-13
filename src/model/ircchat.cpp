@@ -1250,7 +1250,8 @@ void IrcChat::parseCommand(QString cmd) {
             }
         }
 
-        if (noticeId == "raid" && !raidChannel.isEmpty()) {
+        const bool isRaidNotice = noticeId == "raid" && !raidChannel.isEmpty();
+        if (isRaidNotice) {
             parse.chatMessage.systemMessage += QString(" https://www.twitch.tv/%1").arg(raidChannel);
         }
 
@@ -1259,6 +1260,9 @@ void IrcChat::parseCommand(QString cmd) {
         //qDebug() << "messageList " << messageList;
 
         disposeOfMessage(parse.chatMessage);
+        if (isRaidNotice) {
+            emit raidReceived(raidChannel);
+        }
         return;
     }
     if (cmd.contains("WHISPER")) {

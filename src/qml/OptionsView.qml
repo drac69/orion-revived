@@ -492,6 +492,11 @@ Page {
                         onClicked: Settings.autoScrollSmoothing = checked
                     }
                     Switch {
+                        text: "Follow raids automatically"
+                        checked: Settings.autoRaidRedirect
+                        onClicked: Settings.autoRaidRedirect = checked
+                    }
+                    Switch {
                         text: "Use pastel colors"
                         checked: Settings.pastelColors
                         onClicked: Settings.pastelColors = checked

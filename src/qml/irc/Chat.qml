@@ -30,6 +30,7 @@ Item {
     signal channelBadgeBetaUrlsLoaded(string channel, var badgeSetData)
     signal bttvEmotesLoaded(string channel, var emotesByCode)
     signal ffzEmotesLoaded(string channel, var emotesByCode)
+    signal raidReceived(string channel)
 
     property alias isAnonymous: chat.anonymous
     property var channel: undefined
@@ -181,6 +182,10 @@ Item {
         onNoticeReceived: {
             console.log("Notification received", message);
             root.messageReceived("channel", [], null, null, false, false, {}, true, message, false)
+        }
+
+        onRaidReceived: {
+            root.raidReceived(channel)
         }
 
         onEmoteSetIDsChanged: {

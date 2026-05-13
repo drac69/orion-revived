@@ -104,6 +104,7 @@ void SettingsManager::load()
     setTextScaleFactor(settings.value("textScaleFactor", mTextScaleFactor).toDouble());
     setOfflineNotifications(settings.value("offlineNotifications", mOfflineNotifications).toBool());
     setChatNotifications(settings.value("chatNotifications", mChatNotifications).toBool());
+    setAutoRaidRedirect(settings.value("autoRaidRedirect", mAutoRaidRedirect).toBool());
     setLightTheme(settings.value("lightTheme", mLightTheme).toBool());
     setAccessToken(settings.value("accessToken", mAccessToken).toString());
     setFont(settings.value("font", mFont).toString());
@@ -262,6 +263,20 @@ void SettingsManager::setChatNotifications(bool chatNotifications)
         settings.setValue("chatNotifications", chatNotifications);
         emit chatNotificationsChanged();
         qDebug() << "chatNotifications changed to" << chatNotifications;
+    }
+}
+
+bool SettingsManager::autoRaidRedirect() const
+{
+    return mAutoRaidRedirect;
+}
+
+void SettingsManager::setAutoRaidRedirect(bool autoRaidRedirect)
+{
+    if (mAutoRaidRedirect != autoRaidRedirect) {
+        mAutoRaidRedirect = autoRaidRedirect;
+        settings.setValue("autoRaidRedirect", autoRaidRedirect);
+        emit autoRaidRedirectChanged();
     }
 }
 

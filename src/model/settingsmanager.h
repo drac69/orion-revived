@@ -19,6 +19,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(int chatEdge READ chatEdge WRITE setChatEdge NOTIFY chatEdgeChanged)
     Q_PROPERTY(bool offlineNotifications READ offlineNotifications WRITE setOfflineNotifications NOTIFY offlineNotificationsChanged)
     Q_PROPERTY(bool chatNotifications READ chatNotifications WRITE setChatNotifications NOTIFY chatNotificationsChanged)
+    Q_PROPERTY(bool autoRaidRedirect READ autoRaidRedirect WRITE setAutoRaidRedirect NOTIFY autoRaidRedirectChanged)
     Q_PROPERTY(double textScaleFactor READ textScaleFactor WRITE setTextScaleFactor NOTIFY textScaleFactorChanged)
     Q_PROPERTY(QString opengl READ opengl WRITE setOpengl NOTIFY openglChanged)
     Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY qualityChanged)
@@ -52,6 +53,7 @@ class SettingsManager : public QObject
     bool mSwapChat = false;
     bool mOfflineNotifications = false;
     bool mChatNotifications = true;
+    bool mAutoRaidRedirect = false;
     double mTextScaleFactor = 1.0;
 #ifdef Q_OS_WIN
     QString mOpengl = "angle (d3d11)";
@@ -130,6 +132,9 @@ public:
 
     bool chatNotifications() const;
     void setChatNotifications(bool chatNotifications);
+
+    bool autoRaidRedirect() const;
+    void setAutoRaidRedirect(bool autoRaidRedirect);
 
     double textScaleFactor() const;
     void setTextScaleFactor(double textScaleFactor);
@@ -212,6 +217,7 @@ signals:
     void chatEdgeChanged();
     void offlineNotificationsChanged();
     void chatNotificationsChanged();
+    void autoRaidRedirectChanged();
     void textScaleFactorChanged();
     void openglChanged();
     void qualityChanged();

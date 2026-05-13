@@ -12,6 +12,7 @@ SidePanel {
 
     property alias chat: chatview
     property alias hasUnreadMessages : chatview.hasUnreadMessages
+    signal raidReceived(string channel)
 
     readonly property int orientation: edge === Qt.RightEdge || edge === Qt.LeftEdge ? Qt.Horizontal : Qt.Vertical
     property real chatSize: 330
@@ -63,6 +64,7 @@ SidePanel {
     ChatView {
         id: chatview
         anchors.fill: parent
+        onRaidReceived: chatdrawer.raidReceived(channel)
     }
     
     MouseArea {
