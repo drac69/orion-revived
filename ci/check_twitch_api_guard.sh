@@ -80,4 +80,16 @@ for required_filter_role in Description Language PublishedAt Url MutedSegments; 
     fi
 done
 
+if ! rg -q 'fast_bread' src/util/jsonparser.cpp; then
+    printf 'Low-latency live playback must request Twitch fast_bread playlists.\n' >&2
+    fail=1
+fi
+
+for required_mpv_low_latency_token in 'profile-restore' 'apply-profile' 'low-latency' 'lowLatencyProfileApplied'; do
+    if ! rg -q "$required_mpv_low_latency_token" src/qml/MpvBackend.qml; then
+        printf 'mpv low-latency playback token %s is required.\n' "$required_mpv_low_latency_token" >&2
+        fail=1
+    fi
+done
+
 exit "$fail"

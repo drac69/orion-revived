@@ -63,7 +63,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #119: the README now explains that the GitHub build commands are terminal commands, separates build/run/install steps, and documents that revalidated Windows/macOS installers are not published yet.
 * #210: new Windows installs now default to ANGLE D3D11 instead of the older D3D9 renderer, and saved D3D9 defaults are migrated to D3D11 to reduce exposure to the Fraps/Qt render-thread crash path; the Fraps-specific crash has not been reproduced in this environment.
 * #90: focused QML text fields now request the Qt input method, and Windows tablet/slate systems also launch the OS touch keyboard (`TabTip.exe`/`osk.exe`) when text inputs gain focus; the Windows tablet behavior has not been reproduced in this environment.
-* #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests; the heavier prefetch segment/proxy approach remains unimplemented.
+* #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests, and the mpv backend applies mpv's documented `low-latency` runtime profile for live streams while restoring it for VOD/default playback. The heavier Twitch prefetch-segment proxy remains unimplemented because the upstream prototype was reported as skippy and needing a security review.
 * #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place, and CI guards that QML Back-navigation contract. The Android Activity now uses `FLAG_KEEP_SCREEN_ON` instead of a deprecated wakelock, Qt background running is disabled so playback is suspended when Android backgrounds the Activity, and Android now participates in screen-density detection before chat/emote providers are initialized so high-density devices request 2x Twitch/BTTV/FFZ/Bits/badge assets. Android playback pause/resume, call-audio behavior, crash reproduction, emote rendering, and Play Store packaging still need target-device validation.
 * #283: the player header now offers a direct Twitch fallback for the current live channel or VOD, giving users a supported path when Orion's native playlist-token flow fails; a documented native HLS playback-token replacement remains unavailable.
 
@@ -96,6 +96,7 @@ References:
 * <https://dev.twitch.tv/docs/drops/>
 * <https://dev.twitch.tv/docs/drops/technical-guide/>
 * <https://dev.twitch.tv/docs/extensions/frontend-api-usage/>
+* <https://mpv.io/manual/stable/#low-latency-playback>
 
 ## Platform, packaging, and distribution follow-up
 

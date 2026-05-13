@@ -51,6 +51,8 @@ Item {
         status = "BUFFERING"
 
         stop();
+        liveStreamActive = start < 0
+        configureLowLatencyProfile(liveStreamActive && Settings.lowLatencyPlayback)
         updateAudioFilters();
 
         if (start >= 0) {
@@ -135,6 +137,20 @@ Item {
         renderer.setProperty("af", Settings.audioCompressor ? audioCompressorFilter() : "")
     }
 
+    function configureLowLatencyProfile(enabled) {
+        if (enabled === lowLatencyProfileApplied) {
+            return
+        }
+
+        renderer.setOption("profile-restore", "copy")
+        if (enabled) {
+            renderer.command(["apply-profile", "low-latency"])
+        } else {
+            renderer.command(["apply-profile", "low-latency", "restore"])
+        }
+        lowLatencyProfileApplied = enabled
+    }
+
     function formatStatValue(value, suffix, precision) {
         if (value === undefined || value === null || value === "" || isNaN(value)) {
             return "n/a"
@@ -179,6 +195,8 @@ Item {
     signal playingStopped()
     signal volumeChangedInternally()
 
+    property bool liveStreamActive: false
+    property bool lowLatencyProfileApplied: false
     property string status: "STOPPED"
     onStatusChanged: {
         switch (status) {
@@ -210,6 +228,7 @@ Item {
         target: Settings
         onAudioCompressorChanged: updateAudioFilters()
         onDecoderChanged: setDecoderByName(Settings.decoder)
+        onLowLatencyPlaybackChanged: configureLowLatencyProfile(liveStreamActive && Settings.lowLatencyPlayback)
     }
 
     MpvObject {
