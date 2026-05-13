@@ -28,8 +28,8 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QImage>
+#include <QRandomGenerator>
 #include <qqml.h>
-#include <QDateTime>
 #include "../util/jsonparser.h"
 #include "badgecontainer.h"
 #include "vodmanager.h"
@@ -234,9 +234,9 @@ void IrcChat::reopenSocket() {
 void IrcChat::setAnonymous(bool newAnonymous) {
     if(newAnonymous != anonym) {
         if(newAnonymous) {
-            qsrand(QTime::currentTime().msec());
             username = "";
-            username.sprintf("justinfan%06d", (qrand() % (1000000 - 100000)) + 100000);
+            const int anonymousId = QRandomGenerator::global()->bounded(100000, 1000000);
+            username = QStringLiteral("justinfan%1").arg(anonymousId, 6, 10, QLatin1Char('0'));
             userpass = "blah";
         }
         anonym = newAnonymous;
@@ -397,7 +397,8 @@ void IrcChat::sendMessage(const QString &msg, const QVariantMap &relevantEmotes)
 			isAction = true;
 			displayMessage = displayMessage.mid(ME_PREFIX.length());
 		}
-        for (const QString & prefix : { "/msg ", "/w " }) {
+        const QStringList whisperPrefixes = { QStringLiteral("/msg "), QStringLiteral("/w ") };
+        for (const QString &prefix : whisperPrefixes) {
             if (displayMessage.toLower().startsWith(prefix)) {
                 displayMessage = displayMessage.mid(prefix.length());
                 isWhisper = true;
@@ -412,7 +413,13 @@ void IrcChat::sendMessage(const QString &msg, const QVariantMap &relevantEmotes)
             }
         }
         
-        for (const QString & prefix : { "/block ", "/ignore ", "/unblock ", "/unignore " }) {
+        const QStringList userBlockPrefixes = {
+            QStringLiteral("/block "),
+            QStringLiteral("/ignore "),
+            QStringLiteral("/unblock "),
+            QStringLiteral("/unignore ")
+        };
+        for (const QString &prefix : userBlockPrefixes) {
             if (displayMessage.toLower().startsWith(prefix)) {
                 bool isBlock = (prefix == "/block ") || (prefix == "/ignore ");
                 QString username = displayMessage.mid(prefix.length());

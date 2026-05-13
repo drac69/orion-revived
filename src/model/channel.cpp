@@ -67,7 +67,9 @@ Channel::Channel(const quint64 newId) : Channel() {
     this->id = newId;
 }
 
-Channel::Channel(const Channel &channel){
+Channel::Channel(const Channel &channel) :
+    QObject(nullptr)
+{
     this->id = channel.id;
 	this->name = channel.name;
     this->serviceName = channel.serviceName;

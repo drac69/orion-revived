@@ -69,7 +69,8 @@ Game::Game(){
 }
 
 //Copy constructor
-Game::Game(const Game &other)
+Game::Game(const Game &other) :
+    QObject(nullptr)
 {
     setId(other.getId());
     setViewers(other.getViewers());

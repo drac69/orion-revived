@@ -174,6 +174,7 @@ void ChannelManager::updateAccessToken(QString /*accessToken*/)
 
 void ChannelManager::timerEvent(QTimerEvent *event)
 {
+    Q_UNUSED(event);
     checkFavourites();
 }
 

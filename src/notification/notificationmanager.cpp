@@ -21,6 +21,7 @@
 #include <QDebug>
 
 namespace {
+#if !defined(Q_OS_MAC) && !defined(Q_OS_LINUX)
 QRect selectedNotificationGeometry()
 {
     const QList<QScreen *> screens = QGuiApplication::screens();
@@ -31,6 +32,7 @@ QRect selectedNotificationGeometry()
     const int screenIndex = qMax(0, qMin(requestedScreen, screens.count() - 1));
     return screens.at(screenIndex)->availableGeometry();
 }
+#endif
 }
 
 NotificationManager::NotificationManager(QQmlApplicationEngine *engine, QNetworkAccessManager *nm, QObject *parent) :
