@@ -13,6 +13,7 @@ repo = pathlib.Path(sys.argv[1])
 manifest_path = repo / "android" / "AndroidManifest.xml"
 project_path = repo / "orion.pro"
 main_activity_path = repo / "android" / "src" / "com" / "orion" / "MainActivity.java"
+views_path = repo / "src" / "qml" / "Views.qml"
 
 errors = []
 
@@ -93,6 +94,16 @@ if "FLAG_KEEP_SCREEN_ON" not in main_activity:
 
 if re.search(r"\bWakeLock\b", main_activity):
     errors.append("MainActivity must not use deprecated WakeLock APIs")
+
+views_qml = views_path.read_text(encoding="utf-8")
+for required_text, description in (
+    ("property int lastNonPlayerIndex", "Views.qml must remember the last non-player tab for Android Back navigation"),
+    ("function navigateBack()", "Views.qml must keep a shared Back navigation helper"),
+    ("Keys.onBackPressed", "Views.qml must handle the Android Back key"),
+    ("event.accepted = navigateBack()", "Android Back handling must consume the event when it leaves the player view"),
+):
+    if required_text not in views_qml:
+        errors.append(description)
 
 if errors:
     for error in errors:
