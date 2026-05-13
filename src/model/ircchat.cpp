@@ -1227,9 +1227,18 @@ void IrcChat::parseCommand(QString cmd) {
 
         parse.chatMessage.isChannelNotice = true;
 
+        QString noticeId;
+        QString raidChannel;
+
         foreach(const QString & tagStr, parse.tags) {
             Tag tag(tagStr);
-            if (tag.key == "system-msg") {
+            if (tag.key == "msg-id") {
+                noticeId = tag.value;
+            }
+            else if (tag.key == "msg-param-login") {
+                raidChannel = tag.value;
+            }
+            else if (tag.key == "system-msg") {
                 QString systemMessage = tag.value;
 
                 // \s -> space
@@ -1239,6 +1248,10 @@ void IrcChat::parseCommand(QString cmd) {
 
                 parse.chatMessage.systemMessage = systemMessage;
             }
+        }
+
+        if (noticeId == "raid" && !raidChannel.isEmpty()) {
+            parse.chatMessage.systemMessage += QString(" https://www.twitch.tv/%1").arg(raidChannel);
         }
 
         createMessageList(parseEmotesTag(parse.emotesStr), parse.chatMessage.bitsNumber, parse.chatMessage.messageList, parse.message);

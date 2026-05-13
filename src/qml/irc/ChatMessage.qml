@@ -179,19 +179,26 @@ Item {
         horizontalAlignment: Qt.AlignHCenter
 
         visible: showSystemMessageLine
-        text: root.systemMessage
+        text: Util.makeUrl(root.systemMessage)
         font.pointSize: fontSize
         color: Material.foreground
         readOnly: true
         selectByMouse: true
         selectByKeyboard: true
-        textFormat: TextEdit.PlainText
+        textFormat: TextEdit.RichText
         wrapMode: TextEdit.Wrap
-        textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard
+        textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard | Qt.LinksAccessibleByMouse
+        onLinkActivated: linkActivation(link)
 
         height: showSystemMessageLine? contentHeight : 0
 
         TextMenu { copyAllText: root.copyText() }
+        MouseArea {
+            visible: parent.hoveredLink
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            acceptedButtons: Qt.NoButton
+        }
     }
 
     CustomFlow {

@@ -62,6 +62,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #90: focused QML text fields now request the Qt input method, and Windows tablet/slate systems also launch the OS touch keyboard (`TabTip.exe`/`osk.exe`) when text inputs gain focus; the Windows tablet behavior has not been reproduced in this environment.
 * #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests; the heavier prefetch segment/proxy approach remains unimplemented.
 * #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; Android playback pause/resume, call-audio handling, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
+* #268: Twitch `USERNOTICE` raid messages now append a channel URL from the raid `msg-param-login` tag, and chat system notices render URLs as selectable/clickable links; automatic in-client raid redirection is still not implemented.
 
 ## Already covered by the final upstream code
 
@@ -78,7 +79,7 @@ These issues remained open upstream but the final `master` code already contains
 
 These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VOD endpoints and should be handled as a dedicated Helix/EventSub/chat migration rather than one-off fixes:
 
-* #283, #277, #268, #257, #239, #224, #142, #47, #42, #34.
+* #283, #277, #257, #239, #224, #142, #47, #42, #34.
 
 ## Platform, packaging, and distribution follow-up
 
