@@ -24,7 +24,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
+            appstream \
             build-essential \
+            desktop-file-utils \
             libsystemd-dev \
             libmpv-dev \
             pkg-config \
@@ -38,6 +40,11 @@ jobs:
             qml-module-qtquick-window2 \
             qml-module-qtquick2 \
             qtquickcontrols2-5-dev
+
+      - name: Validate packaging metadata
+        run: |
+          appstreamcli validate --pedantic distfiles/Orion.appdata.xml
+          desktop-file-validate distfiles/Orion.desktop
 
       - name: Configure
         run: qmake orion.pro CONFIG+=mpv
