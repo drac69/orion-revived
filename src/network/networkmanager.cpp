@@ -1285,6 +1285,12 @@ void NetworkManager::appAccessTokenReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
     app_access_token_request_pending = false;
 
+    if (!reply) {
+        qWarning() << "Twitch app access token reply finished without a network reply";
+        emit error("Twitch app access token request failed");
+        return;
+    }
+
     if (!handleNetworkError(reply)) {
         qWarning() << "Could not request Twitch app access token";
         reply->deleteLater();
