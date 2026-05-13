@@ -12,7 +12,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #18: added an mpv playback-stats overlay with codec, resolution, FPS, bitrate, dropped frame, sync, cache, and hardware-decoder data.
 * #26: added Linux MPRIS media-control support for play, pause, stop, seek, volume, and metadata over D-Bus.
 * #295: added an optional mpv audio-compressor filter for reducing stream volume swings.
-* #306: changed the mpv default hardware decoder from `auto` to `auto-copy` to avoid unsafe native-surface handling in the embedded renderer.
+* #306: changed the mpv default hardware decoder from `auto` to `auto-copy` to avoid unsafe native-surface handling in the embedded renderer, and removed the deprecated `mpv_opengl_cb` rendering fallback so maintained builds use libmpv's render API.
 * #305: search result pages now size their initial and follow-up fetches from the visible grid capacity, with a small row buffer instead of a hard-coded 25 items.
 * #301: VOD resume positions now compare against the previous saved value before overwriting it, so periodic progress updates are persisted.
 * #286: high-DPI startup no longer depends on the deprecated `QT_AUTO_SCREEN_SCALE_FACTOR` path.
