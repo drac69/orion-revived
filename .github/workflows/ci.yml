@@ -50,6 +50,9 @@ jobs:
       - name: Validate Twitch emote ID handling
         run: ci/check_twitch_emote_ids.sh
 
+      - name: Validate Android metadata
+        run: ci/check_android_metadata.sh
+
       - name: Validate QML resources
         run: ci/check_qml_resources.sh
 
