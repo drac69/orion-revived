@@ -47,6 +47,7 @@ class NetworkManager: public QObject
     Q_OBJECT
 
     Q_PROPERTY(bool up READ networkAccess NOTIFY networkAccessChanged)
+    Q_PROPERTY(quint32 imageReloadToken READ imageReloadToken NOTIFY imageReloadTokenChanged)
 
     enum M3U8TYPE {
         LIVE = QNetworkRequest::CustomVerbAttribute + 1,
@@ -62,6 +63,7 @@ class NetworkManager: public QObject
     NetworkManager(QNetworkAccessManager *mgr);
 
     QString access_token;
+    quint32 image_reload_token = 0;
 
 public:
     ~NetworkManager();
@@ -107,6 +109,7 @@ public:
     Q_INVOKABLE QString getClientId() const { return QString(CLIENT_ID); }
     Q_INVOKABLE QString getPrivateClientId() const { return QString(CLIENT_ID_PRIVATE); }
     Q_INVOKABLE bool networkAccess();
+    quint32 imageReloadToken() const { return image_reload_token; }
 
 signals:
     void finishedConnectionTest();
@@ -144,6 +147,7 @@ signals:
     void getGlobalFfzEmotesOperationFinished(QMap<QString, QString> emotesByCode);
 
     void networkAccessChanged(bool up);
+    void imageReloadTokenChanged();
 
     void userBlocked(quint64 myUserId, const QString & blockedUsername);
     void userUnblocked(quint64 myUserId, const QString & unblockedUsername);

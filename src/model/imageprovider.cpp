@@ -22,6 +22,7 @@
 #include <QStandardPaths>
 #include <QDateTime>
 #include "imageprovider.h"
+#include "../network/networkmanager.h"
 
 const int ImageProvider::MSEC_PER_DOWNLOAD = 16; // ~ 256kbit/sec for 2k images
 
@@ -80,7 +81,7 @@ bool ImageProvider::download(QString key) {
 
     QNetworkRequest request(url);
     QNetworkReply* _reply = nullptr;
-    _reply = _manager.get(request);
+    _reply = networkAccessManager()->get(request);
 
     DownloadHandler * dh = new DownloadHandler(filename, key);
 
@@ -165,6 +166,12 @@ bool ImageProvider::downloadsInProgress() const {
     return activeDownloadCount > 0;
 }
 
+QNetworkAccessManager *ImageProvider::networkAccessManager()
+{
+    NetworkManager *networkManager = NetworkManager::getInstance();
+    return networkManager ? networkManager->getManager() : &_manager;
+}
+
 
 URLFormatImageProvider::URLFormatImageProvider(const QString imageProviderName, const QString urlFormat, const QString extension, const QString cacheDir) :
     ImageProvider(imageProviderName, extension, cacheDir), _urlFormat(urlFormat)
@@ -223,7 +230,13 @@ QImage CachedImageProvider::requestImage(const QString &id, QSize * size, const 
     // TODO figure out something sensible to do re requestedSize
     //qDebug() << "Requested id" << id << "from image provider";
 
-    auto result = _provider->_imageTable.find(id);
+    QString key = id;
+    const int queryIndex = key.indexOf('?');
+    if (queryIndex >= 0) {
+        key.truncate(queryIndex);
+    }
+
+    auto result = _provider->_imageTable.find(key);
     if (result != _provider->_imageTable.end()) {
         *size = result.value().size();
         return result.value();

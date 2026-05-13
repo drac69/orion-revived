@@ -16,6 +16,7 @@ import QtQuick 2.5
 import QtQuick.Window 2.0
 import QtQuick.Controls 2.1
 import app.orion 1.0
+import "../util.js" as Util
 
 Window {
     property string title
@@ -95,7 +96,7 @@ Window {
 
         Image {
             id: img
-            source: imgSrc
+            source: Util.withImageReloadToken(imgSrc, Network.imageReloadToken)
             fillMode: Image.PreserveAspectFit
             width: 80
             height: width

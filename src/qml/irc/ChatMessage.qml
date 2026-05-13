@@ -360,7 +360,7 @@ Item {
                 width: sourceSize.width/(Settings.hiDpi() ? 2.0 : 1.0) * Settings.textScaleFactor
                 height: sourceSize.height/(Settings.hiDpi() ? 2.0 : 1.0) * Settings.textScaleFactor
 
-                source: "image://" + msgItem.imageProvider + "/" + msgItem.imageId;
+                source: Util.withImageReloadToken("image://" + msgItem.imageProvider + "/" + msgItem.imageId, Network.imageReloadToken)
                 asynchronous: true
               }
 
@@ -400,7 +400,7 @@ Item {
                 height: 28 * Settings.textScaleFactor
                 asynchronous: true
 
-                source: msgItem.sourceUrl
+                source: Util.withImageReloadToken(msgItem.sourceUrl || "", Network.imageReloadToken)
               }
 
               Label {

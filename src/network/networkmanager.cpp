@@ -1238,6 +1238,8 @@ bool NetworkManager::handleNetworkError(QNetworkReply *reply)
 
     if (!connectionOK) {
         connectionOK = true;
+        image_reload_token++;
+        emit imageReloadTokenChanged();
         emit networkAccessChanged(true);
     }
 

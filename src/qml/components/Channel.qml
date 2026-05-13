@@ -16,6 +16,7 @@ import QtQuick 2.5
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
+import app.orion 1.0
 import "../util.js" as Util
 
 //Channel.qml
@@ -73,7 +74,7 @@ Item {
 
             Image {
                 id: image
-                source: root.logo
+                source: Util.withImageReloadToken(root.logo, Network.imageReloadToken)
                 property bool isLandscape: sourceSize.width >= sourceSize.height
 
                 fillMode: isLandscape ? Image.PreserveAspectFit : Image.PreserveAspectCrop

@@ -18,6 +18,7 @@ import QtQuick.Window 2.4
 import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.1
 import QtGraphicalEffects 1.0
+import app.orion 1.0
 
 import "../util.js" as Util
 
@@ -33,6 +34,7 @@ Item {
     property real mouseX: position.x
     property real mouseY: position.y
     property Item target
+    property string previewSource: ""
 
 
     function show() {
@@ -94,6 +96,7 @@ Item {
 
             Image {
                 id: img
+                source: Util.withImageReloadToken(root.previewSource, Network.imageReloadToken)
                 anchors.fill: parent
             }
 
@@ -125,7 +128,7 @@ Item {
         text += channel.game + "<br/>"
         text += channel.viewers + " viewers"
         if (channel.language) text += "<br/>Language " + channel.language.toUpperCase()
-        img.source = channel.preview
+        previewSource = channel.preview
 
         display(channel, getPosition)
     }
@@ -146,7 +149,7 @@ Item {
             text += "Muted sections " + channel.mutedSegments + "<br/>"
 
         text += channel.views + " views"
-        img.source = channel.preview
+        previewSource = channel.preview
 
         display(channel, getPosition)
     }

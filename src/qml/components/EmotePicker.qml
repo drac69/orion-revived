@@ -18,6 +18,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.1
 import QtQuick.Window 2.2
 import app.orion 1.0
+import "../util.js" as Util
 
 Page {
     id: root
@@ -275,7 +276,7 @@ Page {
             Image {
                 id: _itemImage
                 visible: model.imageUrl !== ""
-                source: model.imageUrl
+                source: Util.withImageReloadToken(model.imageUrl, Network.imageReloadToken)
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true

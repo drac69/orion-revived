@@ -93,6 +93,7 @@ protected slots:
 
 protected:
     virtual const QUrl getUrlForKey(QString & key) = 0;
+    QNetworkAccessManager *networkAccessManager();
 
 private:
     static const int MSEC_PER_DOWNLOAD;

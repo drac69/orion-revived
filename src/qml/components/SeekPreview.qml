@@ -1,5 +1,6 @@
 import QtQuick 2.5
 import QtGraphicalEffects 1.0
+import app.orion 1.0
 import "../util.js" as Util
 
 Item {
@@ -43,7 +44,7 @@ Item {
             images = []
             if (!source) return
             baseUrl = source.substring(0, source.lastIndexOf("/"))
-            Util.requestJSON(root.source, function(resp) {
+            Util.requestJSON(Util.withImageReloadToken(root.source, Network.imageReloadToken), function(resp) {
                 var info = resp[0]
                 for(var i = 1; i < resp.length; i++) {
                     if (resp[i].width > info.width) {
@@ -68,6 +69,11 @@ Item {
         onFromChanged: d.updateImage()
         onToChanged: d.updateImage()
         onValueChanged: d.updateImage()
+    }
+
+    Connections {
+        target: Network
+        onImageReloadTokenChanged: d.updateInfo()
     }
 
     Rectangle {
@@ -113,7 +119,7 @@ Item {
                 Image {
                     x: -parent.width * parent.column
                     y: -parent.height * parent.row
-                    source: d.baseUrl + "/" + d.images[parent.page]
+                    source: Util.withImageReloadToken(d.baseUrl + "/" + d.images[parent.page], Network.imageReloadToken)
                     asynchronous: true
                     cache: true
                 }

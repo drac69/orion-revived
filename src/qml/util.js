@@ -301,6 +301,22 @@ function formatTime(seconds) {
     return hours + ":" + minutes + ":" + seconds
 }
 
+function withImageReloadToken(source, token) {
+    if (!source || token <= 0)
+        return source
+
+    source = String(source)
+    var lower = source.toLowerCase()
+    if (lower.indexOf("http://") !== 0 && lower.indexOf("https://") !== 0 && lower.indexOf("image://") !== 0)
+        return source
+
+    var fragmentIndex = source.indexOf("#")
+    var fragment = fragmentIndex >= 0 ? source.substring(fragmentIndex) : ""
+    var base = fragmentIndex >= 0 ? source.substring(0, fragmentIndex) : source
+    var separator = base.indexOf("?") >= 0 ? "&" : "?"
+    return base + separator + "orionReload=" + token + fragment
+}
+
 function requestJSON(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = (function(xhr) {

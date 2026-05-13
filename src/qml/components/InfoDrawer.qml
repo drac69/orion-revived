@@ -8,6 +8,8 @@ import "../util.js" as Util
 SidePanel {
     id: root
     property var item: undefined
+    property string previewSource: ""
+    property string logoSource: ""
     property bool labelsVisible: width >= 400
     property int textStyle: Text.Sunken
     dim: false
@@ -23,15 +25,15 @@ SidePanel {
     function show(channelItem) {
         item = Util.copyChannel(channelItem);
 
-        bgImage.source = ""
-        logoImg.source = ""
+        previewSource = ""
+        logoSource = ""
         title.text = "N/A"
         description.text = "N/A"
         viewerCount.text = "N/A"
 
         if (item) {
-            bgImage.source = item.preview || ""
-            logoImg.source = item.logo || ""
+            previewSource = item.preview || ""
+            logoSource = item.logo || ""
             title.text = "<b>" + item.title + "</b>"
             if (item.game) title.text += " playing " + item.game
             viewerCount.visible = item.viewers >= 0
@@ -45,6 +47,7 @@ SidePanel {
     Image {
         z: -1
         id: bgImage
+        source: Util.withImageReloadToken(root.previewSource, Network.imageReloadToken)
         fillMode: Image.PreserveAspectCrop
         anchors.fill: parent
         Rectangle {
@@ -65,6 +68,7 @@ SidePanel {
 
         RoundImage {
             id: logoImg
+            source: Util.withImageReloadToken(root.logoSource, Network.imageReloadToken)
             visible: labelsVisible
             height: parent.height - 60
             width: height
