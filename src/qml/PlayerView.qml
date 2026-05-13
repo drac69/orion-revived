@@ -45,6 +45,8 @@ Page {
     property var vodQueueChannel
     property int vodQueueIndex: -1
     property bool suppressVodQueueAdvance: false
+    property int startupRetryAttempts: 0
+    property int maxStartupRetryAttempts: 2
 
     Material.theme: rootWindow.Material.theme
 
@@ -65,6 +67,27 @@ Page {
         interval: 2000
         repeat: false
         onTriggered: suppressVodQueueAdvance = false
+    }
+
+    Timer {
+        id: startupRetryTimer
+        interval: 12000
+        repeat: false
+        onTriggered: {
+            if (!renderer || renderer.status !== "BUFFERING" || !streamMap || !currentChannel || playbackError) {
+                return
+            }
+
+            if (startupRetryAttempts >= maxStartupRetryAttempts) {
+                console.warn("Playback is still buffering after startup retries")
+                setHeaderText("Still buffering: " + getWatchingTitle())
+                return
+            }
+
+            startupRetryAttempts += 1
+            console.warn("Playback startup stalled; retrying", startupRetryAttempts, "of", maxStartupRetryAttempts)
+            loadAndPlay(true)
+        }
     }
 
     function suppressNextVodQueueAdvance() {
@@ -162,10 +185,14 @@ Page {
     }
 
 
-    function loadAndPlay(){
+    function loadAndPlay(isRetry){
         if (!streamMap) {
             console.log("streamMap not available yet");
             return;
+        }
+
+        if (!isRetry) {
+            startupRetryAttempts = 0
         }
 
         var description = setWatchingTitle();
@@ -189,6 +216,7 @@ Page {
         suppressNextVodQueueAdvance()
         renderer.load(url, start, description)
         renderer.setVolume(volumeSlider.value)
+        startupRetryTimer.restart()
     }
 
     function channelQualityKey() {
@@ -479,6 +507,7 @@ Page {
 
     function reloadStream() {
         playbackError = ""
+        startupRetryAttempts = 0
         stopRendererWithoutQueueAdvance()
         loadAndPlay()
     }
@@ -561,6 +590,9 @@ Page {
         onStatusChanged: {
             root.updateScreensaverState()
             root.updateMprisPlaybackStatus()
+            if (renderer.status !== "BUFFERING") {
+                startupRetryTimer.stop()
+            }
         }
     }
 

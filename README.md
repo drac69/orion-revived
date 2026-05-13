@@ -189,5 +189,4 @@ Installer can be found in the application's install directory (I'll make it inst
 
 ## Known issues
 
-* Sometimes the stream hangs and doesn't load on start. Restarting the stream should work
 * Vods are sometimes having issues, skipping some parts of the video. Needs further investigating
