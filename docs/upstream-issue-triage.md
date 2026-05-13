@@ -79,11 +79,20 @@ These issues remained open upstream but the final `master` code already contains
 * #224: duplicate of closed upstream #209; the final upstream code already replaced the old VOD `rechat-messages` path with the v5 `/videos/{id}/comments` replay-chat API used by this fork.
 * #47: later upstream Windows builds resolved the reported no-content/SSL packaging failure path according to the reporter's 1.6.0-beta retest; this fork does not publish revalidated Windows installers yet.
 
-## Needs Twitch API modernization
+## Needs Twitch API or product support
 
 Twitch documents Helix metadata APIs and embeddable players, but not a supported native HLS playback-token API. The remaining playback-token work therefore needs either an official Twitch replacement API or a product decision to embed/open Twitch's player instead of preserving native HLS playback.
 
+Twitch's current Drops documentation is aimed at game developers and entitlement fulfillment systems, not third-party viewing clients. The documented flow covers account linking, EventSub or Twitch API entitlement delivery, and marking Drop entitlements fulfilled for a game-owned campaign; it does not expose a supported replacement for a native viewer heartbeat or rewards-credit signal. For reward-sensitive viewing, this fork's supported path is to open the channel or VOD on twitch.tv from the player header.
+
 * #283.
+* #226 / #257.
+
+References:
+
+* <https://dev.twitch.tv/docs/drops/>
+* <https://dev.twitch.tv/docs/drops/technical-guide/>
+* <https://dev.twitch.tv/docs/extensions/frontend-api-usage/>
 
 ## Platform, packaging, and distribution follow-up
 
@@ -102,7 +111,7 @@ These are packaging/distribution requests or platform-specific reports that need
 
 These remain product work outside the maintenance pass:
 
-* #278, #226, #257.
+* #278.
 
 ## Administrative
 
