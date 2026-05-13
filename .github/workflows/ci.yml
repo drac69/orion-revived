@@ -9,9 +9,19 @@ on:
   pull_request:
 
 jobs:
-  linux-mpv:
-    name: Linux Qt5/mpv
+  linux-build:
+    name: Linux Qt5/${{ matrix.backend }}
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - backend: mpv
+            config: CONFIG+=mpv
+            packages: libmpv-dev
+          - backend: multimedia
+            config: CONFIG+=multimedia
+            packages: qtmultimedia5-dev qml-module-qtmultimedia
 
     steps:
       - name: Check out source
@@ -25,7 +35,6 @@ jobs:
             build-essential \
             desktop-file-utils \
             libsystemd-dev \
-            libmpv-dev \
             pkg-config \
             ripgrep \
             qt5-qmake \
@@ -38,7 +47,8 @@ jobs:
             qml-module-qtquick-layouts \
             qml-module-qtquick-window2 \
             qml-module-qtquick2 \
-            qtquickcontrols2-5-dev
+            qtquickcontrols2-5-dev \
+            ${{ matrix.packages }}
 
       - name: Validate packaging metadata
         run: |
@@ -76,7 +86,7 @@ jobs:
         run: ci/check_m3u8_parser.sh
 
       - name: Configure
-        run: qmake orion.pro CONFIG+=mpv
+        run: qmake orion.pro "${{ matrix.config }}"
 
       - name: Build
         run: make -j"$(nproc)"

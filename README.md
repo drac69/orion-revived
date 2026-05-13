@@ -79,6 +79,8 @@ To select one or more backends, pass suitable CONFIG variables to qmake (alterna
 
 As default, mpv is used if nothing is passed. When more than one backend is built, the player setting becomes visible and Orion can fall back to another compiled backend if the selected backend cannot load at runtime.
 
+On Ubuntu/Linux Mint, the Qt Multimedia backend also needs `qtmultimedia5-dev` at build time and `qml-module-qtmultimedia` at runtime.
+
 #### Get orion from github and install
 
 ```
