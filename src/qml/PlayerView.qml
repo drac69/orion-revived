@@ -202,12 +202,18 @@ Page {
         var quality = selectStreamQuality(preferredStreamQuality());
         if (!quality) {
             console.error("did not find a usable stream quality");
+            playbackError = "quality_error"
+            startupRetryTimer.stop()
+            setHeaderText("No playable stream quality: " + getWatchingTitle())
             return;
         }
         var url = streamMap[quality]
 
         if (url == null) {
             console.error("did not have a playback url");
+            playbackError = "quality_error"
+            startupRetryTimer.stop()
+            setHeaderText("Missing playback URL: " + getWatchingTitle())
             return;
         }
 
@@ -479,6 +485,7 @@ Page {
 
         streamMap = streams
         sourcesBox.model = sourceNames
+        console.debug("Available stream qualities:", sourceNames.join(", "))
 
         sourcesBox.selectItem(selectStreamQuality(preferredStreamQuality()));
         loadAndPlay()
