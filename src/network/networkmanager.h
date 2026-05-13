@@ -64,6 +64,7 @@ class NetworkManager: public QObject
     QString helixAccessToken(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
     QString helixClientId(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
     void addHelixHeaders(QNetworkRequest &request, HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
+    void requestAppAccessToken();
 
     static NetworkManager *singleton;
 
@@ -72,6 +73,8 @@ class NetworkManager: public QObject
     QString access_token;
     QString app_access_token;
     QString app_client_id;
+    QString app_client_secret;
+    bool app_access_token_request_pending = false;
     quint32 image_reload_token = 0;
 
 public:
@@ -199,6 +202,7 @@ private slots:
     void channelBttvEmotesReply();
     void globalFfzEmotesReply();
     void channelFfzEmotesReply();
+    void appAccessTokenReply();
 
     void setAccessToken(const QString &accessToken);
 

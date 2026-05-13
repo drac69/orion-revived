@@ -66,6 +66,23 @@ if ! rg -q 'www\.twitch\.tv/videos' src/qml/irc/Chat.qml; then
     fail=1
 fi
 
+for required_app_token_token in \
+    'ORION_TWITCH_CLIENT_SECRET' \
+    'https://id\.twitch\.tv/oauth2/token' \
+    'grant_type", "client_credentials' \
+    'appAccessTokenReply'
+do
+    if ! rg -q "$required_app_token_token" src/network/networkmanager.*; then
+        printf 'Helix app access token client-credentials support is missing token: %s\n' "$required_app_token_token" >&2
+        fail=1
+    fi
+done
+
+if ! rg -q 'ORION_TWITCH_CLIENT_SECRET' README.md docs/upstream-issue-triage.md; then
+    printf 'Twitch client-credentials environment variables must be documented.\n' >&2
+    fail=1
+fi
+
 for required_vod_field in description language published_at url muted_segments; do
     if ! rg -q "\"$required_vod_field\"" src/util/jsonparser.cpp; then
         printf 'Helix VOD metadata field %s must be parsed for filtering/display.\n' "$required_vod_field" >&2

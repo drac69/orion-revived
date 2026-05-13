@@ -29,8 +29,12 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
     operation = man;
     app_access_token = qEnvironmentVariable("ORION_TWITCH_APP_ACCESS_TOKEN").trimmed();
     app_client_id = qEnvironmentVariable("ORION_TWITCH_CLIENT_ID").trimmed();
+    app_client_secret = qEnvironmentVariable("ORION_TWITCH_CLIENT_SECRET").trimmed();
     if (!app_access_token.isEmpty() && app_client_id.isEmpty()) {
         app_client_id = getClientId();
+    }
+    if (app_access_token.isEmpty() && !app_client_secret.isEmpty() && app_client_id.isEmpty()) {
+        qWarning() << "ORION_TWITCH_CLIENT_SECRET is set but ORION_TWITCH_CLIENT_ID is missing; cannot request a Twitch app access token";
     }
 
     connectionOK = false;
@@ -56,6 +60,7 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
 void NetworkManager::setAccessToken(const QString &accessToken)
 {
     access_token = accessToken;
+    requestAppAccessToken();
 }
 
 QString NetworkManager::helixAccessToken(HelixAuthMode mode) const
@@ -88,7 +93,7 @@ bool NetworkManager::requireHelixAccessToken(const QString &operation, HelixAuth
 
     const QString message = mode == HelixAuthMode::UserOnly
             ? operation + " requires Twitch login"
-            : operation + " requires Twitch login or ORION_TWITCH_APP_ACCESS_TOKEN";
+            : operation + " requires Twitch login, ORION_TWITCH_APP_ACCESS_TOKEN, or ORION_TWITCH_CLIENT_ID with ORION_TWITCH_CLIENT_SECRET";
     qWarning().noquote() << message;
     emit error(message);
     return false;
@@ -102,6 +107,31 @@ void NetworkManager::addHelixHeaders(QNetworkRequest &request, HelixAuthMode mod
     if (!token.isEmpty()) {
         request.setRawHeader("Authorization", ("Bearer " + token).toUtf8());
     }
+}
+
+void NetworkManager::requestAppAccessToken()
+{
+    if (!app_access_token.isEmpty()
+            || app_access_token_request_pending
+            || !access_token.isEmpty()
+            || app_client_id.isEmpty()
+            || app_client_secret.isEmpty()) {
+        return;
+    }
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(QStringLiteral("https://id.twitch.tv/oauth2/token")));
+    request.setRawHeader("Accept", "application/json");
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/x-www-form-urlencoded"));
+
+    QUrlQuery form;
+    form.addQueryItem("client_id", app_client_id);
+    form.addQueryItem("client_secret", app_client_secret);
+    form.addQueryItem("grant_type", "client_credentials");
+
+    app_access_token_request_pending = true;
+    QNetworkReply *reply = operation->post(request, form.toString(QUrl::FullyEncoded).toUtf8());
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::appAccessTokenReply);
 }
 
 NetworkManager::~NetworkManager()
@@ -1208,6 +1238,35 @@ void NetworkManager::handleSslErrors(QNetworkReply * /*reply*/, QList<QSslError>
     }
 
     //reply->ignoreSslErrors(errors);
+}
+
+void NetworkManager::appAccessTokenReply()
+{
+    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    app_access_token_request_pending = false;
+
+    if (!handleNetworkError(reply)) {
+        qWarning() << "Could not request Twitch app access token";
+        reply->deleteLater();
+        return;
+    }
+
+    const QByteArray data = reply->readAll();
+    QJsonParseError parseError;
+    const QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &parseError);
+    const QJsonObject json = jsonDocument.object();
+    const QString token = json.value("access_token").toString().trimmed();
+
+    if (parseError.error != QJsonParseError::NoError || token.isEmpty()) {
+        qWarning() << "Twitch app access token response did not contain an access token";
+        emit error("Twitch app access token request failed");
+        reply->deleteLater();
+        return;
+    }
+
+    app_access_token = token;
+    qInfo() << "Loaded Twitch app access token from client credentials";
+    reply->deleteLater();
 }
 
 void NetworkManager::streamReply()
