@@ -12,7 +12,7 @@ jobs:
   linux-build:
     name: Linux Qt5/${{ matrix.backend }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:

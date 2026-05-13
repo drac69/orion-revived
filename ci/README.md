@@ -12,9 +12,11 @@ remote-image and notification-image fallback handling, checks window/menu
 contracts, validates HTML entity helpers, guards playback recovery behavior, and smoke-tests the HLS
 master-playlist parser.
 
-The Ubuntu dependency installer uses bounded apt timeouts and retries so a
-transient package mirror stall fails cleanly instead of hanging a matrix job.
-The workflow timeout is long enough for those retries to finish. The
+The Ubuntu dependency installer uses bounded apt timeouts plus apt download
+retries so a transient package mirror stall fails cleanly instead of hanging a
+matrix job. The install timeout is intentionally large enough for the combined
+mpv plus Qt Multimedia package set on a slow mirror, and the workflow timeout is
+long enough for the bounded retries to finish. The
 update/install timeouts can be tuned with `ORION_CI_APT_UPDATE_TIMEOUT` and
 `ORION_CI_APT_INSTALL_TIMEOUT`.
 
