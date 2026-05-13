@@ -53,7 +53,7 @@ jobs:
         run: ci/check_workflow_hygiene.sh
 
       - name: Validate patch whitespace
-        run: git diff-tree --check --no-commit-id --root -r HEAD
+        run: ci/check_patch_whitespace.sh
 
       - name: Validate upstream issue triage
         run: ci/check_upstream_issue_triage.sh

@@ -22,7 +22,7 @@ if ! rg -q 'ci/check_workflow_hygiene\.sh' "$workflow"; then
     exit 1
 fi
 
-if ! rg -q 'git diff-tree --check --no-commit-id --root -r HEAD' "$workflow"; then
+if ! rg -q 'ci/check_patch_whitespace\.sh' "$workflow"; then
     printf 'CI workflow must reject whitespace errors in the committed patch.\n' >&2
     exit 1
 fi
