@@ -176,14 +176,9 @@ Page {
                 break;
             case "playlist_error":
                 playbackError = error
-                //Todo: verify message
-                if (isVod) {
-                    setHeaderText("Unavailable: " + getWatchingTitle())
-                } else if (currentChannel) {
-                    setHeaderText("Offline: " + getWatchingTitle())
-                } else {
-                    setHeaderText("Error getting stream")
-                }
+                var playbackTarget = isVod ? "Unable to load VOD" : "Unable to load stream"
+                var watchingTitle = getWatchingTitle()
+                setHeaderText(watchingTitle ? playbackTarget + ": " + watchingTitle : playbackTarget)
                 break;
 
             default:
