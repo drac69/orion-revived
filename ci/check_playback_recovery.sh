@@ -146,3 +146,13 @@ if ! rg -q 'syncSettings\("channel quality"\)' "$settings_manager"; then
     printf 'SettingsManager must immediately sync per-channel stream quality changes.\n' >&2
     exit 1
 fi
+
+if ! rg -q 'syncSettings\("stream quality"\)' "$settings_manager"; then
+    printf 'SettingsManager must immediately sync default stream quality changes.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'syncSettings\("remember channel quality"\)' "$settings_manager"; then
+    printf 'SettingsManager must immediately sync the per-channel quality memory toggle.\n' >&2
+    exit 1
+fi

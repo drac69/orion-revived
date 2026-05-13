@@ -334,6 +334,7 @@ void SettingsManager::setQuality(const QString &quality)
     if (mQuality != quality) {
         mQuality = quality;
         settings.setValue("quality", quality);
+        syncSettings("stream quality");
         emit qualityChanged();
     }
 }
@@ -348,6 +349,7 @@ void SettingsManager::setRememberChannelQuality(bool rememberChannelQuality)
     if (mRememberChannelQuality != rememberChannelQuality) {
         mRememberChannelQuality = rememberChannelQuality;
         settings.setValue("rememberChannelQuality", rememberChannelQuality);
+        syncSettings("remember channel quality");
         emit rememberChannelQualityChanged();
     }
 }
