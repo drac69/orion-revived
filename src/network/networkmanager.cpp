@@ -16,7 +16,6 @@
 #include "../util/fileutils.h"
 #include "../util/jsonparser.h"
 #include "../util/m3u8parser.h"
-#include <QNetworkConfiguration>
 #include <QEventLoop>
 #include <QSet>
 #include <QUrlQuery>
@@ -28,19 +27,20 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
 {
     operation = man;
 
-    //Select interface
     connectionOK = false;
-    testNetworkInterface();
+
+    //Set up offline poller
+    offlinePoller.setInterval(2000);
+    connect(&offlinePoller, &QTimer::timeout, this, &NetworkManager::testNetworkConnection);
+
+    //Initial network reachability check
+    testNetworkConnection();
 
     //SSL errors handle (down the drain)
     connect(operation, &QNetworkAccessManager::sslErrors, this, &NetworkManager::handleSslErrors);
 
     //Handshake
     operation->connectToHostEncrypted(QStringLiteral("api.twitch.tv"));
-
-    //Set up offline poller
-    offlinePoller.setInterval(2000);
-    connect(&offlinePoller, &QTimer::timeout, this, &NetworkManager::testNetworkInterface);
 
     //Set up listening to access token changes
     connect(SettingsManager::getInstance(), &SettingsManager::accessTokenChanged, this, &NetworkManager::setAccessToken);
@@ -76,80 +76,16 @@ void NetworkManager::initialize(QNetworkAccessManager *mgr)
     singleton = new NetworkManager(mgr);
 }
 
-void NetworkManager::testNetworkInterface()
+void NetworkManager::testNetworkConnection()
 {
-    //Chooses a working network interface from interfaces list, if default configuration doesn't work
-
-    QNetworkConfigurationManager conf;
-    QString identifier;
-
     QEventLoop loop;
     connect(this, &NetworkManager::finishedConnectionTest, &loop, &QEventLoop::quit);
-
-    //Test default configuration
-    operation->setConfiguration(conf.defaultConfiguration());
 
     testConnection();
     loop.exec();
 
-    if (connectionOK == true) {
-        qDebug() << "Selected default network configuration";
-        return;
-    }
-
-    else {
-        qDebug() << "Failure on default configuration, attempt to choose another interaface..";
-
-        foreach (const QNetworkInterface & interface, QNetworkInterface::allInterfaces())
-        {
-            if (!interface.isValid())
-                continue;
-
-//            qDebug() << "Identifier: " << interface.name();
-//            qDebug() << "HW addr: " << interface.hardwareAddress();
-
-            bool isUp = interface.flags().testFlag(QNetworkInterface::IsUp);
-            bool isLoopback = interface.flags().testFlag(QNetworkInterface::IsLoopBack);
-            bool isActive = interface.flags().testFlag(QNetworkInterface::IsRunning);
-//            bool isPtP = interface.flags().testFlag(QNetworkInterface::IsPointToPoint);
-
-//            qDebug() << "Properties: ";
-//            qDebug() << (isUp ? "Is up" : "Is down");
-
-//            if (isLoopback)
-//                qDebug() << "Loopback";
-
-//            qDebug() << (isActive ? "Active" : "Inactive");
-
-//            if (isPtP)
-//                qDebug() << "Is Point-to-Point";
-
-//            qDebug() << "";
-
-            if (isUp && isActive && !isLoopback) {
-                identifier = interface.name();
-                qDebug() << "Testing connection for interface " << identifier;
-                operation->setConfiguration(conf.configurationFromIdentifier(identifier));
-
-                testConnection();
-                loop.exec();
-
-                if (connectionOK == true) {
-                    qDebug() << "Success!";
-                    return;
-                }
-
-                else
-                    qDebug() << "Failure, trying another interface...";
-            }
-
-        }
-    }
-
-    if (!connectionOK) {
-        operation->setConfiguration(conf.defaultConfiguration());
+    if (!connectionOK && !offlinePoller.isActive())
         offlinePoller.start();
-    }
 }
 
 bool NetworkManager::networkAccess() {

@@ -17,8 +17,6 @@
 
 #include <QObject>
 #include <QtNetwork/QNetworkAccessManager>
-#include <QNetworkConfigurationManager>
-#include <QNetworkInterface>
 //#include <QtWebKitWidgets/QtWebKitWidgets>
 #include <QUrl>
 #include <QtNetwork/QNetworkReply>
@@ -159,7 +157,7 @@ public slots:
     void checkVersion();
 
 private slots:
-    void testNetworkInterface();
+    void testNetworkConnection();
     void testConnection();
     void testConnectionReply();
     void handleSslErrors(QNetworkReply * reply, QList<QSslError> errors);
