@@ -74,25 +74,31 @@ These issues remained open upstream but the final `master` code already contains
 * #217: chat background opacity is configurable in the chat settings.
 * #215: VOD seek/open paths no longer emit duplicate online notifications in the current channel model update flow.
 * #275: Linux `make install` target in `orion.pro`.
+* #224: duplicate of closed upstream #209; the final upstream code already replaced the old VOD `rechat-messages` path with the v5 `/videos/{id}/comments` replay-chat API used by this fork.
+* #47: later upstream Windows builds resolved the reported no-content/SSL packaging failure path according to the reporter's 1.6.0-beta retest; this fork does not publish revalidated Windows installers yet.
 
 ## Needs Twitch API modernization
 
 These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VOD endpoints and should be handled as a dedicated Helix/EventSub/chat migration rather than one-off fixes:
 
-* #283, #277, #257, #239, #224, #142, #47, #42, #34.
+* #283.
 
 ## Platform, packaging, and distribution follow-up
 
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
 * #276: added FreeBSD dependency notes to the README.
+* #239: Fedora's package was built with the Qt Multimedia/GStreamer backend and missing codec/video sink dependencies, while distro comments recommend rebuilding with mpv; this remains distro packaging work.
+* #277: the failed VOD thumbnail URLs also failed on Twitch's own website according to upstream triage, so this is an upstream Twitch data/thumbnail issue rather than an Orion API bug.
+* #34: the Fluendo/GStreamer codec-pack playback failure depends on an old Qt Multimedia/GStreamer backend path and proprietary codec pack behavior that has not been reproduced here.
+* #42: duplicate/random playback stop report linked upstream to closed #43; remaining validation needs target OS/GPU/backend reproduction.
 * #267, #261, #235, #219, #216.
 
 ## Feature requests not implemented here
 
 These remain product work outside the maintenance pass:
 
-* #278, #226.
+* #278, #226, #257, #142.
 
 ## Administrative
 
