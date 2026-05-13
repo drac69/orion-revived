@@ -4,6 +4,10 @@ set -euo pipefail
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 readme="$repo_dir/README.md"
 workflow="$repo_dir/.github/workflows/ci.yml"
+ci_dependency_sources=(
+    "$workflow"
+    "$repo_dir/ci/install_ubuntu_ci_deps.sh"
+)
 
 require_package_for_import() {
     local import_pattern=$1
@@ -14,7 +18,7 @@ require_package_for_import() {
             printf 'README Ubuntu dependencies must include %s for %s.\n' "$package_name" "$import_pattern" >&2
             exit 1
         fi
-        if ! rg -q "$package_name" "$workflow"; then
+        if ! rg -q "$package_name" "${ci_dependency_sources[@]}"; then
             printf 'CI dependencies must include %s for %s.\n' "$package_name" "$import_pattern" >&2
             exit 1
         fi

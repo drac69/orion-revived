@@ -11,6 +11,9 @@ window/menu contracts, validates HTML entity helpers, guards playback recovery
 behavior, and smoke-tests the HLS
 master-playlist parser.
 
+The Ubuntu dependency installer uses bounded apt timeouts and retries so a
+transient package mirror stall fails cleanly instead of hanging a matrix job.
+
 GitHub Actions versions are monitored by Dependabot through
 `.github/dependabot.yml`.
 

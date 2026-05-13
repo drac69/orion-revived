@@ -18,7 +18,7 @@ check_guard_reference() {
 
 while IFS= read -r file; do
     base=${file##*/}
-    if [[ "$base" == check_* || "$base" == "legacy_ci_guard.sh" ]]; then
+    if [[ "$base" == check_* || "$base" == "install_ubuntu_ci_deps.sh" || "$base" == "legacy_ci_guard.sh" ]]; then
         continue
     fi
     check_guard_reference "$file" 'legacy_ci_guard\.sh' 5

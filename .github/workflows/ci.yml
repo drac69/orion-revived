@@ -12,6 +12,7 @@ jobs:
   linux-build:
     name: Linux Qt5/${{ matrix.backend }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -31,27 +32,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            appstream \
-            build-essential \
-            desktop-file-utils \
-            libsystemd-dev \
-            pkg-config \
-            ripgrep \
-            qt5-qmake \
-            qtbase5-dev \
-            qtdeclarative5-dev \
-            qml-module-qtgraphicaleffects \
-            qml-module-qt-labs-settings \
-            qml-module-qtquick-controls \
-            qml-module-qtquick-controls2 \
-            qml-module-qtquick-layouts \
-            qml-module-qtquick-window2 \
-            qml-module-qtquick2 \
-            qtquickcontrols2-5-dev \
-            ${{ matrix.packages }}
+        run: ci/install_ubuntu_ci_deps.sh ${{ matrix.packages }}
 
       - name: Validate packaging metadata
         run: |
