@@ -8,6 +8,13 @@ on:
       - modernize-maintenance
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   linux-build:
     name: Linux Qt5/${{ matrix.backend }}
@@ -41,6 +48,9 @@ jobs:
 
       - name: Validate legacy CI guard
         run: ci/check_legacy_ci_guard.sh
+
+      - name: Validate workflow hygiene
+        run: ci/check_workflow_hygiene.sh
 
       - name: Validate upstream issue triage
         run: ci/check_upstream_issue_triage.sh
