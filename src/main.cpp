@@ -17,6 +17,7 @@
 #include <QScreen>
 #include <QQmlContext>
 #include <QCommandLineParser>
+#include <QFont>
 #include <QNetworkProxyFactory>
 #include <QFontDatabase>
 #include <QIcon>
@@ -64,6 +65,8 @@
 #pragma comment(lib, "User32.lib")
 #endif
 
+static const char *ORION_DEFAULT_FONT_FAMILY = "Noto Sans";
+
 void configureHighDpiScaling()
 {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -75,18 +78,60 @@ void configureHighDpiScaling()
 #endif
 }
 
-void registerBundledFont(const QString &path)
+QStringList registerBundledFont(const QString &path)
 {
     const int fontId = QFontDatabase::addApplicationFont(path);
     if (fontId < 0) {
         qWarning().noquote() << "Could not load bundled font" << path;
+        return QStringList();
     }
+
+    const QStringList families = QFontDatabase::applicationFontFamilies(fontId);
+    if (families.isEmpty()) {
+        qWarning().noquote() << "Bundled font did not expose a family" << path;
+    }
+    return families;
 }
 
-void registerBundledFonts()
+QStringList registerBundledFonts()
 {
-    registerBundledFont(":/fonts/MaterialIcons-Regular.ttf");
-    registerBundledFont(":/fonts/NotoSans-Regular.ttf");
+    QStringList families;
+    families << registerBundledFont(":/fonts/MaterialIcons-Regular.ttf");
+    families << registerBundledFont(":/fonts/NotoSans-Regular.ttf");
+    return families;
+}
+
+bool fontFamilyAvailable(const QString &family)
+{
+    return QFontDatabase().families().contains(family, Qt::CaseInsensitive);
+}
+
+void configureApplicationFont()
+{
+    SettingsManager *settings = SettingsManager::getInstance();
+    QString family = settings->font().trimmed();
+
+    if (!family.isEmpty() && !fontFamilyAvailable(family)) {
+        qWarning().noquote() << "Configured font" << family
+                             << "is unavailable; using bundled"
+                             << ORION_DEFAULT_FONT_FAMILY;
+        settings->setFont("");
+        family.clear();
+    }
+
+    if (family.isEmpty()) {
+        family = QString::fromLatin1(ORION_DEFAULT_FONT_FAMILY);
+    }
+
+    if (!fontFamilyAvailable(family)) {
+        qWarning().noquote() << "Default application font" << family
+                             << "is unavailable; keeping Qt default font";
+        return;
+    }
+
+    QFont font = QGuiApplication::font();
+    font.setFamily(family);
+    QGuiApplication::setFont(font);
 }
 
 QString singleInstanceLockPath()
@@ -477,6 +522,7 @@ int main(int argc, char *argv[])
     const QIcon appIcon = QIcon(":/icon/orion.ico");
     app.setWindowIcon(appIcon);
     registerBundledFonts();
+    configureApplicationFont();
 
     QString startupChannel;
     QString mpvConfigFile;

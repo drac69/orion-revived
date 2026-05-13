@@ -56,6 +56,9 @@ jobs:
       - name: Validate QML resources
         run: ci/check_qml_resources.sh
 
+      - name: Validate QML fonts
+        run: ci/check_qml_fonts.sh
+
       - name: Validate QML window contracts
         run: ci/check_qml_window_contracts.sh
 

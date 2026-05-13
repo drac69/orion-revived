@@ -493,7 +493,7 @@ Page {
                             text: "Reset"
                             font.pointSize: 9
                             onClicked: {
-                                Settings.font = appFont.name
+                                Settings.font = ""
                             }
                         }
                     }
