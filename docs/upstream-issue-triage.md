@@ -57,6 +57,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #285: live and VOD playlist requests now use the current HTTPS `usher.ttvnw.net` host, the live `allow_audio_only` query parameter typo is fixed, and empty token-parser results now fail as token errors instead of fetching an empty URL; the old playback-token endpoints still need a deeper replacement.
 * #167: fixed a network-recovery condition that always reloaded playback on network-up events, and guarded stream-status polling against stale/no current channel state; hosted-channel IRC behavior still needs live reproduction.
 * #271: returning to the VOD view no longer forces the grid back to the beginning, so the current scroll position is preserved while navigating away and back; broader VOD filtering, sorting, playlist, chapter, muted-section, and cache work remains.
+* #119: the README now explains that the GitHub build commands are terminal commands, separates build/run/install steps, and documents that revalidated Windows/macOS installers are not published yet.
 
 ## Already covered by the final upstream code
 
@@ -80,7 +81,7 @@ These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VO
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
 * #276: added FreeBSD dependency notes to the README.
-* #267, #261, #235, #219, #216, #202, #119, #90.
+* #267, #261, #235, #219, #216, #202, #90.
 
 ## Feature requests not implemented here
 

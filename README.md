@@ -13,6 +13,10 @@ This fork starts from the final upstream `master` state and focuses on keeping t
 
 Some old upstream issues are broad feature requests or depend on Twitch API behavior that has changed since the original project was archived. See `docs/upstream-issue-triage.md` for the current issue audit.
 
+## Downloads
+
+This fork currently validates source builds on Linux through GitHub Actions. Revalidated Windows and macOS installers are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below.
+
 ## Features: 
 
 * Login by twitch credentials
@@ -36,6 +40,8 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 ## Building on linux
 
 (Using arch linux examples, but can be applied to other distros as well)
+
+Run the commands in this section from a terminal application, such as Terminal, Konsole, GNOME Terminal, or another shell.
 
 #### Install needed libraries and software
 
@@ -76,7 +82,19 @@ git clone https://github.com/belagrf/orion
 cd orion
 mkdir build && cd build
 qmake ../
-make && sudo make install
+make -j"$(nproc)"
+```
+
+To try the build before installing it system-wide:
+
+```
+./orion --debug
+```
+
+To install it into the default prefix:
+
+```
+sudo make install
 ```
 
 Open a channel directly from a launcher or shell:
