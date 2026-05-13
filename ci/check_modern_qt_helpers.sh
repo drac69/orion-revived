@@ -3,7 +3,9 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
-if rg -n '\bforeach\s*\(' "$repo_dir/src/util"; then
-    printf 'src/util parser helpers must use range-based loops instead of Qt foreach.\n' >&2
-    exit 1
-fi
+for source_dir in "$repo_dir/src/util" "$repo_dir/src/network"; do
+    if rg -n '\bforeach\s*\(' "$source_dir"; then
+        printf '%s must use range-based loops instead of Qt foreach.\n' "$source_dir" >&2
+        exit 1
+    fi
+done

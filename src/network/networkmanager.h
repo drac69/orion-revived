@@ -175,7 +175,7 @@ private slots:
     void testNetworkConnection();
     void testConnection();
     void testConnectionReply();
-    void handleSslErrors(QNetworkReply * reply, QList<QSslError> errors);
+    void handleSslErrors(QNetworkReply * reply, const QList<QSslError> &errors);
     void allStreamsReply();
     void gamesReply();
     void gameStreamsReply();

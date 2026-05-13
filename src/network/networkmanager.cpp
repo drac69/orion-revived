@@ -1262,9 +1262,9 @@ bool NetworkManager::handleNetworkError(QNetworkReply *reply)
     return true;
 }
 
-void NetworkManager::handleSslErrors(QNetworkReply * /*reply*/, QList<QSslError> errors)
+void NetworkManager::handleSslErrors(QNetworkReply * /*reply*/, const QList<QSslError> &errors)
 {
-    foreach (const QSslError & e, errors) {
+    for (const QSslError &e : errors) {
         qDebug() << "Ssl error: " << e.errorString();
     }
 
@@ -1388,10 +1388,13 @@ void addOfflineChannels(QList<Channel *> & channels, const QList<quint64> & expe
     if (channels.count() < expectedChannelIds.count()) {
         QSet<quint64> unseenChannelIds(expectedChannelIds.constBegin(), expectedChannelIds.constEnd());
 
-        foreach(const Channel* channel, channels) {
+        const QList<Channel *> &knownChannels = channels;
+        for (const Channel *channel : knownChannels) {
             unseenChannelIds.remove(channel->getId());
         }
-        foreach(const quint64 id, unseenChannelIds) {
+
+        const QSet<quint64> &missingChannelIds = unseenChannelIds;
+        for (const quint64 id : missingChannelIds) {
             channels.append(new Channel(id));
         }
     }
