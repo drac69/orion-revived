@@ -41,6 +41,10 @@ Page {
     property bool headersVisible: true
     property bool showPlaybackStats: false
     property string playbackError: ""
+    property var vodQueue: []
+    property var vodQueueChannel
+    property int vodQueueIndex: -1
+    property bool suppressVodQueueAdvance: false
 
     Material.theme: rootWindow.Material.theme
 
@@ -54,6 +58,25 @@ Page {
     function updateScreensaverState() {
         if (renderer)
             PowerManager.screensaver = !Settings.inhibitScreensaver || (renderer.status !== "PLAYING")
+    }
+
+    Timer {
+        id: suppressVodQueueAdvanceTimer
+        interval: 2000
+        repeat: false
+        onTriggered: suppressVodQueueAdvance = false
+    }
+
+    function suppressNextVodQueueAdvance() {
+        suppressVodQueueAdvance = true
+        suppressVodQueueAdvanceTimer.restart()
+    }
+
+    function stopRendererWithoutQueueAdvance() {
+        if (renderer) {
+            suppressNextVodQueueAdvance()
+            renderer.stop()
+        }
     }
 
     //Fix minimode header bar
@@ -163,6 +186,7 @@ Page {
 
         console.debug("Loading: ", url)
 
+        suppressNextVodQueueAdvance()
         renderer.load(url, start, description)
         renderer.setVolume(volumeSlider.value)
     }
@@ -253,11 +277,59 @@ Page {
     }
 
     function getStreams(channel, vod, startPos){
+        clearVodQueue()
         getChannel(channel, vod, true, startPos);
     }
 
     function getChat(channel) {
+        clearVodQueue()
         getChannel(channel, null, false, 0);
+    }
+
+    function clearVodQueue() {
+        vodQueue = []
+        vodQueueChannel = null
+        vodQueueIndex = -1
+    }
+
+    function startVodQueue(channel, vods, startIndex) {
+        if (!channel || !vods || vods.length === 0) {
+            return
+        }
+
+        vodQueue = vods.slice(0)
+        vodQueueChannel = channel
+        vodQueueIndex = Math.max(0, Math.min(startIndex || 0, vodQueue.length - 1))
+        playQueuedVod(true)
+    }
+
+    function playQueuedVod(useSavedPosition) {
+        if (!vodQueueChannel || vodQueueIndex < 0 || vodQueueIndex >= vodQueue.length) {
+            return
+        }
+
+        var vod = vodQueue[vodQueueIndex]
+        var startPos = useSavedPosition ? VodManager.getVodLastPlaybackPosition(vodQueueChannel.name, vod._id) : 0
+        getChannel(vodQueueChannel, vod, true, startPos || 0)
+    }
+
+    function shouldAdvanceVodQueue() {
+        return isVod
+                && vodQueueIndex >= 0
+                && vodQueueIndex + 1 < vodQueue.length
+                && duration > 0
+                && renderer
+                && renderer.position >= Math.max(0, duration - 5)
+    }
+
+    function advanceVodQueue() {
+        if (!shouldAdvanceVodQueue()) {
+            return false
+        }
+
+        vodQueueIndex += 1
+        playQueuedVod(false)
+        return true
     }
 
     function getChannel(channel, vod, wantVideo, startPos){
@@ -267,7 +339,7 @@ Page {
         }
 
         playbackError = ""
-        renderer.stop()
+        stopRendererWithoutQueueAdvance()
 
         if (wantVideo) {
             if (!vod || typeof vod === "undefined") {
@@ -405,7 +477,7 @@ Page {
 
     function reloadStream() {
         playbackError = ""
-        renderer.stop()
+        stopRendererWithoutQueueAdvance()
         loadAndPlay()
     }
 
@@ -437,7 +509,7 @@ Page {
     Connections {
         target: rootWindow
         onClosing: {
-            renderer.stop()
+            stopRendererWithoutQueueAdvance()
         }
     }
 
@@ -475,6 +547,12 @@ Page {
         }
 
         onPlayingStopped: {
+            if (suppressVodQueueAdvance) {
+                suppressVodQueueAdvance = false
+                suppressVodQueueAdvanceTimer.stop()
+            } else if (advanceVodQueue()) {
+                return
+            }
             setHeaderText("Stopped: " + getWatchingTitle());
         }
 
@@ -490,7 +568,7 @@ Page {
         onPlayRequested: if (renderer) resumePlayback()
         onPauseRequested: if (renderer) renderer.pause()
         onPlayPauseRequested: if (renderer) togglePlayback()
-        onStopRequested: if (renderer) renderer.stop()
+        onStopRequested: if (renderer) stopRendererWithoutQueueAdvance()
         onSeekRequested: {
             if (renderer && root.isVod) {
                 root.seekTo(Math.max(0, renderer.position + offset / 1000000))

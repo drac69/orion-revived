@@ -50,6 +50,27 @@ int VodFilterProxyModel::count() const
     return rowCount();
 }
 
+QVariantMap VodFilterProxyModel::itemAt(int row) const
+{
+    QVariantMap out;
+    const QModelIndex itemIndex = index(row, 0);
+    if (!itemIndex.isValid()) {
+        return out;
+    }
+
+    const auto roles = roleNames();
+    for (auto role = roles.constBegin(); role != roles.constEnd(); role++) {
+        const QString name = QString::fromUtf8(role.value());
+        const QVariant value = data(itemIndex, role.key());
+        out.insert(name, value);
+        if (name == QLatin1String("id")) {
+            out.insert(QStringLiteral("_id"), value);
+        }
+    }
+
+    return out;
+}
+
 bool VodFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
     if (mFilterText.isEmpty()) {

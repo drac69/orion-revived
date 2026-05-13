@@ -3,6 +3,7 @@
 
 #include <QSortFilterProxyModel>
 #include <QString>
+#include <QVariantMap>
 
 class VodFilterProxyModel : public QSortFilterProxyModel
 {
@@ -20,6 +21,7 @@ public:
     void setOldestFirst(bool oldestFirst);
 
     Q_INVOKABLE int count() const;
+    Q_INVOKABLE QVariantMap itemAt(int row) const;
 
 signals:
     void filterTextChanged();

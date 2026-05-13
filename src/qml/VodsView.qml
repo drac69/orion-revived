@@ -59,6 +59,21 @@ Item{
         return VodManager.getVodLastPlaybackPosition(channel.name, vod._id);
     }
 
+    function filteredVodsFrom(index) {
+        var vods = []
+        for (var i = Math.max(0, index); i < vodsModel.count(); i++) {
+            vods.push(vodsModel.itemAt(i))
+        }
+        return vods
+    }
+
+    function playQueueFrom(index) {
+        var vods = filteredVodsFrom(index)
+        if (vods.length > 0) {
+            playerView.startVodQueue(selectedChannel, vods, 0)
+        }
+    }
+
     property bool itemInView: isItemInView(this)
     onItemInViewChanged: {
         if (itemInView) {
@@ -116,6 +131,16 @@ Item{
                 }
 
                 ToolButton {
+                    enabled: vodsModel.count() > 0
+                    font.family: "Material Icons"
+                    text: "\ue05f"
+                    focusPolicy: Qt.NoFocus
+                    onClicked: playQueueFrom(0)
+                    ToolTip.visible: hovered
+                    ToolTip.text: "Play filtered list"
+                }
+
+                ToolButton {
                     checkable: true
                     checked: vodsModel.oldestFirst
                     font.family: "Material Icons"
@@ -157,7 +182,7 @@ Item{
             }
 
             onItemClicked: playItem(clickedItem)
-            onItemDoubleClicked: playItem(clickedItem)
+            onItemDoubleClicked: playQueueFrom(index)
 
             onItemTooltipHover: {
                 if (g_tooltip)
