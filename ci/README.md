@@ -27,7 +27,9 @@ update/install timeouts can be tuned with `ORION_CI_APT_UPDATE_TIMEOUT` and
 
 GitHub Actions versions are monitored by Dependabot through
 `.github/dependabot.yml`, and the workflow hygiene guard verifies that weekly
-GitHub Actions update checks stay enabled. CI also runs
+GitHub Actions update checks stay enabled. The workflow hygiene guard also
+verifies that CI-invoked shell scripts keep their committed executable bit. CI
+also runs
 `ci/check_patch_whitespace.sh` to check the committed patch for whitespace
 errors without rewriting legacy files that predate this fork.
 

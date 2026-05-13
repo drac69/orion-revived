@@ -27,6 +27,19 @@ if ! rg -q 'ci/check_patch_whitespace\.sh' "$workflow"; then
     exit 1
 fi
 
+while IFS= read -r script; do
+    script_path="$repo_dir/$script"
+    mode=$(git -C "$repo_dir" ls-files -s -- "$script" | awk '{print $1}')
+
+    if [ "$mode" != "100755" ] || [ ! -x "$script_path" ]; then
+        printf 'CI-invoked script %s must be committed executable.\n' "$script" >&2
+        exit 1
+    fi
+done < <(
+    git -C "$repo_dir" ls-files 'ci/check_*.sh'
+    printf '%s\n' ci/install_ubuntu_ci_deps.sh
+)
+
 if ! rg -q 'package-ecosystem:\s*"github-actions"' "$dependabot" \
         || ! rg -q 'directory:\s*"/"' "$dependabot" \
         || ! rg -q 'interval:\s*"weekly"' "$dependabot"; then
