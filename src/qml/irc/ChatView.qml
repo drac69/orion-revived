@@ -311,11 +311,9 @@ Page {
                             //console.log("adding plain text emote", emoteText, emoteId);
                             chat._textEmotesMap[emoteText] = emoteId;
                         } else {
-                            //Just checking whether our invert text has entities is fine for all the existing global emotes
-                            //TODO actually parse the entire regex so we don't miss any cases that match html entities
                             var htmlText = Util.inverseRegex(emoteText);
                             var decodedText = Util.decodeHtml(htmlText);
-                            var useHtmlDomain = htmlText != decodedText;
+                            var useHtmlDomain = Util.regexContainsHtmlEntity(emoteText) || htmlText != decodedText;
                             //console.log("adding regex emote", emoteText, emoteId, "useHtmlDomain:", useHtmlDomain);
                             chat._regexEmotesList.push({"regex": new RegExp(emoteText), "emoteId": emoteId, "useHtmlDomain": useHtmlDomain});
                         }
@@ -324,9 +322,8 @@ Page {
             }
 
             function lookupEmote(word) {
-                if (_textEmotesMap == null) {
-                    console.log("FIXME: emotes haven't initialized");
-                    return;
+                if (_textEmotesMap == null || _regexEmotesList == null) {
+                    return null;
                 }
                 var emoteId = _textEmotesMap[word];
                 if (emoteId != null) {

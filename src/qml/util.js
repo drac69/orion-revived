@@ -102,7 +102,40 @@ function decodeHtml(html) {
         "amp": "&",
         "lt": "<",
         "gt": ">",
-        "quot": "\""
+        "quot": "\"",
+        "apos": "'",
+        "#039": "'"
+    }
+
+    function decodeEntity(entityName) {
+        var value = entities[entityName];
+        if (value !== undefined) {
+            return value;
+        }
+
+        var decimalMatch = /^#(\d+)$/.exec(entityName);
+        if (decimalMatch) {
+            return stringFromCodePoint(parseInt(decimalMatch[1], 10));
+        }
+
+        var hexMatch = /^#x([0-9a-f]+)$/i.exec(entityName);
+        if (hexMatch) {
+            return stringFromCodePoint(parseInt(hexMatch[1], 16));
+        }
+
+        return null;
+    }
+
+    function stringFromCodePoint(codePoint) {
+        if (!isFinite(codePoint) || codePoint < 0 || codePoint > 0x10ffff) {
+            return null;
+        }
+        if (codePoint <= 0xffff) {
+            return String.fromCharCode(codePoint);
+        }
+
+        codePoint -= 0x10000;
+        return String.fromCharCode(0xd800 + (codePoint >> 10), 0xdc00 + (codePoint & 0x3ff));
     }
 
     var cur = 0;
@@ -117,19 +150,14 @@ function decodeHtml(html) {
 
         var end = html.indexOf(";", pos + 1);
         if (end == -1) {
-            console.log("unterminated entity " + html.substring(pos));
+            parts.push(html.substring(pos));
+            cur = html.length;
             break;
         }
 
         var entityName = html.substring(pos + 1, end);
-        var value = entities[entityName];
-
-        if (!entityName) {
-            console.log("unknown entity " + entityName);
-            break;
-        }
-
-        parts.push(value);
+        var value = decodeEntity(entityName);
+        parts.push(value == null ? html.substring(pos, end + 1) : value);
 
         cur = end + 1;
     }
@@ -145,6 +173,10 @@ function encodeHtml(unsafe) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function regexContainsHtmlEntity(regexText) {
+    return /&(?:amp|lt|gt|quot|apos|#0*(?:34|38|39|60|62)|#x0*(?:22|26|27|3c|3e));/i.test(regexText);
 }
 
 function inverseRegex(s) {
