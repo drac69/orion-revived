@@ -79,17 +79,17 @@ android: {
     CONFIG += multimedia
 
     DISTFILES += android/AndroidManifest.xml \
-    android/gradle/wrapper/gradle-wrapper.jar \
-    android/gradlew \
-    android/res/values/libs.xml \
-    android/build.gradle \
-    android/gradle/wrapper/gradle-wrapper.properties \
-    android/gradlew.bat \
+    android/res/drawable/logo.png \
+    android/res/drawable/splash.xml \
     android/src/com/orion/MainActivity.java
 
-    ANDROID_EXTRA_LIBS = \
-        $$PWD/libs/libcrypto.so \
-        $$PWD/libs/libssl.so
+    exists($$PWD/libs/libcrypto.so):exists($$PWD/libs/libssl.so) {
+        ANDROID_EXTRA_LIBS = \
+            $$PWD/libs/libcrypto.so \
+            $$PWD/libs/libssl.so
+    } else {
+        message("Android OpenSSL libraries were not found under libs/. HTTPS depends on the active Qt Android deployment.")
+    }
 }
 
 #Backend for player, uses mpv as default

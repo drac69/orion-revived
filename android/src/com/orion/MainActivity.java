@@ -1,58 +1,77 @@
 package com.orion;
 
 import org.qtproject.qt5.android.bindings.QtActivity;
-import android.os.*;
-import android.os.PowerManager;
-import android.content.*;
-import android.app.*;
+import android.os.Bundle;
 import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
 
 public class MainActivity extends QtActivity
 {
-        private static MainActivity instance = null;
-	private static PowerManager.WakeLock wl = null;
+	private static final String TAG = "Orion";
+	private static MainActivity instance = null;
+	private static boolean keepScreenOn = false;
 
 	/**Native C++ method calls*/
-
-        /**Singleton getter*/
-         public static MainActivity getInstance() {
-             if (instance == null)
-                 instance = new MainActivity();
-             return instance;
-         }
 
 	/**Activity callbacks*/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-                logMsg("Created MainActivity!");
-                instance = this;
+		logMsg("Created MainActivity");
+		instance = this;
+		applyKeepScreenOn();
 	}
 
-	/**Wakelock methods -- not in use --*/
+	@Override
+	protected void onDestroy() {
+		if (instance == this)
+			instance = null;
+
+		super.onDestroy();
+	}
+
+	/**Screen-on methods called by the C++ power manager*/
 	public static void acquireWakeLock() {
-		if (wl == null) {
-			PowerManager pm = (PowerManager) (getInstance().getSystemService(Context.POWER_SERVICE));
-			// assert(pm.isWakeLockLevelSupported(PowerManager.PARTIAL_WAKE_LOCK));
-                        wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "OrionWakeLock");
-			wl.acquire();
-
-			if (wl.isHeld())
-                                logMsg("acquired wakelock!");
-			else
-                                logMsg("failed to acquire wakelock!");
-		}
+		setKeepScreenOn(true);
 	}
+
 	public static void releaseWakeLock() {
-		if (wl != null) {
-			wl.release();
-			wl = null;
-                        logMsg("released wakelock");
+		setKeepScreenOn(false);
+	}
+
+	private static void setKeepScreenOn(boolean enabled) {
+		keepScreenOn = enabled;
+
+		final MainActivity activity = instance;
+		if (activity == null) {
+			logMsg("MainActivity not ready, deferred keep-screen-on=" + enabled);
+			return;
 		}
+
+		activity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				activity.applyKeepScreenOn();
+			}
+		});
+	}
+
+	private void applyKeepScreenOn() {
+		Window window = getWindow();
+		if (window == null)
+			return;
+
+		if (keepScreenOn)
+			window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		else
+			window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		logMsg("keep-screen-on=" + keepScreenOn);
 	}
 
 	/**Logger*/
 	public static void logMsg(String msg)  {
-		Log.w("LOG", msg);
+		Log.w(TAG, msg);
 	}
 }

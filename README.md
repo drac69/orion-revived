@@ -15,7 +15,7 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 
 ## Downloads
 
-This fork currently validates source builds on Linux through GitHub Actions. Revalidated Windows and macOS installers are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below.
+This fork currently validates source builds on Linux through GitHub Actions. Revalidated Windows, macOS, Android, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`.
 
 ## Features: 
 
@@ -65,6 +65,8 @@ pkg install qt5-buildtools qt5-core qt5-declarative qt5-graphicaleffects qt5-gui
 ```
 
 If using backend other than mpv, install those packages instead.
+
+If a FreeBSD build fails at runtime with unresolved `QSslSocket` or OpenSSL symbols, check that the runtime Qt Network package and OpenSSL libraries come from the same package set. Old FreeBSD 11-era reports of `SSL_CTX_set1_groups` failures were consistent with an SSL runtime mismatch rather than an Orion-only crash.
 
 #### Choosing player backend (optional)
 To select a backend used, pass CONFIG-variable a suitable backend for qmake (alternatively edit straight to .pro file):

@@ -61,7 +61,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #210: new Windows installs now default to ANGLE D3D11 instead of the older D3D9 renderer, and saved D3D9 defaults are migrated to D3D11 to reduce exposure to the Fraps/Qt render-thread crash path; the Fraps-specific crash has not been reproduced in this environment.
 * #90: focused QML text fields now request the Qt input method, and Windows tablet/slate systems also launch the OS touch keyboard (`TabTip.exe`/`osk.exe`) when text inputs gain focus; the Windows tablet behavior has not been reproduced in this environment.
 * #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests; the heavier prefetch segment/proxy approach remains unimplemented.
-* #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; Android playback pause/resume, call-audio handling, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
+* #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; the Android Activity now uses `FLAG_KEEP_SCREEN_ON` instead of a deprecated wakelock, and Qt background running is disabled so playback is suspended when Android backgrounds the Activity. Android playback pause/resume, call-audio behavior, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
 * #268: Twitch `USERNOTICE` raid messages now append a channel URL from the raid `msg-param-login` tag, and chat system notices render URLs as selectable/clickable links; automatic in-client raid redirection is still not implemented.
 * #283: the player header now offers a direct Twitch fallback for the current live channel or VOD, giving users a supported path when Orion's native playlist-token flow fails; a documented native HLS playback-token replacement remains unavailable.
 
@@ -89,12 +89,13 @@ Twitch documents Helix metadata APIs and embeddable players, but not a supported
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
 * #276: added FreeBSD dependency notes to the README.
+* #216: added FreeBSD SSL-runtime troubleshooting for the reported `SSL_CTX_set1_groups` startup failure; the original FreeBSD 11 crash has not been reproduced in this environment.
 * #235 / #219: Linux desktop packaging metadata now points at this maintained fork, uses a reverse-DNS AppStream component ID with a desktop launchable, and validates with `appstreamcli`; publishing distro packages or a PPA remains maintainer/distribution work.
 * #239: Fedora's package was built with the Qt Multimedia/GStreamer backend and missing codec/video sink dependencies, while distro comments recommend rebuilding with mpv; this remains distro packaging work.
 * #277: the failed VOD thumbnail URLs also failed on Twitch's own website according to upstream triage, so this is an upstream Twitch data/thumbnail issue rather than an Orion API bug.
 * #34: the Fluendo/GStreamer codec-pack playback failure depends on an old Qt Multimedia/GStreamer backend path and proprietary codec pack behavior that has not been reproduced here.
 * #42: duplicate/random playback stop report linked upstream to closed #43; remaining validation needs target OS/GPU/backend reproduction.
-* #267, #261, #216.
+* #267 / #261: Android source metadata now follows the fork version and Android/F-Droid release status is documented in `docs/android.md`; publishing a Play Store or F-Droid package still needs a maintained Android build recipe and target-device validation.
 
 ## Feature requests not implemented here
 
