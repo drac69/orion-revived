@@ -94,6 +94,7 @@ void SettingsManager::load()
     setOpengl(savedOpengl);
     setQuality(settings.value("quality", mQuality).toString());
     setRememberChannelQuality(settings.value("rememberChannelQuality", mRememberChannelQuality).toBool());
+    setLowLatencyPlayback(settings.value("lowLatencyPlayback", mLowLatencyPlayback).toBool());
     const QString savedDecoder = settings.value("decoder", mDecoder).toString();
     setDecoder(savedDecoder == "auto" ? mDecoder : savedDecoder);
     setAudioCompressor(settings.value("audioCompressor", mAudioCompressor).toBool());
@@ -322,6 +323,20 @@ void SettingsManager::setRememberChannelQuality(bool rememberChannelQuality)
         mRememberChannelQuality = rememberChannelQuality;
         settings.setValue("rememberChannelQuality", rememberChannelQuality);
         emit rememberChannelQualityChanged();
+    }
+}
+
+bool SettingsManager::lowLatencyPlayback() const
+{
+    return mLowLatencyPlayback;
+}
+
+void SettingsManager::setLowLatencyPlayback(bool lowLatencyPlayback)
+{
+    if (mLowLatencyPlayback != lowLatencyPlayback) {
+        mLowLatencyPlayback = lowLatencyPlayback;
+        settings.setValue("lowLatencyPlayback", lowLatencyPlayback);
+        emit lowLatencyPlaybackChanged();
     }
 }
 

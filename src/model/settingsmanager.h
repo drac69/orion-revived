@@ -23,6 +23,7 @@ class SettingsManager : public QObject
     Q_PROPERTY(QString opengl READ opengl WRITE setOpengl NOTIFY openglChanged)
     Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY qualityChanged)
     Q_PROPERTY(bool rememberChannelQuality READ rememberChannelQuality WRITE setRememberChannelQuality NOTIFY rememberChannelQualityChanged)
+    Q_PROPERTY(bool lowLatencyPlayback READ lowLatencyPlayback WRITE setLowLatencyPlayback NOTIFY lowLatencyPlaybackChanged)
     Q_PROPERTY(QString decoder READ decoder WRITE setDecoder NOTIFY decoderChanged)
     Q_PROPERTY(bool audioCompressor READ audioCompressor WRITE setAudioCompressor NOTIFY audioCompressorChanged)
     Q_PROPERTY(QString backend READ backend WRITE setBackend NOTIFY backendChanged)
@@ -58,6 +59,7 @@ class SettingsManager : public QObject
 #endif
     QString mQuality = "source";
     bool mRememberChannelQuality = false;
+    bool mLowLatencyPlayback = false;
     QString mDecoder = "auto-copy";
     bool mAudioCompressor = false;
 
@@ -139,6 +141,9 @@ public:
     bool rememberChannelQuality() const;
     void setRememberChannelQuality(bool rememberChannelQuality);
 
+    bool lowLatencyPlayback() const;
+    void setLowLatencyPlayback(bool lowLatencyPlayback);
+
     QString decoder() const;
     void setDecoder(const QString &decoder);
 
@@ -206,6 +211,7 @@ signals:
     void openglChanged();
     void qualityChanged();
     void rememberChannelQualityChanged();
+    void lowLatencyPlaybackChanged();
     void decoderChanged();
     void audioCompressorChanged();
     void backendChanged();

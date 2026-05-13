@@ -552,6 +552,9 @@ QString JsonParser::parseChannelStreamExtractionInfo(const QByteArray &data)
         query.addQueryItem("allow_audio_only", "true");
         query.addQueryItem("type", "any");
         query.addQueryItem("p", playlistNonce());
+        if (SettingsManager::getInstance()->lowLatencyPlayback()) {
+            query.addQueryItem("fast_bread", "true");
+        }
         playlistUrl.setQuery(query);
         url = playlistUrl.toString(QUrl::FullyEncoded);
     }

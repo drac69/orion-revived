@@ -213,6 +213,12 @@ Page {
                         onClicked: Settings.rememberChannelQuality = checked
                     }
 
+                    Switch {
+                        text: "Low latency playback"
+                        checked: Settings.lowLatencyPlayback
+                        onClicked: Settings.lowLatencyPlayback = checked
+                    }
+
                     OptionCombo {
                         width: parent.width
                         id: playerOption

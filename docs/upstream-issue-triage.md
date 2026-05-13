@@ -60,6 +60,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #119: the README now explains that the GitHub build commands are terminal commands, separates build/run/install steps, and documents that revalidated Windows/macOS installers are not published yet.
 * #210: new Windows installs now default to ANGLE D3D11 instead of the older D3D9 renderer, and saved D3D9 defaults are migrated to D3D11 to reduce exposure to the Fraps/Qt render-thread crash path; the Fraps-specific crash has not been reproduced in this environment.
 * #90: focused QML text fields now request the Qt input method, and Windows tablet/slate systems also launch the OS touch keyboard (`TabTip.exe`/`osk.exe`) when text inputs gain focus; the Windows tablet behavior has not been reproduced in this environment.
+* #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests; the heavier prefetch segment/proxy approach remains unimplemented.
 
 ## Already covered by the final upstream code
 
@@ -76,7 +77,7 @@ These issues remained open upstream but the final `master` code already contains
 
 These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VOD endpoints and should be handled as a dedicated Helix/EventSub/chat migration rather than one-off fixes:
 
-* #283, #277, #268, #257, #243, #239, #224, #142, #47, #42, #34.
+* #283, #277, #268, #257, #239, #224, #142, #47, #42, #34.
 
 ## Platform, packaging, and distribution follow-up
 
