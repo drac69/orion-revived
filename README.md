@@ -203,9 +203,11 @@ See more on [qt material docs](https://doc.qt.io/qt-5/qtquickcontrols2-material.
 
 ## Windows troubleshooting
 
-You need Visual C++ 2015-runtime installed. 
-
-Installer can be found in the application's install directory (I'll make it install automatically in the next version)
+Revalidated Windows installers are not published from this fork yet. If you are
+testing an older Windows build or a local Windows build and it fails to start
+because the MSVC runtime is missing, install Microsoft's latest supported Visual
+C++ Redistributable for Visual Studio 2015, 2017, 2019, and 2022:
+<https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist>
 
 ## Known limitations
 
