@@ -26,7 +26,8 @@ update/install timeouts can be tuned with `ORION_CI_APT_UPDATE_TIMEOUT` and
 `ORION_CI_APT_INSTALL_TIMEOUT`.
 
 GitHub Actions versions are monitored by Dependabot through
-`.github/dependabot.yml`.
+`.github/dependabot.yml`, and the workflow hygiene guard verifies that weekly
+GitHub Actions update checks stay enabled.
 
 The other scripts in this directory are legacy upstream Travis/AppVeyor release
 helpers. They reference old Qt, Android, OpenSSL, mpv, and deployment tooling
