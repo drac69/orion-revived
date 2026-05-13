@@ -44,7 +44,7 @@ run_with_retry() {
 
     while (( attempt <= apt_retries )); do
         printf '::group::%s, attempt %d/%d\n' "$label" "$attempt" "$apt_retries"
-        if timeout --foreground "$command_timeout" "$@"; then
+        if sudo env DEBIAN_FRONTEND=noninteractive timeout --kill-after=30s "$command_timeout" "$@"; then
             printf '::endgroup::\n'
             return 0
         else
@@ -67,6 +67,5 @@ if [[ "${ORION_CI_APT_DRY_RUN:-}" == "1" ]]; then
     exit 0
 fi
 
-export DEBIAN_FRONTEND=noninteractive
-run_with_retry "apt-get update" "$apt_update_timeout" sudo apt-get "${apt_options[@]}" update
-run_with_retry "apt-get install" "$apt_install_timeout" sudo apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"
+run_with_retry "apt-get update" "$apt_update_timeout" apt-get "${apt_options[@]}" update
+run_with_retry "apt-get install" "$apt_install_timeout" apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"

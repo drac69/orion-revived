@@ -18,7 +18,9 @@ The Ubuntu dependency installer uses bounded apt timeouts plus apt download
 retries so a transient package mirror stall fails cleanly instead of hanging a
 matrix job. The install timeout is intentionally large enough for the combined
 mpv plus Qt Multimedia package set on a slow mirror, and the workflow timeout is
-long enough for the bounded retries to finish. The
+long enough for the bounded retries to finish. The timeout wrapper runs under
+`sudo` with a short kill-after grace period so stalled apt child processes do not
+survive the wrapper. The
 update/install timeouts can be tuned with `ORION_CI_APT_UPDATE_TIMEOUT` and
 `ORION_CI_APT_INSTALL_TIMEOUT`.
 
