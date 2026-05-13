@@ -52,3 +52,12 @@ jobs:
 
       - name: Build
         run: make -j"$(nproc)"
+
+      - name: Validate install target
+        run: |
+          install_root="$PWD/install-root"
+          make INSTALL_ROOT="$install_root" install
+          test -x "$install_root/usr/bin/orion"
+          test -f "$install_root/usr/share/metainfo/Orion.appdata.xml"
+          test -f "$install_root/usr/share/applications/Orion.desktop"
+          test -f "$install_root/usr/share/icons/hicolor/scalable/apps/orion.svg"
