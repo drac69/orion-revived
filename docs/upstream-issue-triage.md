@@ -108,7 +108,7 @@ These are packaging/distribution requests or platform-specific reports that need
 * #239: Fedora's package was built with the Qt Multimedia/GStreamer backend and missing codec/video sink dependencies, while distro comments recommend rebuilding with mpv; this remains distro packaging work.
 * #277: the failed VOD thumbnail URLs also failed on Twitch's own website according to upstream triage, so this is an upstream Twitch data/thumbnail issue rather than an Orion API bug.
 * #34: the Fluendo/GStreamer codec-pack playback failure depends on an old Qt Multimedia/GStreamer backend path and proprietary codec pack behavior that has not been reproduced here.
-* #42: duplicate/random playback stop report linked upstream to closed #43; unexpected live stops and VOD stops before the final seconds now schedule a bounded automatic reload while user-requested stops and normal VOD endings remain stopped. Remaining validation needs target OS/GPU/backend reproduction.
+* #42: duplicate/random playback stop report linked upstream to closed #43; startup stalls, active-playback buffering stalls, unexpected live stops, and VOD stops before the final seconds now schedule bounded automatic reloads while user-requested stops and normal VOD endings remain stopped. Remaining validation needs target OS/GPU/backend reproduction.
 * #267 / #261: Android source metadata now follows the fork version, CI validates the Android manifest/version/lifecycle/permission invariants that can be checked without an Android toolchain, and Android/F-Droid release status is documented in `docs/android.md`; publishing a Play Store or F-Droid package still needs a maintained Android build recipe and target-device validation.
 
 ## Administrative

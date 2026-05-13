@@ -700,7 +700,9 @@ Page {
         onStatusChanged: {
             root.updateScreensaverState()
             root.updateMprisPlaybackStatus()
-            if (renderer.status !== "BUFFERING") {
+            if (renderer.status === "BUFFERING" && streamMap && currentChannel && !playbackError) {
+                startupRetryTimer.restart()
+            } else if (renderer.status !== "BUFFERING") {
                 startupRetryTimer.stop()
             }
         }

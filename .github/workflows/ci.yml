@@ -59,6 +59,9 @@ jobs:
       - name: Validate QML HTML utilities
         run: ci/check_qml_util_html.sh
 
+      - name: Validate playback recovery
+        run: ci/check_playback_recovery.sh
+
       - name: Validate M3U8 parser
         run: ci/check_m3u8_parser.sh
 
