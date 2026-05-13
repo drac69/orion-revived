@@ -14,43 +14,98 @@ RoundButton {
     property var lastEmoteSets
     property int curDownloading
     property ListModel setsVisible: ListModel { }
+    property string unicodeEmojiImageBase: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/"
     property var unicodeEmoji: [
         { "name": "😀 grinning face", "text": "😀" },
+        { "name": "😁 beaming face", "text": "😁" },
         { "name": "😄 smiling eyes", "text": "😄" },
+        { "name": "😆 laughing", "text": "😆" },
         { "name": "😂 joy", "text": "😂" },
         { "name": "🤣 rofl", "text": "🤣" },
         { "name": "🙂 slight smile", "text": "🙂" },
+        { "name": "😊 blush", "text": "😊" },
         { "name": "😉 wink", "text": "😉" },
         { "name": "😍 heart eyes", "text": "😍" },
         { "name": "😘 kiss", "text": "😘" },
+        { "name": "😋 yum", "text": "😋" },
+        { "name": "😜 playful", "text": "😜" },
+        { "name": "🤪 zany", "text": "🤪" },
         { "name": "😎 sunglasses", "text": "😎" },
         { "name": "🤔 thinking", "text": "🤔" },
+        { "name": "🤨 raised eyebrow", "text": "🤨" },
+        { "name": "😐 neutral", "text": "😐" },
+        { "name": "😬 grimace", "text": "😬" },
+        { "name": "🙄 eye roll", "text": "🙄" },
+        { "name": "😳 flushed", "text": "😳" },
+        { "name": "🥺 pleading", "text": "🥺" },
         { "name": "😅 sweat smile", "text": "😅" },
+        { "name": "😇 innocent", "text": "😇" },
+        { "name": "🤗 hug", "text": "🤗" },
+        { "name": "🤫 shush", "text": "🤫" },
+        { "name": "🤭 hand over mouth", "text": "🤭" },
+        { "name": "🤯 mind blown", "text": "🤯" },
         { "name": "😭 sob", "text": "😭" },
+        { "name": "😢 cry", "text": "😢" },
+        { "name": "😤 triumph", "text": "😤" },
         { "name": "😡 angry", "text": "😡" },
         { "name": "😱 scream", "text": "😱" },
         { "name": "🥳 party", "text": "🥳" },
         { "name": "😴 sleeping", "text": "😴" },
+        { "name": "🤡 clown", "text": "🤡" },
+        { "name": "💀 skull", "text": "💀" },
+        { "name": "👋 wave", "text": "👋" },
         { "name": "👍 thumbs up", "text": "👍" },
         { "name": "👎 thumbs down", "text": "👎" },
+        { "name": "👌 ok hand", "text": "👌" },
+        { "name": "✌️ peace", "text": "✌️" },
+        { "name": "🤞 fingers crossed", "text": "🤞" },
+        { "name": "🤝 handshake", "text": "🤝" },
         { "name": "👏 clap", "text": "👏" },
         { "name": "🙌 raised hands", "text": "🙌" },
+        { "name": "🤲 palms up", "text": "🤲" },
         { "name": "🙏 pray", "text": "🙏" },
         { "name": "💪 flex", "text": "💪" },
+        { "name": "🧠 brain", "text": "🧠" },
+        { "name": "🫶 heart hands", "text": "🫶" },
         { "name": "👀 eyes", "text": "👀" },
+        { "name": "🧡 orange heart", "text": "🧡" },
+        { "name": "💛 yellow heart", "text": "💛" },
+        { "name": "💚 green heart", "text": "💚" },
+        { "name": "💙 blue heart", "text": "💙" },
+        { "name": "🖤 black heart", "text": "🖤" },
+        { "name": "🤍 white heart", "text": "🤍" },
         { "name": "💯 hundred", "text": "💯" },
         { "name": "🔥 fire", "text": "🔥" },
         { "name": "✨ sparkles", "text": "✨" },
         { "name": "⭐ star", "text": "⭐" },
+        { "name": "🌟 glowing star", "text": "🌟" },
+        { "name": "⚡ lightning", "text": "⚡" },
+        { "name": "💥 boom", "text": "💥" },
+        { "name": "💫 dizzy", "text": "💫" },
         { "name": "🎉 celebration", "text": "🎉" },
+        { "name": "🎊 confetti", "text": "🎊" },
+        { "name": "🎁 gift", "text": "🎁" },
         { "name": "❤️ heart", "text": "❤️" },
         { "name": "💜 purple heart", "text": "💜" },
         { "name": "💔 broken heart", "text": "💔" },
+        { "name": "🏅 medal", "text": "🏅" },
+        { "name": "🥇 first place", "text": "🥇" },
         { "name": "☕ coffee", "text": "☕" },
         { "name": "🍕 pizza", "text": "🍕" },
         { "name": "🍿 popcorn", "text": "🍿" },
+        { "name": "🍻 cheers", "text": "🍻" },
+        { "name": "💎 gem", "text": "💎" },
+        { "name": "🎯 bullseye", "text": "🎯" },
+        { "name": "🎲 dice", "text": "🎲" },
         { "name": "🎮 game", "text": "🎮" },
-        { "name": "🏆 trophy", "text": "🏆" }
+        { "name": "🕹️ joystick", "text": "🕹️" },
+        { "name": "🏆 trophy", "text": "🏆" },
+        { "name": "📣 megaphone", "text": "📣" },
+        { "name": "🔔 bell", "text": "🔔" },
+        { "name": "✅ check mark", "text": "✅" },
+        { "name": "❌ cross mark", "text": "❌" },
+        { "name": "❗ exclamation", "text": "❗" },
+        { "name": "❓ question", "text": "❓" }
     ]
     
     property bool pickerLoaded: false
@@ -79,10 +134,26 @@ RoundButton {
         });
     }
 
+    function unicodeEmojiImageUrl(text) {
+        var codepoints = [];
+        for (var i = 0; i < text.length; i++) {
+            var code = text.charCodeAt(i);
+            if (code >= 0xD800 && code <= 0xDBFF && i + 1 < text.length) {
+                var low = text.charCodeAt(++i);
+                code = 0x10000 + ((code - 0xD800) << 10) + (low - 0xDC00);
+            }
+            if (code === 0xFE0F) {
+                continue;
+            }
+            codepoints.push(code.toString(16));
+        }
+        return unicodeEmojiImageBase + codepoints.join("-") + ".png";
+    }
+
     function addUnicodeEmoji() {
         for (var i = 0; i < unicodeEmoji.length; i++) {
             var emoji = unicodeEmoji[i];
-            appendVisibleItem("", emoji.name, emoji.text, emoji.text);
+            appendVisibleItem(unicodeEmojiImageUrl(emoji.text), emoji.name, emoji.text, emoji.text);
         }
         _emotePicker.updateFilter();
     }

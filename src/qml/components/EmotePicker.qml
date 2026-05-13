@@ -274,8 +274,8 @@ Page {
 
             Image {
                 id: _itemImage
-                visible: !_itemEmoji.visible
-                source: visible ? model.imageUrl : ""
+                visible: model.imageUrl !== ""
+                source: model.imageUrl
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
@@ -286,7 +286,7 @@ Page {
 
             Label {
                 id: _itemEmoji
-                visible: model.emojiText !== ""
+                visible: model.emojiText !== "" && (model.imageUrl === "" || _itemImage.status !== Image.Ready)
                 text: model.emojiText
                 anchors.centerIn: parent
                 font.pixelSize: Math.max(16, Math.round(parent.width * 0.68))

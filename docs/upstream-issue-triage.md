@@ -49,6 +49,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #108: hidden live chat sends desktop notifications for incoming whispers and `@username` mentions, outgoing `/w` whispers are flagged as whispers, and chat now has a dedicated Whispers tab with unread state.
 * #101: added configurable log levels, per-sink stdout/stderr/file/journal log thresholds, optional file logging, optional Linux systemd journal output when built with `libsystemd`, and an in-app recent-log viewer with copy/clear actions.
 * #278: added optional compact and desktop side-navigation settings; combined with the existing right-side chat position, this covers the requested 1.5.x-style left-nav/right-chat layout without changing the default layout.
+* #142: the emote picker now includes a common Unicode emoji subset that inserts real Unicode text while displaying image-backed Twemoji assets with font fallback when an image cannot be loaded.
 
 ## Partially addressed
 
@@ -65,7 +66,6 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #243: added an opt-in live low-latency playlist request flag (`fast_bread=true`) for live HLS requests; the heavier prefetch segment/proxy approach remains unimplemented.
 * #202: Android Back key presses from the player view now return to the last non-player tab instead of leaving the player stuck in place; the Android Activity now uses `FLAG_KEEP_SCREEN_ON` instead of a deprecated wakelock, and Qt background running is disabled so playback is suspended when Android backgrounds the Activity. Android playback pause/resume, call-audio behavior, crash reproduction, emote resolution, and Play Store packaging still need target-device validation.
 * #283: the player header now offers a direct Twitch fallback for the current live channel or VOD, giving users a supported path when Orion's native playlist-token flow fails; a documented native HLS playback-token replacement remains unavailable.
-* #142: the emote picker now includes a small common Unicode emoji set that inserts the selected emoji into chat; a bundled emoji image/font set and full Unicode emoji catalog remain unimplemented.
 
 ## Already covered by the final upstream code
 
