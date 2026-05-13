@@ -469,14 +469,14 @@ Page {
         if (isVod) {
             var startEpochTime = (new Date(vod.createdAt)).getTime() / 1000.0;
 
-            console.log("typeof vod._id is", typeof(vod._id))
+            var vodIdText = String(vod._id || "").replace(/^v/, "")
+            var vodIdNum = parseInt(vodIdText)
 
-            if (vod._id.charAt(0) !== "v") {
-                console.log("unknown vod id format in", vod._id);
+            if (isNaN(vodIdNum)) {
+                console.log("unknown vod id format in", vod._id)
             } else {
-                var vodIdNum = parseInt(vod._id.substring(1));
-                console.log("replaying chat for vod", vodIdNum, "starting at", startEpochTime);
-                chatdrawer.chat.replayChat(currentChannel.name, currentChannel._id, vodIdNum, startEpochTime, startPos);
+                console.log("replaying chat for vod", vodIdNum, "starting at", startEpochTime)
+                chatdrawer.chat.replayChat(currentChannel.name, currentChannel._id, vodIdNum, startEpochTime, startPos)
             }
         } else {
             chatdrawer.chat.joinChannel(currentChannel.name, currentChannel._id);
