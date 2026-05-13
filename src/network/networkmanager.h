@@ -90,7 +90,6 @@ public:
     void getUser();
     void getUserFavourites(const quint64 userId, quint32 offset, quint32 limit);
     void getEmoteSets(const QList<int> &emoteSetIDs);
-    void getChannelBadgeUrls(const quint64 channelId);
     void getChannelBadgeUrlsBeta(const int channelID);
     void getGlobalBadgesUrlsBeta();
     void getChannelBitsUrls(const int channelID);
@@ -136,7 +135,6 @@ signals:
     //oauth
     void userOperationFinished(const QString&, const quint64);
     void getEmoteSetsOperationFinished(const QMap<int, QMap<int, QString>>);
-    void getChannelBadgeUrlsOperationFinished(const quint64, const QMap<QString, QMap<QString, QString>>);
     void getChannelBadgeBetaUrlsOperationFinished(const int, const QMap<QString, QMap<QString, QMap<QString, QString>>>);
     void getGlobalBadgeBetaUrlsOperationFinished(const QMap<QString, QMap<QString, QMap<QString, QString>>>);
 
@@ -187,7 +185,6 @@ private slots:
     //Oauth slots
     void userReply();
     void emoteSetsReply();
-    void channelBadgeUrlsReply();
     void channelBadgeUrlsBetaReply();
     void globalBadgeUrlsBetaReply();
     void channelBitsUrlsReply();
@@ -201,8 +198,6 @@ private slots:
     void setAccessToken(const QString &accessToken);
 
 private:
-    static const QString CHANNEL_BADGES_URL_PREFIX;
-    static const QString CHANNEL_BADGES_URL_SUFFIX;
     static const QString CHANNEL_BADGES_BETA_URL_PREFIX;
     static const QString CHANNEL_BADGES_BETA_URL_SUFFIX;
     static const QString GLOBAL_BADGES_BETA_URL;

@@ -26,7 +26,6 @@ Item {
     signal clear()
     signal emoteSetIDsChanged(var emoteSetIDs)
     signal bulkDownloadComplete()
-    signal channelBadgeUrlsLoaded(int channelId, var badgeUrls)
     signal channelBadgeBetaUrlsLoaded(string channel, var badgeSetData)
     signal bttvEmotesLoaded(string channel, var emotesByCode)
     signal ffzEmotesLoaded(string channel, var emotesByCode)
@@ -58,11 +57,6 @@ Item {
     Connections {
         target: Emotes
 
-        onChannelBadgeUrlsLoaded: {
-            console.log("onChannelBadgeUrlsLoaded", "channel", channel, "badgeUrls", badgeUrls);
-            root.channelBadgeUrlsLoaded(channelId, badgeUrls);
-        }
-
         onChannelBadgeBetaUrlsLoaded: {
             console.log("onChannelBadgeBetaUrlsLoaded", "channel", channel, "badgeSetData", badgeSetData);
             root.channelBadgeBetaUrlsLoaded(channel, badgeSetData);
@@ -73,7 +67,6 @@ Item {
         root.channel = channelName
         root.channelId = channelId
         if (channelId) {
-            Emotes.loadChannelBadgeUrls(channelId);
             Emotes.loadChannelBetaBadgeUrls(channelId);
             Emotes.loadChannelBitsUrls(channelId);
         }

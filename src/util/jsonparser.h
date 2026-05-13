@@ -61,7 +61,6 @@ public:
     static QList<quint64> parseUsers(const QByteArray&);
     static int parseTotal(const QByteArray&);
     static QMap<int, QMap<int, QString>> parseEmoteSets(const QByteArray&);
-    static QMap<QString, QMap<QString, QString>> parseChannelBadgeUrls(const QByteArray &data);
     static QMap<QString, QMap<QString, QMap<QString, QString>>> parseBadgeUrlsBetaFormat(const QByteArray &data);
     static ReplayChatPiece parseVodChatPiece(const QByteArray &data);
     static QMap<QString, QList<QString>> parseChatterList(const QByteArray &data);

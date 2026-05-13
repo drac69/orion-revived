@@ -15,7 +15,6 @@ class BadgeContainer: public QObject
     bool haveEmoteSets;
     QList<int> lastRequestedEmoteSetIDs;
     QMap<int, QMap<int, QString>> lastEmoteSets;
-    QMap<QString, QMap<QString, QMap<QString, QString>>> channelBadgeUrls;
     QMap<QString, QMap<QString, QMap<QString, QMap<QString, QString>>>> channelBadgeBetaUrls;
     QMap<QString, QMap<QString, QString>> channelBttvEmotes;
     QMap<QString, QMap<QString, QString>> channelFfzEmotes;
@@ -41,8 +40,6 @@ public:
         return &bitsImageProvider;
     }
 
-    bool getChannelBadgeUrl(const QString channelId, const QString badgeName, const QString imageFormat, QString & outUrl) const;
-
     bool getChannelBadgeBetaUrl(const QString channel, const QString badgeName, const QString version, const QString imageFormat, QString & outUrl) const;
 
     bool getChannelBitsUrl(const int channelId, const QString & prefix, const QString & minBits, QString & outUrl) const;
@@ -53,7 +50,6 @@ public:
 
 public slots:
     void onEmoteSetsUpdated(const QMap<int, QMap<int, QString>>);
-    void innerChannelBadgeUrlsLoaded(const quint64, const QMap<QString, QMap<QString, QString>> badgeUrls);
     void innerChannelBadgeBetaUrlsLoaded(const int channelId, const QMap<QString, QMap<QString, QMap<QString, QString>>> badgeData);
     void innerGlobalBadgeBetaUrlsLoaded(const QMap<QString, QMap<QString, QMap<QString, QString>>> badgeData);
     void innerChannelBitsDataLoaded(int channelID, BitsQStringsMap channelBitsUrls, BitsQStringsMap channelBitsColors);
@@ -63,7 +59,6 @@ public slots:
     void innerChannelFfzEmotesLoaded(const QString channel, QMap<QString, QString> emotesByCode);
     void innerGlobalFfzEmotesLoaded(QMap<QString, QString> emotesByCode);
     bool loadEmoteSets(bool reload, const QList<int> &emoteSetIDs);
-    bool loadChannelBadgeUrls(const quint64 channelId);
     bool loadChannelBetaBadgeUrls(int channel);
     bool loadChannelBitsUrls(int channel);
     bool loadChannelBttvEmotes(const QString channel);
@@ -71,7 +66,6 @@ public slots:
 
 signals:
     void emoteSetsLoaded(QVariantMap emoteSets);
-    void channelBadgeUrlsLoaded(const quint64 channelId, QVariantMap badgeUrls);
     void channelBadgeBetaUrlsLoaded(const QString &channel, QVariantMap badgeSetData);
 
     void channelBitsUrlsLoaded(const int channelID, BitsQStringsMap bitsUrls, BitsQStringsMap bitsColors);

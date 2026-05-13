@@ -11,7 +11,6 @@ QString BadgeImageProvider::getCanonicalKey(QString key) {
     QString url;
 
     const QString betaImageFormat = SettingsManager::getInstance()->hiDpi() ? "image_url_2x" : "image_url_1x";
-    const QString officialImageFormat = "image";
 
     int splitPos = key.indexOf("-");
     if (splitPos != -1) {
@@ -25,12 +24,6 @@ QString BadgeImageProvider::getCanonicalKey(QString key) {
         if (BadgeContainer::getInstance()->getChannelBadgeBetaUrl("GLOBAL", badge, version, betaImageFormat, url)) {
             return QList<QString>({ "GLOBAL", badge, version, betaImageFormat }).join("-");
         }
-        if (BadgeContainer::getInstance()->getChannelBadgeUrl(_channelId, badge, officialImageFormat, url)) {
-            return QList<QString>({ _channelName, badge, officialImageFormat }).join("-");
-        }
-        if (BadgeContainer::getInstance()->getChannelBadgeUrl("GLOBAL", badge, officialImageFormat, url)) {
-            return QList<QString>({ "GLOBAL", badge, officialImageFormat }).join("-");
-        }
     }
 
     qDebug() << "getCanonicalKey for badge" << key << "could not find a badge";
@@ -41,12 +34,7 @@ const QUrl BadgeImageProvider::getUrlForKey(QString & key) {
     QString url;
 
     QList<QString> parts = key.split("-");
-    if (parts.length() == 3) {
-        if (BadgeContainer::getInstance()->getChannelBadgeUrl(parts[0], parts[1], parts[2], url)) {
-            return url;
-        }
-    }
-    else if (parts.length() == 4) {
+    if (parts.length() == 4) {
         if (BadgeContainer::getInstance()->getChannelBadgeBetaUrl(parts[0], parts[1], parts[2], parts[3], url)) {
             return url;
         }

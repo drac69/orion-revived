@@ -1019,26 +1019,6 @@ void NetworkManager::vodChatPieceReply() {
     reply->deleteLater();
 }
 
-const QString NetworkManager::CHANNEL_BADGES_URL_PREFIX = QString(KRAKEN_API) + "/chat/";
-const QString NetworkManager::CHANNEL_BADGES_URL_SUFFIX = "/badges";
-
-void NetworkManager::getChannelBadgeUrls(const quint64 channelId) {
-    QString url = CHANNEL_BADGES_URL_PREFIX + QString::number(channelId) + CHANNEL_BADGES_URL_SUFFIX;
-    QString auth = "Bearer " + access_token;
-
-    qDebug() << "Requesting" << url;
-
-    QNetworkRequest request;
-    request.setRawHeader("Accept", "application/vnd.twitchtv.v5+json");
-    request.setRawHeader("Client-ID", getClientId().toUtf8());
-    request.setUrl(QUrl(url));
-    request.setRawHeader(QString("Authorization").toUtf8(), auth.toUtf8());
-
-    QNetworkReply *reply = operation->get(request);
-
-    connect(reply, &QNetworkReply::finished, this, &NetworkManager::channelBadgeUrlsReply);
-}
-
 const QString NetworkManager::CHANNEL_BADGES_BETA_URL_PREFIX = "https://badges.twitch.tv/v1/badges/channels/";
 const QString NetworkManager::CHANNEL_BADGES_BETA_URL_SUFFIX = "/display?language=en";
 const QString NetworkManager::GLOBAL_BADGES_BETA_URL = "https://badges.twitch.tv/v1/badges/global/display?language=en";
@@ -1806,34 +1786,6 @@ void NetworkManager::emoteSetsReply()
     else {
         emit getEmoteSetsOperationFinished(parsed);
     }
-
-    reply->deleteLater();
-}
-
-void NetworkManager::channelBadgeUrlsReply()
-{
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
-
-    if (!handleNetworkError(reply)) {
-        return;
-    }
-    QByteArray data = reply->readAll();
-
-    QString urlString = reply->url().toString();
-
-    qDebug() << "url was" << urlString;
-
-    if (urlString.startsWith(CHANNEL_BADGES_URL_PREFIX) && urlString.endsWith(CHANNEL_BADGES_URL_SUFFIX)) {
-        quint64 channelId = urlString.mid(CHANNEL_BADGES_URL_PREFIX.length(), urlString.length() - CHANNEL_BADGES_URL_PREFIX.length() - CHANNEL_BADGES_URL_SUFFIX.length()).toULongLong();
-        qDebug() << "badges for channel" << channelId << "loaded";
-        auto badges = JsonParser::parseChannelBadgeUrls(data);
-
-        emit getChannelBadgeUrlsOperationFinished(channelId, badges);
-    }
-    else {
-        qDebug() << "can't determine channel from badges request url";
-    }
-
 
     reply->deleteLater();
 }

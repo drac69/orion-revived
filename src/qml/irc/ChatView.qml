@@ -253,7 +253,6 @@ Page {
             property variant _textEmotesMap
             property variant _regexEmotesList
 
-            property var lastBadgeUrls: ({})
             property var lastChannelBetaBadgeSetData: ({})
             property var globalBetaBadgeSetData: ({})
             property var lastBetaBadgeSetData: ({})
@@ -528,20 +527,6 @@ Page {
                         }
                     }
 
-                    var badgeUrls = lastBadgeUrls[badgeName];
-                    if (!curBadgeAdded && badgeUrls != null) {
-                        if (debugOutput) {
-                            console.log("  badge urls:")
-                            for (var j in badgeUrls) {
-                                console.log("    key", j, "value", badgeUrls[j]);
-                            }
-                        }
-                        var entry = {"name": badgeName, "url": badgeLocalUrl, "devicePixelRatio": 1.0};
-                        if (debugOutput) console.log("adding entry", JSON.stringify(entry));
-                        badgeEntries.push(entry);
-                        curBadgeAdded = true;
-                    }
-
                     if (!curBadgeAdded) {
                         console.log("  Unknown badge", badgeName);
                     }
@@ -557,17 +542,6 @@ Page {
             onEmoteSetIDsChanged: {
                 lastEmoteSetIDs = emoteSetIDs
                 loadEmoteSets()
-            }
-
-            onChannelBadgeUrlsLoaded: {
-                console.log("onChannelBadgeUrlsLoaded for channel", channelId, "current channel is", chat.channelId);
-                if (channelId == chat.channelId) {
-                    console.log("saving lastBadgeUrls", badgeUrls)
-                    for (var i in badgeUrls) {
-                        console.log("  ", i, badgeUrls[i]);
-                    }
-                    lastBadgeUrls = badgeUrls;
-                }
             }
 
             onChannelBadgeBetaUrlsLoaded: {
