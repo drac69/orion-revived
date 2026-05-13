@@ -3,14 +3,63 @@
 #include <QClipboard>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QDir>
 #include <QGuiApplication>
+#include <QInputMethod>
+#include <QProcess>
 #include <QScreen>
+#include <QStandardPaths>
+
+#ifdef Q_OS_WIN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#ifndef SM_TABLETPC
+#define ORION_SM_TABLETPC 86
+#else
+#define ORION_SM_TABLETPC SM_TABLETPC
+#endif
+#ifndef SM_CONVERTIBLESLATEMODE
+#define ORION_SM_CONVERTIBLESLATEMODE 0x2003
+#else
+#define ORION_SM_CONVERTIBLESLATEMODE SM_CONVERTIBLESLATEMODE
+#endif
+#endif
 
 namespace {
 QString channelQualityKey(const QString &channel)
 {
     return channel.trimmed().toLower();
 }
+
+#ifdef Q_OS_WIN
+bool shouldLaunchWindowsTouchKeyboard()
+{
+    return GetSystemMetrics(ORION_SM_TABLETPC) != 0 || GetSystemMetrics(ORION_SM_CONVERTIBLESLATEMODE) == 0;
+}
+
+QString windowsTouchKeyboardPath()
+{
+    QStringList searchPaths;
+    const QString commonProgramFiles = qEnvironmentVariable("CommonProgramFiles");
+    const QString commonProgramFilesX86 = qEnvironmentVariable("CommonProgramFiles(x86)");
+
+    if (!commonProgramFiles.isEmpty())
+        searchPaths << QDir(commonProgramFiles).filePath("microsoft shared/ink");
+    if (!commonProgramFilesX86.isEmpty())
+        searchPaths << QDir(commonProgramFilesX86).filePath("microsoft shared/ink");
+
+    searchPaths << QStringLiteral("C:/Program Files/Common Files/microsoft shared/ink")
+                << QStringLiteral("C:/Program Files (x86)/Common Files/microsoft shared/ink");
+
+    const QString tabTip = QStandardPaths::findExecutable(QStringLiteral("TabTip.exe"), searchPaths);
+    if (!tabTip.isEmpty())
+        return tabTip;
+
+    return QStandardPaths::findExecutable(QStringLiteral("osk.exe"));
+}
+#endif
 }
 
 SettingsManager::SettingsManager(QObject *parent) :
@@ -510,6 +559,21 @@ void SettingsManager::copyToClipboard(const QString &text) const
     if (clipboard) {
         clipboard->setText(text);
     }
+}
+
+void SettingsManager::showVirtualKeyboard() const
+{
+    if (QGuiApplication::inputMethod())
+        QGuiApplication::inputMethod()->show();
+
+#ifdef Q_OS_WIN
+    if (!shouldLaunchWindowsTouchKeyboard())
+        return;
+
+    const QString keyboard = windowsTouchKeyboardPath();
+    if (!keyboard.isEmpty() && !QProcess::startDetached(keyboard, QStringList()))
+        qWarning().noquote() << "Could not start Windows touch keyboard" << keyboard;
+#endif
 }
 
 QStringList SettingsManager::screenNames() const

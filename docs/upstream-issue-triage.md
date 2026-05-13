@@ -59,6 +59,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #271: returning to the VOD view no longer forces the grid back to the beginning, so the current scroll position is preserved while navigating away and back; broader VOD filtering, sorting, playlist, chapter, muted-section, and cache work remains.
 * #119: the README now explains that the GitHub build commands are terminal commands, separates build/run/install steps, and documents that revalidated Windows/macOS installers are not published yet.
 * #210: new Windows installs now default to ANGLE D3D11 instead of the older D3D9 renderer, and saved D3D9 defaults are migrated to D3D11 to reduce exposure to the Fraps/Qt render-thread crash path; the Fraps-specific crash has not been reproduced in this environment.
+* #90: focused QML text fields now request the Qt input method, and Windows tablet/slate systems also launch the OS touch keyboard (`TabTip.exe`/`osk.exe`) when text inputs gain focus; the Windows tablet behavior has not been reproduced in this environment.
 
 ## Already covered by the final upstream code
 
@@ -82,7 +83,7 @@ These issues are likely symptoms of old Twitch API, OAuth, playback, chat, or VO
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
 * #276: added FreeBSD dependency notes to the README.
-* #267, #261, #235, #219, #216, #202, #90.
+* #267, #261, #235, #219, #216, #202.
 
 ## Feature requests not implemented here
 

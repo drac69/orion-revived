@@ -647,6 +647,11 @@ Page {
 
                     Layout.fillWidth: true
 
+                    onActiveFocusChanged: {
+                        if (activeFocus)
+                            Settings.showVirtualKeyboard()
+                    }
+
                     TextMenu { }
 
                     Keys.onUpPressed: {

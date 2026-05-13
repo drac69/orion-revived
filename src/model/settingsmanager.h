@@ -187,6 +187,7 @@ public:
     void setChatOpacity(double chatOpacity);
 
     Q_INVOKABLE void copyToClipboard(const QString &text) const;
+    Q_INVOKABLE void showVirtualKeyboard() const;
     Q_INVOKABLE QStringList screenNames() const;
     Q_INVOKABLE QString channelQuality(const QString &channel);
     Q_INVOKABLE void setChannelQuality(const QString &channel, const QString &quality);

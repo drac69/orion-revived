@@ -3,6 +3,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import QtQuick.Controls.Material 2.1
 import "components"
+import app.orion 1.0
 
 ToolBar {
     id: root
@@ -39,6 +40,10 @@ ToolBar {
             onVisibleChanged:  {
                 if (visible)
                     forceActiveFocus()
+            }
+            onActiveFocusChanged: {
+                if (activeFocus)
+                    Settings.showVirtualKeyboard()
             }
             maximumLength: 48
         }

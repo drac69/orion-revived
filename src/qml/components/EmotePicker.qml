@@ -308,6 +308,11 @@ Page {
             selectByMouse: true
             anchors.fill: parent
 
+            onActiveFocusChanged: {
+                if (activeFocus)
+                    Settings.showVirtualKeyboard()
+            }
+
             onTextChanged: {
                 var prevIndex = _emotesGrid.currentIndex
                 updateFilter();

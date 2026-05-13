@@ -465,6 +465,10 @@ Page {
                         text: Settings.chatHighlightUsers
                         selectByMouse: true
                         wrapMode: TextEdit.Wrap
+                        onActiveFocusChanged: {
+                            if (activeFocus)
+                                Settings.showVirtualKeyboard()
+                        }
                         onTextChanged: {
                             if (Settings.chatHighlightUsers !== text) {
                                 Settings.chatHighlightUsers = text
@@ -483,6 +487,10 @@ Page {
                         text: Settings.chatBlacklist
                         selectByMouse: true
                         wrapMode: TextEdit.Wrap
+                        onActiveFocusChanged: {
+                            if (activeFocus)
+                                Settings.showVirtualKeyboard()
+                        }
                         onTextChanged: {
                             if (Settings.chatBlacklist !== text) {
                                 Settings.chatBlacklist = text
