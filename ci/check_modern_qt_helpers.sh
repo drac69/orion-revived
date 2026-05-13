@@ -57,6 +57,16 @@ if rg -n '\.(setAttribute|attribute)\(static_cast<QNetworkRequest::Attribute>\(Q
     exit 1
 fi
 
+if ! rg -q 'bytesWritten == data\.size\(\) && file\.flush\(\)' "$repo_dir/src/util/fileutils.cpp"; then
+    printf 'File write helpers must verify full writes and flush success.\n' >&2
+    exit 1
+fi
+
+if rg -Uq 'file\.write\(data\);\s*return true;' "$repo_dir/src/util/fileutils.cpp"; then
+    printf 'File write helpers must not report success without checking write results.\n' >&2
+    exit 1
+fi
+
 required_override_lines=(
     "$repo_dir/src/model/channellistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
     "$repo_dir/src/model/gamelistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"

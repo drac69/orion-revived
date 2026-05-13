@@ -22,8 +22,6 @@
 #include <sys/stat.h>
 #include <QString>
 #include <QFile>
-#include <QTextStream>
-#include <QDataStream>
 
 namespace util{
 	std::string notabs(std::string);

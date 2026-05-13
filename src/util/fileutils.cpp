@@ -14,6 +14,19 @@
 
 #include "fileutils.h"
 
+namespace {
+bool writeAll(const QString &filename, const QByteArray &data, QIODevice::OpenMode mode)
+{
+    QFile file(filename);
+    if (!file.open(mode)) {
+        return false;
+    }
+
+    const qint64 bytesWritten = file.write(data);
+    return bytesWritten == data.size() && file.flush();
+}
+}
+
 std::string util::notabs(std::string str){
 	std::string newstr;
 	for (size_t i=0; i<str.length(); i++){
@@ -33,13 +46,7 @@ QString util::readFile(const QString &filename){
 }
 
 bool util::writeFile(const QString& filename, const QByteArray& data){
-    QFile file(filename);
-    if (file.open(QFile::WriteOnly | QFile::Truncate)) {
-        QTextStream out(&file);
-        out << data;
-        return true;
-    }
-    return false;
+    return writeAll(filename, data, QFile::WriteOnly | QFile::Truncate);
 }
 
 void util::writeImage(const char* path, FILE *data){
@@ -61,10 +68,5 @@ bool util::fileExists(const char* file){
 
 bool util::writeBinaryFile(const QString &filename, const QByteArray &data)
 {
-    QFile file(filename);
-    if (file.open(QFile::WriteOnly)) {
-        file.write(data);
-        return true;
-    }
-    return false;
+    return writeAll(filename, data, QFile::WriteOnly | QFile::Truncate);
 }
