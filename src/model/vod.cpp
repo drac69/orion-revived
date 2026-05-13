@@ -86,6 +86,16 @@ void Vod::setTitle(const QString &value)
     title = value;
 }
 
+QString Vod::getDescription() const
+{
+    return description;
+}
+
+void Vod::setDescription(const QString &value)
+{
+    description = value;
+}
+
 QString Vod::getCreatedAt() const
 {
     return createdAt;
@@ -94,6 +104,36 @@ QString Vod::getCreatedAt() const
 void Vod::setCreatedAt(const QString &value)
 {
     createdAt = value;
+}
+
+QString Vod::getPublishedAt() const
+{
+    return publishedAt;
+}
+
+void Vod::setPublishedAt(const QString &value)
+{
+    publishedAt = value;
+}
+
+QString Vod::getUrl() const
+{
+    return url;
+}
+
+void Vod::setUrl(const QString &value)
+{
+    url = value;
+}
+
+QString Vod::getLanguage() const
+{
+    return language;
+}
+
+void Vod::setLanguage(const QString &value)
+{
+    language = value;
 }
 
 QString Vod::getSeekPreviews() const

@@ -21,13 +21,17 @@
 class Vod
 {
     QString title = "";
+    QString description = "";
     QString id = "";
     QString game = "";
+    QString language = "";
     QString type = "";
     quint32 duration = 0;
     quint64 views = 0;
     QString preview = "";
     QString createdAt = "";
+    QString publishedAt = "";
+    QString url = "";
     QString seekPreviews = "";
     QString mutedSegments = "";
     QString mutedSegmentRanges = "";
@@ -51,8 +55,16 @@ public:
     void setId(const QString &value);
     QString getTitle() const;
     void setTitle(const QString &value);
+    QString getDescription() const;
+    void setDescription(const QString &value);
     QString getCreatedAt() const;
     void setCreatedAt(const QString &value);
+    QString getPublishedAt() const;
+    void setPublishedAt(const QString &value);
+    QString getUrl() const;
+    void setUrl(const QString &value);
+    QString getLanguage() const;
+    void setLanguage(const QString &value);
     QString getSeekPreviews() const;
     void setSeekPreviews(const QString &value);
     QString getMutedSegments() const;

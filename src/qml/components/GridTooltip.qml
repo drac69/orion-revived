@@ -36,6 +36,9 @@ Item {
     property Item target
     property string previewSource: ""
 
+    function html(value) {
+        return Util.encodeHtml(String(value || ""))
+    }
 
     function show() {
         tooltip.visible = true
@@ -124,10 +127,10 @@ Item {
 
     function displayChannel(channel, getPosition) {
         text = ""
-        text += "<b>" + channel.title + "</b><br/>";
-        text += channel.game + "<br/>"
+        text += "<b>" + html(channel.title) + "</b><br/>";
+        text += html(channel.game) + "<br/>"
         text += channel.viewers + " viewers"
-        if (channel.language) text += "<br/>Language " + channel.language.toUpperCase()
+        if (channel.language) text += "<br/>Language " + html(channel.language.toUpperCase())
         previewSource = channel.preview
 
         display(channel, getPosition)
@@ -135,18 +138,23 @@ Item {
 
     function displayVod(channel, getPosition) {
         text = ""
-        text += "<b>" + channel.title + "</b><br/>";
-        text += channel.game + "<br/>"
+        text += "<b>" + html(channel.title) + "</b><br/>";
+        text += html(channel.game) + "<br/>"
+        if (channel.language)
+            text += "Language " + html(channel.language.toUpperCase()) + "<br/>"
         if (channel.vodType && channel.vodType !== "archive")
-            text += channel.vodType.charAt(0).toUpperCase() + channel.vodType.slice(1) + "<br/>"
+            text += html(channel.vodType.charAt(0).toUpperCase() + channel.vodType.slice(1)) + "<br/>"
         if (channel.duration)
             text += "Duration " + Util.getTime(channel.duration) + "<br/>"
 
         if (channel.createdAt)
             text += (new Date(channel.createdAt)).toLocaleString() + "<br/>";
 
+        if (channel.description)
+            text += html(channel.description) + "<br/>"
+
         if (channel.mutedSegments)
-            text += "Muted sections " + channel.mutedSegments + "<br/>"
+            text += "Muted sections " + html(channel.mutedSegments) + "<br/>"
 
         text += channel.views + " views"
         previewSource = channel.preview
@@ -158,7 +166,7 @@ Item {
         text = ""
 
         if (game.title){
-            text += "<b>" + game.title + "</b>"
+            text += "<b>" + html(game.title) + "</b>"
         }
 
         if (game.viewers){

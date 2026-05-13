@@ -59,4 +59,25 @@ if rg -q 'joinChannel\(root\.channel' src/qml/irc/Chat.qml; then
     fail=1
 fi
 
+for required_vod_field in description language published_at url muted_segments; do
+    if ! rg -q "\"$required_vod_field\"" src/util/jsonparser.cpp; then
+        printf 'Helix VOD metadata field %s must be parsed for filtering/display.\n' "$required_vod_field" >&2
+        fail=1
+    fi
+done
+
+for required_vod_role in Description Language PublishedAt Url MutedSegments; do
+    if ! rg -q "$required_vod_role" src/model/vodlistmodel.h || ! rg -q "$required_vod_role" src/model/vodlistmodel.cpp; then
+        printf 'VOD model must expose role %s.\n' "$required_vod_role" >&2
+        fail=1
+    fi
+done
+
+for required_filter_role in Description Language PublishedAt Url MutedSegments; do
+    if ! rg -q "VodListModel::$required_filter_role" src/model/vodfilterproxymodel.cpp; then
+        printf 'VOD filter must search role %s.\n' "$required_filter_role" >&2
+        fail=1
+    fi
+done
+
 exit "$fail"

@@ -23,6 +23,9 @@ Channel {
     property int position
     property string vodType
     property string createdAt
+    property string publishedAt
+    property string description
+    property string url
     property string seekPreviews
     property string mutedSegments
     property string mutedSegmentRanges

@@ -137,7 +137,7 @@ Item{
                 TextField {
                     id: filterInput
                     Layout.fillWidth: true
-                    placeholderText: "Filter VODs"
+                    placeholderText: "Filter VOD metadata"
                     text: vodsModel.filterText
                     selectByMouse: true
                     onTextChanged: {
@@ -209,8 +209,12 @@ Item{
                 duration: model.duration
                 position: channelVodPositions[model.id] || 0
                 game: model.game
+                language: model.language
                 vodType: model.type
                 createdAt: model.createdAt
+                publishedAt: model.publishedAt
+                description: model.description
+                url: model.url
                 seekPreviews: model.seekPreviews
                 mutedSegments: model.mutedSegments
                 mutedSegmentRanges: model.mutedSegmentRanges

@@ -75,6 +75,22 @@ QVariant VodListModel::data(const QModelIndex &index, int role) const
             var.setValue(vod->getCreatedAt());
             break;
 
+        case PublishedAt:
+            var.setValue(vod->getPublishedAt());
+            break;
+
+        case Description:
+            var.setValue(vod->getDescription());
+            break;
+
+        case Language:
+            var.setValue(vod->getLanguage());
+            break;
+
+        case Url:
+            var.setValue(vod->getUrl());
+            break;
+
         case SeekPreviews:
             var.setValue(vod->getSeekPreviews());
             break;
@@ -108,6 +124,10 @@ QHash<int, QByteArray> VodListModel::roleNames() const
     roles[Duration] = "duration";
     roles[Views] = "views";
     roles[CreatedAt] = "createdAt";
+    roles[PublishedAt] = "publishedAt";
+    roles[Description] = "description";
+    roles[Language] = "language";
+    roles[Url] = "url";
     roles[SeekPreviews] = "seekPreviews";
     roles[MutedSegments] = "mutedSegments";
     roles[MutedSegmentRanges] = "mutedSegmentRanges";

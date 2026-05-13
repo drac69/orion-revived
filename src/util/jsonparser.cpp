@@ -365,6 +365,9 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
     if (!json["title"].isNull())
         vod->setTitle(json["title"].toString());
 
+    if (!json["description"].isNull())
+        vod->setDescription(json["description"].toString());
+
     if (!json["duration"].isNull()) {
         quint32 totalSeconds = 0;
         QString number;
@@ -397,6 +400,9 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
     else if (!json["game"].isNull())
         vod->setGame(json["game"].toString());
 
+    if (!json["language"].isNull())
+        vod->setLanguage(json["language"].toString());
+
     if (!json["type"].isNull())
         vod->setType(json["type"].toString());
 
@@ -407,6 +413,12 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
 
     if (!json["created_at"].isNull())
         vod->setCreatedAt(json["created_at"].toString());
+
+    if (!json["published_at"].isNull())
+        vod->setPublishedAt(json["published_at"].toString());
+
+    if (!json["url"].isNull())
+        vod->setUrl(json["url"].toString());
 
     if (json["muted_segments"].isArray()) {
         QStringList segments;
