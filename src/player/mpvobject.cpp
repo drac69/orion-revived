@@ -23,7 +23,7 @@ QString configuredMpvConfigFile;
 
 static void wakeup(void *ctx)
 {
-    MpvObject *mpvhandler = (MpvObject*)ctx;
+    MpvObject *mpvhandler = static_cast<MpvObject *>(ctx);
     QCoreApplication::postEvent(mpvhandler, new QEvent(QEvent::User));
 }
 
@@ -163,7 +163,7 @@ MpvObject::~MpvObject()
 
 void MpvObject::on_update(void *ctx)
 {
-    MpvObject *self = (MpvObject *)ctx;
+    MpvObject *self = static_cast<MpvObject *>(ctx);
     emit self->onUpdate();
 }
 
@@ -196,15 +196,15 @@ bool MpvObject::observeProperty(const QString &name, const QJSValue &callback)
 
     callbacks.emplace_back(std::make_unique<QJSValue>(callback));
     QJSValue *pCallback = callbacks[callbacks.size() - 1].get();
-    if (mpv_observe_property(mpv, (uint64_t)(pCallback), name.toLatin1().data(), MPV_FORMAT_NODE) >= 0) {
+    if (mpv_observe_property(mpv, reinterpret_cast<uint64_t>(pCallback), name.toLatin1().data(), MPV_FORMAT_NODE) >= 0) {
         connect(engine, &QObject::destroyed, this, [this, pCallback](QObject*){
             callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(), [&](auto const& cb){
                 if (cb.get() == pCallback) {
-                    mpv_unobserve_property(mpv, (uint64_t)pCallback);
+                    mpv_unobserve_property(mpv, reinterpret_cast<uint64_t>(pCallback));
                     return true;
                 }
                 return false;
-            }));
+            }), callbacks.end());
         });
         return true;
     } else {
@@ -218,12 +218,12 @@ bool MpvObject::unobserveProperty(const QJSValue &callback)
     bool erased = false;
     callbacks.erase(std::remove_if(callbacks.begin(), callbacks.end(), [&](auto const& cb){
         if (cb->equals(callback)) {
-            mpv_unobserve_property(mpv, (uint64_t)cb.get());
+            mpv_unobserve_property(mpv, reinterpret_cast<uint64_t>(cb.get()));
             erased = true;
             return true;
         }
         return false;
-    }));
+    }), callbacks.end());
     return erased;
 }
 

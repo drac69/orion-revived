@@ -114,7 +114,11 @@ void HttpServer::onConnect() {
 
 void HttpServer::onRead() {
     qDebug() << "Reading request...";
-    QTcpSocket *socket = (QTcpSocket*) this->sender();
+    QTcpSocket *socket = qobject_cast<QTcpSocket *>(sender());
+    if (!socket) {
+        qWarning() << "OAuth callback read without a socket sender";
+        return;
+    }
     socket->connect(socket, &QTcpSocket::disconnected, &QObject::deleteLater);
 
     /// Read data

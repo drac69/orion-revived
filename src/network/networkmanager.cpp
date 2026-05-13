@@ -1661,7 +1661,7 @@ void NetworkManager::streamExtractReply()
     QByteArray data = reply->readAll();
     //qDebug() << data;
 
-    M3U8TYPE type = (M3U8TYPE) reply->request().attribute(QNetworkRequest::User).toInt();
+    M3U8TYPE type = static_cast<M3U8TYPE>(reply->request().attribute(QNetworkRequest::User).toInt());
 
     QString url;
 
@@ -1701,7 +1701,7 @@ void NetworkManager::m3u8Reply()
 
     QByteArray data = reply->readAll();
 
-    switch ((M3U8TYPE) reply->request().attribute(QNetworkRequest::User).toInt()) {
+    switch (static_cast<M3U8TYPE>(reply->request().attribute(QNetworkRequest::User).toInt())) {
     case LIVE:
         emit m3u8OperationFinished(m3u8::getUrls(data));
         break;

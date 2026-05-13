@@ -18,6 +18,15 @@ if rg -n '\b(Q_OS_MAC|Q_OS_OSX|Q_WS_MAC)\b' "$repo_dir/src"; then
     exit 1
 fi
 
+if rg -n '\((MpvObject|QTcpSocket|QRgb)\s*\* ?\)|\((uint64_t|M3U8TYPE)\)' \
+    "$repo_dir/src/player/mpvobject.cpp" \
+    "$repo_dir/src/network/httpserver.cpp" \
+    "$repo_dir/src/network/networkmanager.cpp" \
+    "$repo_dir/src/notification/notificationsender.cpp"; then
+    printf 'Modernized C++ code must use named casts or qobject_cast instead of legacy C-style casts.\n' >&2
+    exit 1
+fi
+
 if rg -n '\*\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*0\s*(;|,|\))|\*\s*parent\s*=\s*0\b' "$repo_dir/src"; then
     printf 'Pointer declarations and default arguments must use nullptr instead of 0.\n' >&2
     exit 1
