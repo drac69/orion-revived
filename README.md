@@ -189,6 +189,7 @@ You need Visual C++ 2015-runtime installed.
 
 Installer can be found in the application's install directory (I'll make it install automatically in the next version)
 
-## Known issues
+## Known limitations
 
-* Vods are sometimes having issues, skipping some parts of the video. Needs further investigating
+* Native live and VOD playback still depends on Twitch playlist-token endpoints that are not documented as a supported Helix API. If Orion cannot load a playable playlist, use the player header action to open the channel or VOD on twitch.tv.
+* VOD replay chat is not available through Twitch's current supported APIs. Orion shows a chat notice for VOD playback and links users to the Twitch VOD fallback.
