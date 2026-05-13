@@ -52,9 +52,12 @@ public:
     VodListModel *getModel() const;
     VodFilterProxyModel *getFilteredModel() const;
     Q_INVOKABLE int loadedCount() const;
+    Q_INVOKABLE QString playbackPositionSnapshotPath() const;
 
 private:
     void saveSettings();
+    int loadPlaybackPositionSnapshot();
+    void savePlaybackPositionSnapshot() const;
     void loadCachedVods(quint64 channelId, const QString &type);
     void saveCachedVods(quint64 channelId, const QString &type) const;
 

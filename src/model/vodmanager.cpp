@@ -17,7 +17,15 @@
 #include <QSettings>
 #include <QCoreApplication>
 #include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
+#include <QSaveFile>
+#include <QStandardPaths>
 #include <cmath>
 
 namespace {
@@ -52,6 +60,12 @@ VodManager::VodManager(QObject *parent) :
         vodLastPlaybackPositionLoaded(channel, vod, lastPosition, i);
     }
     settings.endArray();
+
+    const int recoveredPositions = loadPlaybackPositionSnapshot();
+    if (recoveredPositions > 0) {
+        qWarning() << "Recovered" << recoveredPositions << "VOD playback positions from" << playbackPositionSnapshotPath();
+        saveSettings();
+    }
 
     emit modelChanged();
 
@@ -118,6 +132,19 @@ VodFilterProxyModel *VodManager::getFilteredModel() const
 int VodManager::loadedCount() const
 {
     return _model->count();
+}
+
+QString VodManager::playbackPositionSnapshotPath() const
+{
+    QString basePath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    if (basePath.isEmpty()) {
+        basePath = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    }
+    if (basePath.isEmpty()) {
+        basePath = QDir::homePath() + QStringLiteral("/.orion");
+    }
+
+    return QDir(basePath).filePath(QStringLiteral("vod-progress.json"));
 }
 
 void VodManager::loadCachedVods(quint64 channelId, const QString &type)
@@ -235,6 +262,83 @@ void VodManager::saveSettings() {
     settings.endArray();
     settings.sync();
 
+    savePlaybackPositionSnapshot();
+}
+
+int VodManager::loadPlaybackPositionSnapshot()
+{
+    QFile file(playbackPositionSnapshotPath());
+    if (!file.exists() || !file.open(QFile::ReadOnly)) {
+        return 0;
+    }
+
+    QJsonParseError error;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
+    if (error.error != QJsonParseError::NoError || !doc.isObject()) {
+        qWarning() << "Could not read VOD playback position snapshot:" << error.errorString();
+        return 0;
+    }
+
+    int recovered = 0;
+    const QJsonArray positions = doc.object().value(QStringLiteral("positions")).toArray();
+    for (const QJsonValue &positionValue : positions) {
+        const QJsonObject position = positionValue.toObject();
+        const QString channel = position.value(QStringLiteral("channel")).toString();
+        const QString vod = position.value(QStringLiteral("vod")).toString();
+        const quint64 lastPosition = static_cast<quint64>(position.value(QStringLiteral("position")).toDouble(-1));
+        if (channel.isEmpty() || vod.isEmpty() || position.value(QStringLiteral("position")).toDouble(-1) < 0) {
+            continue;
+        }
+
+        auto channelEntry = channelVodLastPositions.find(channel);
+        if (channelEntry == channelVodLastPositions.end()) {
+            channelEntry = channelVodLastPositions.insert(channel, QMap<QString, LastPosition>());
+        }
+
+        auto &vodMap = channelEntry.value();
+        if (vodMap.contains(vod)) {
+            continue;
+        }
+
+        vodMap.insert(vod, {lastPosition, true, -1});
+        recovered++;
+    }
+
+    return recovered;
+}
+
+void VodManager::savePlaybackPositionSnapshot() const
+{
+    QJsonArray positions;
+    for (auto channelEntry = channelVodLastPositions.constBegin(); channelEntry != channelVodLastPositions.constEnd(); channelEntry++) {
+        const auto &vods = channelEntry.value();
+        for (auto vodEntry = vods.constBegin(); vodEntry != vods.constEnd(); vodEntry++) {
+            QJsonObject position;
+            position.insert(QStringLiteral("channel"), channelEntry.key());
+            position.insert(QStringLiteral("vod"), vodEntry.key());
+            position.insert(QStringLiteral("position"), static_cast<double>(vodEntry.value().lastPosition));
+            positions.append(position);
+        }
+    }
+
+    QJsonObject root;
+    root.insert(QStringLiteral("version"), 1);
+    root.insert(QStringLiteral("updatedAt"), QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+    root.insert(QStringLiteral("positions"), positions);
+
+    const QString snapshotPath = playbackPositionSnapshotPath();
+    QDir().mkpath(QFileInfo(snapshotPath).absolutePath());
+
+    QSaveFile file(snapshotPath);
+    if (!file.open(QFile::WriteOnly)) {
+        qWarning() << "Could not write VOD playback position snapshot:" << file.errorString();
+        return;
+    }
+
+    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    if (!file.commit()) {
+        qWarning() << "Could not commit VOD playback position snapshot:" << file.errorString();
+    }
 }
 
 QString VodManager::getGame() const
