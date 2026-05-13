@@ -27,6 +27,7 @@ require_package_for_import() {
 
 require_package_for_import '^import Qt\.labs\.settings\b' 'qml-module-qt-labs-settings'
 require_package_for_import '^import QtGraphicalEffects\b' 'qml-module-qtgraphicaleffects'
+require_package_for_import '^import QtQuick\b' 'qml-module-qtquick2'
 require_package_for_import '^import QtQuick\.Controls\b' 'qml-module-qtquick-controls2'
 require_package_for_import '^import QtQuick\.Layouts\b' 'qml-module-qtquick-layouts'
 require_package_for_import '^import QtQuick\.Window\b' 'qml-module-qtquick-window2'
