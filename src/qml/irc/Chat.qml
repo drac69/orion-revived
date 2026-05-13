@@ -88,7 +88,17 @@ Item {
         chat.replay(channelName, channelId, vodId, startEpochTime, startPos)
         enterChannelCommon(channelName, channelId);
         root.replayMode = true
-        messageReceived("notice", null, "", false, false, false, [], true, "VOD chat replay is unavailable through Twitch's current supported APIs. Open this VOD on Twitch for native replay chat.", false)
+        messageReceived("notice", null, "", false, false, false, [], true, replayUnavailableNotice(vodId), false)
+    }
+
+    function replayUnavailableNotice(vodId) {
+        var normalizedVodId = String(vodId || "").replace(/^v/, "")
+        if (normalizedVodId) {
+            return "VOD chat replay is unavailable through Twitch's current supported APIs. Open https://www.twitch.tv/videos/"
+                    + encodeURIComponent(normalizedVodId)
+                    + " for native replay chat."
+        }
+        return "VOD chat replay is unavailable through Twitch's current supported APIs. Open this VOD on Twitch for native replay chat."
     }
 
     function replaySeek(newOffset) {

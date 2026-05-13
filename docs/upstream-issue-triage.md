@@ -86,7 +86,7 @@ Twitch documents Helix metadata APIs and embeddable players, but not a supported
 Twitch's current Drops documentation is aimed at game developers and entitlement fulfillment systems, not third-party viewing clients. The documented flow covers account linking, EventSub or Twitch API entitlement delivery, and marking Drop entitlements fulfilled for a game-owned campaign; it does not expose a supported replacement for a native viewer heartbeat or rewards-credit signal. For reward-sensitive viewing, this fork's supported path is to open the channel or VOD on twitch.tv from the player header.
 
 * #283.
-* #224: Twitch does not document a current VOD replay-chat export API; the fork no longer calls the unsupported v5 comments API, shows the replay-chat unavailable notice for current Helix numeric VOD IDs, and points users to the Twitch VOD fallback for native replay chat.
+* #224: Twitch does not document a current VOD replay-chat export API; the fork no longer calls the unsupported v5 comments API, shows the replay-chat unavailable notice for current Helix numeric VOD IDs, and includes a direct twitch.tv VOD link for native replay chat.
 * #226 / #257.
 
 References:

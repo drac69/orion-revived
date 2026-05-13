@@ -59,6 +59,11 @@ if rg -q 'joinChannel\(root\.channel' src/qml/irc/Chat.qml; then
     fail=1
 fi
 
+if ! rg -q 'www\.twitch\.tv/videos' src/qml/irc/Chat.qml; then
+    printf 'VOD replay-chat fallback notices must include a direct Twitch VOD URL.\n' >&2
+    fail=1
+fi
+
 for required_vod_field in description language published_at url muted_segments; do
     if ! rg -q "\"$required_vod_field\"" src/util/jsonparser.cpp; then
         printf 'Helix VOD metadata field %s must be parsed for filtering/display.\n' "$required_vod_field" >&2
