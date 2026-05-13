@@ -239,6 +239,10 @@ void ChannelManager::save()
         favouritesModel->getChannels().at(i)->writeToSettings(settings);
     }
     settings.endArray();
+    settings.sync();
+    if (settings.status() != QSettings::NoError) {
+        qWarning() << "Favourite channel settings sync failed with status" << settings.status();
+    }
 }
 
 

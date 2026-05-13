@@ -72,6 +72,11 @@ if rg -q 'writeImage|std::ofstream|FILE \*data' "$repo_dir/src/util/fileutils.cp
     exit 1
 fi
 
+if ! rg -q 'Favourite channel settings sync failed with status' "$repo_dir/src/model/channelmanager.cpp"; then
+    printf 'ChannelManager must warn when favourite channel settings fail to sync.\n' >&2
+    exit 1
+fi
+
 required_override_lines=(
     "$repo_dir/src/model/channellistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
     "$repo_dir/src/model/gamelistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
