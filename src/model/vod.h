@@ -28,6 +28,7 @@ class Vod
     QString preview = "";
     QString createdAt = "";
     QString seekPreviews = "";
+    QString mutedSegments = "";
 
 public:
     Vod();
@@ -50,6 +51,8 @@ public:
     void setCreatedAt(const QString &value);
     QString getSeekPreviews() const;
     void setSeekPreviews(const QString &value);
+    QString getMutedSegments() const;
+    void setMutedSegments(const QString &value);
 };
 
 #endif // VOD_H

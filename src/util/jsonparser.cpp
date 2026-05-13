@@ -15,12 +15,31 @@
 #include "jsonparser.h"
 #include "../model/settingsmanager.h"
 #include <QRandomGenerator>
+#include <QStringList>
 #include <QUrlQuery>
 
 namespace {
 QString playlistNonce()
 {
     return QString::number(QRandomGenerator::global()->bounded(1000000));
+}
+
+QString formatVodOffset(const quint32 totalSeconds)
+{
+    const quint32 hours = totalSeconds / 3600;
+    const quint32 minutes = (totalSeconds % 3600) / 60;
+    const quint32 seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+        return QString("%1:%2:%3")
+                .arg(hours)
+                .arg(minutes, 2, 10, QLatin1Char('0'))
+                .arg(seconds, 2, 10, QLatin1Char('0'));
+    }
+
+    return QString("%1:%2")
+            .arg(minutes)
+            .arg(seconds, 2, 10, QLatin1Char('0'));
 }
 }
 
@@ -385,6 +404,27 @@ Vod *JsonParser::parseVod(const QJsonObject &json)
 
     if (!json["created_at"].isNull())
         vod->setCreatedAt(json["created_at"].toString());
+
+    if (json["muted_segments"].isArray()) {
+        QStringList segments;
+        for (const QJsonValue &segmentValue : json["muted_segments"].toArray()) {
+            const QJsonObject segment = segmentValue.toObject();
+            if (!segment.contains("offset") || !segment.contains("duration")) {
+                continue;
+            }
+
+            const int offset = segment["offset"].toInt(-1);
+            const int segmentDuration = segment["duration"].toInt(0);
+            if (offset < 0 || segmentDuration <= 0) {
+                continue;
+            }
+
+            segments.append(QString("%1-%2")
+                            .arg(formatVodOffset(static_cast<quint32>(offset)))
+                            .arg(formatVodOffset(static_cast<quint32>(offset + segmentDuration))));
+        }
+        vod->setMutedSegments(segments.join(", "));
+    }
 
     return vod;
 }

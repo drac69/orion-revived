@@ -376,6 +376,7 @@ Page {
             "logo": channel.logo,
             "preview": channel.preview,
             "seekPreviews": isVod ? vod.seekPreviews : "",
+            "mutedSegments": isVod ? vod.mutedSegments : "",
         }
 
         setWatchingTitle()

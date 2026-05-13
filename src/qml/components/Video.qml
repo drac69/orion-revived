@@ -23,7 +23,28 @@ Channel {
     property int position
     property string createdAt
     property string seekPreviews
+    property string mutedSegments
     online: true
+
+    Label {
+        id: mutedSegmentsIcon
+        font.family: "Material Icons"
+        text: "\ue04f"
+        font.pointSize: 16
+        padding: 4
+        anchors {
+            top: parent.top
+            left: parent.left
+            margins: parent.width * 0.15
+        }
+
+        Material.foreground: Material.accent
+        visible: mutedSegments.length > 0
+        background: Rectangle {
+            color: Material.background
+            opacity: 0.8
+        }
+    }
 
     Label {
         id: resumePlaybackIcon

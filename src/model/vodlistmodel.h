@@ -38,6 +38,7 @@ public:
         Views,
         CreatedAt,
         SeekPreviews,
+        MutedSegments,
     };
 
     Qt::ItemFlags flags(const QModelIndex &index) const;

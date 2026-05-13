@@ -95,3 +95,13 @@ void Vod::setSeekPreviews(const QString &value)
 {
     seekPreviews = value;
 }
+
+QString Vod::getMutedSegments() const
+{
+    return mutedSegments;
+}
+
+void Vod::setMutedSegments(const QString &value)
+{
+    mutedSegments = value;
+}

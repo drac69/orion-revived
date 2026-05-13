@@ -185,6 +185,7 @@ Item{
                 game: model.game
                 createdAt: model.createdAt
                 seekPreviews: model.seekPreviews
+                mutedSegments: model.mutedSegments
 
                 width: vodgrid.cellWidth
             }

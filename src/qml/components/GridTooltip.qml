@@ -140,6 +140,9 @@ Item {
         if (channel.createdAt)
             text += (new Date(channel.createdAt)).toLocaleString() + "<br/>";
 
+        if (channel.mutedSegments)
+            text += "Muted sections " + channel.mutedSegments + "<br/>"
+
         text += channel.views + " views"
         img.source = channel.preview
 

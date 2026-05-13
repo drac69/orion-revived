@@ -141,6 +141,7 @@ void VodManager::loadCachedVods(quint64 channelId, quint32 maxItems)
         vod->setPreview(settings.value("preview").toString());
         vod->setCreatedAt(settings.value("createdAt").toString());
         vod->setSeekPreviews(settings.value("seekPreviews").toString());
+        vod->setMutedSegments(settings.value("mutedSegments").toString());
         items.append(vod);
     }
     settings.endArray();
@@ -176,6 +177,7 @@ void VodManager::saveCachedVods(quint64 channelId) const
         settings.setValue("preview", _model->data(index, VodListModel::Preview));
         settings.setValue("createdAt", _model->data(index, VodListModel::CreatedAt));
         settings.setValue("seekPreviews", _model->data(index, VodListModel::SeekPreviews));
+        settings.setValue("mutedSegments", _model->data(index, VodListModel::MutedSegments));
     }
     settings.endArray();
     settings.endGroup();
