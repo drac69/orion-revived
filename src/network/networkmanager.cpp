@@ -1263,6 +1263,9 @@ void NetworkManager::streamReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        const quint64 channelId = reply->request().attribute(QNetworkRequest::User).toULongLong();
+        emit streamGetOperationFinished(channelId, false);
+        reply->deleteLater();
         return;
     }
 
@@ -1312,6 +1315,9 @@ void NetworkManager::allStreamsReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QList<Channel *> empty;
+        emit allStreamsOperationFinished(empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1341,6 +1347,9 @@ void NetworkManager::searchGamesReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QList<Game *> empty;
+        emit searchGamesOperationFinished(empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1356,6 +1365,9 @@ void NetworkManager::gamesReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QList<Game *> empty;
+        emit gamesOperationFinished(empty);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1380,6 +1392,10 @@ void NetworkManager::gameStreamsReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QList<Channel *> empty;
+        const int total = reply->request().attribute(QNetworkRequest::User).toInt();
+        emit gameStreamsOperationFinished(empty, total);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1430,6 +1446,10 @@ void NetworkManager::gameStreamsGameLookupReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QList<Channel *> empty;
+        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+        emit gameStreamsOperationFinished(empty, offset);
+        reply->deleteLater();
         return;
     }
 
@@ -1463,6 +1483,9 @@ void NetworkManager::featuredStreamsReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QList<Channel *> empty;
+        emit featuredStreamsOperationFinished(empty, 0);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1486,6 +1509,10 @@ void NetworkManager::searchChannelsReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
+        QList<Channel *> empty;
+        const int total = reply->request().attribute(QNetworkRequest::User).toInt();
+        emit searchChannelsOperationFinished(empty, total);
+        reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
@@ -1615,6 +1642,10 @@ void NetworkManager::favouritesReply()
         if (statusCode == 401) {
             qWarning() << "Warning: Not authorized to read followed channels; logout and log in again to update OAuth scopes";
         }
+        QList<Channel *> empty;
+        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+        emit favouritesReplyFinished(empty, offset, offset);
+        reply->deleteLater();
         return;
     }
 
