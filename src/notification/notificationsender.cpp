@@ -68,6 +68,10 @@ void NotificationSender::getFile(const QString &url)
 void NotificationSender::onFileReply()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply) {
+        sendNotification(title, subtitle);
+        return;
+    }
 
     if (reply->error() != QNetworkReply::NoError){
         qDebug() << reply->errorString();
