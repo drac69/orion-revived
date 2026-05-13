@@ -635,11 +635,13 @@ int main(int argc, char *argv[])
     QNetworkProxyFactory::setUseSystemConfiguration(true);
     NetworkManager::initialize(engine.networkAccessManager());
 
-#ifndef Q_OS_ANDROID
     // detect hi dpi screens
     qDebug() << "Screens:";
     int screens = 0;
-    qreal maxDevicePixelRatio = QGuiApplication::primaryScreen()->devicePixelRatio();
+    qreal maxDevicePixelRatio = 1.0;
+    if (QGuiApplication::primaryScreen()) {
+        maxDevicePixelRatio = QGuiApplication::primaryScreen()->devicePixelRatio();
+    }
     for (const auto & screen : QGuiApplication::screens()) {
         qreal curPixelRatio = screen->devicePixelRatio();
         maxDevicePixelRatio = qMax(maxDevicePixelRatio, curPixelRatio);
@@ -650,6 +652,7 @@ int main(int argc, char *argv[])
 
     SettingsManager::getInstance()->setHiDpi(maxDevicePixelRatio > 1.0);
 
+#ifndef Q_OS_ANDROID
     //Set up notifications
     NotificationManager *notificationManager = new NotificationManager(&engine, engine.networkAccessManager(), &app);
     QObject::connect(ChannelManager::getInstance(), &ChannelManager::pushNotification, notificationManager, &NotificationManager::pushNotification);
