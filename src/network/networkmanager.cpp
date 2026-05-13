@@ -22,6 +22,15 @@
 #include <QUrlQuery>
 #include "../model/settingsmanager.h"
 
+namespace {
+
+// Auxiliary QNetworkRequest::User slots used to carry async request context.
+constexpr auto RequestContextAttribute1 = static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1);
+constexpr auto RequestContextAttribute2 = static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2);
+constexpr auto RequestContextAttribute3 = static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3);
+
+}
+
 NetworkManager *NetworkManager::singleton = 0;
 
 NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
@@ -305,7 +314,7 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
     QNetworkRequest request;
     addHelixHeaders(request);
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+    request.setAttribute(RequestContextAttribute1, pageSize);
 
     QUrl url(QString(HELIX_API) + "/games/top");
     QUrlQuery query;
@@ -337,7 +346,7 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
     QNetworkRequest request;
     addHelixHeaders(request);
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+    request.setAttribute(RequestContextAttribute1, pageSize);
 
     if (offset == 0 || query != lastSearchChannelsQuery) {
         searchChannelsPageCursors.clear();
@@ -453,7 +462,7 @@ void NetworkManager::getStreamsForLanguage(const QString &language, const quint3
     addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+    request.setAttribute(RequestContextAttribute1, pageSize);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -498,9 +507,9 @@ void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offse
     addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), gameName);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3), normalizedLanguage);
+    request.setAttribute(RequestContextAttribute1, pageSize);
+    request.setAttribute(RequestContextAttribute2, gameName);
+    request.setAttribute(RequestContextAttribute3, normalizedLanguage);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -528,7 +537,7 @@ void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 of
     addHelixHeaders(request);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), limit);
+    request.setAttribute(RequestContextAttribute1, limit);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -576,7 +585,7 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
     QNetworkRequest request;
     addHelixHeaders(request);
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+    request.setAttribute(RequestContextAttribute1, pageSize);
 
     url = QUrl(QString(HELIX_API) + "/videos");
     QUrlQuery query;
@@ -653,7 +662,7 @@ void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, qui
     addHelixHeaders(request, HelixAuthMode::UserOnly);
     request.setUrl(url);
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), pageSize);
+    request.setAttribute(RequestContextAttribute1, pageSize);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -734,7 +743,7 @@ void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offs
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), limit);
+    request.setAttribute(RequestContextAttribute1, limit);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -752,8 +761,8 @@ void NetworkManager::editUserBlock(const quint64 myUserId, const QString & block
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, myUserId);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), blockUsername);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), isBlock);
+    request.setAttribute(RequestContextAttribute1, blockUsername);
+    request.setAttribute(RequestContextAttribute2, isBlock);
     QNetworkReply *reply = operation->get(request);
 
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::blockUserLookupReply);
@@ -768,8 +777,8 @@ void NetworkManager::blockUserLookupReply() {
     }
 
     quint64 myUserId = reply->request().attribute(QNetworkRequest::User).toULongLong();
-    QString blockUsername = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toString();
-    bool isBlock = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2)).toBool();
+    QString blockUsername = reply->request().attribute(RequestContextAttribute1).toString();
+    bool isBlock = reply->request().attribute(RequestContextAttribute2).toBool();
 
     QByteArray data = reply->readAll();
     const auto & userIds = JsonParser::parseUsers(data);
@@ -803,8 +812,8 @@ void NetworkManager::editUserBlockWithId(const quint64 myUserId, const QString &
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, myUserId);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1), blockUsername);
-    request.setAttribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2), isBlock);
+    request.setAttribute(RequestContextAttribute1, blockUsername);
+    request.setAttribute(RequestContextAttribute2, isBlock);
 
     QNetworkReply *reply;
     if (isBlock) {
@@ -830,8 +839,8 @@ void NetworkManager::blockUserReply() {
     }
 
     quint64 myUserId = reply->request().attribute(QNetworkRequest::User).toULongLong();
-    QString blockUsername = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toString();
-    bool isBlock = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2)).toBool();
+    QString blockUsername = reply->request().attribute(RequestContextAttribute1).toString();
+    bool isBlock = reply->request().attribute(RequestContextAttribute2).toBool();
 
     if (isBlock) {
         emit userBlocked(myUserId, blockUsername);
@@ -884,7 +893,7 @@ void NetworkManager::blockedUserListReply() {
     auto result = JsonParser::parseBlockList(data);
 
     const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
-    const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+    const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
     const quint32 nextOffset = offset + limit;
     const quint32 total = result.cursor.isEmpty() ? nextOffset : nextOffset + 1;
 
@@ -1474,7 +1483,7 @@ void NetworkManager::gamesReply()
     const bool isHelix = reply->url().path() == "/helix/games/top";
     if (isHelix && !result.cursor.isEmpty()) {
         const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
-        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
         const quint32 returnedCount = static_cast<quint32>(result.items.size());
         const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
         topGamesPageCursors.insert(nextOffset, result.cursor);
@@ -1516,7 +1525,7 @@ void NetworkManager::gameStreamsReply()
     const bool isHelixLanguageStreams = isHelixStreams && query.hasQueryItem("language") && !query.hasQueryItem("game_id");
     if (isHelixGameStreams || isHelixLanguageStreams) {
         const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
-        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
         const quint32 returnedCount = static_cast<quint32>(out.items.size());
         const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
         const quint32 total = out.cursor.isEmpty() ? nextOffset : nextOffset + 1;
@@ -1552,9 +1561,9 @@ void NetworkManager::gameStreamsGameLookupReply()
     }
 
     const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
-    const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
-    const QString game = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2)).toString();
-    const QString language = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3)).toString();
+    const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
+    const QString game = reply->request().attribute(RequestContextAttribute2).toString();
+    const QString language = reply->request().attribute(RequestContextAttribute3).toString();
 
     QByteArray data = reply->readAll();
     auto result = JsonParser::parseGameResults(data);
@@ -1621,7 +1630,7 @@ void NetworkManager::searchChannelsReply()
     const bool isHelix = reply->url().path() == "/helix/search/channels";
     if (isHelix) {
         const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
-        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
         const quint32 returnedCount = static_cast<quint32>(result.items.size());
         const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
         const quint32 total = result.cursor.isEmpty() ? nextOffset : nextOffset + 1;
@@ -1722,7 +1731,7 @@ void NetworkManager::broadcastsReply()
     const bool isHelix = reply->url().path() == "/helix/videos";
     if (isHelix && !result.cursor.isEmpty()) {
         const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
-        const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+        const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
         const quint32 returnedCount = static_cast<quint32>(result.items.size());
         const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
         broadcastsPageCursors.insert(nextOffset, result.cursor);
@@ -1754,7 +1763,7 @@ void NetworkManager::favouritesReply()
     auto result = JsonParser::parseFavourites(data);
 
     const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
-    const quint32 limit = reply->request().attribute(static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 1)).toUInt();
+    const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
     const quint32 nextOffset = offset + limit;
     const quint32 total = result.cursor.isEmpty() ? nextOffset : qMax<quint32>(static_cast<quint32>(result.total), nextOffset + 1);
 

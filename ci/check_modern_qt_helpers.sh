@@ -17,3 +17,8 @@ if rg -n 'QVariant::Type|\.type\(\)' "$repo_dir/src/player/qthelper.hpp"; then
     printf 'qthelper.hpp must use QVariant::userType() for Qt meta-type checks.\n' >&2
     exit 1
 fi
+
+if rg -n '\.(setAttribute|attribute)\(static_cast<QNetworkRequest::Attribute>\(QNetworkRequest::User \+' "$repo_dir/src/network"; then
+    printf 'Network request context must use named request attributes instead of inline QNetworkRequest::User offsets.\n' >&2
+    exit 1
+fi
