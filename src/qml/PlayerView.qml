@@ -219,14 +219,12 @@ Page {
             switch (error) {
 
             case "token_error":
-                playbackError = error
-                setHeaderText("Token issue. Error getting stream")
+                showPlaybackError(error, "Token issue. Error getting stream")
                 break;
             case "playlist_error":
-                playbackError = error
                 var playbackTarget = isVod ? "Unable to load VOD" : "Unable to load stream"
                 var watchingTitle = getWatchingTitle()
-                setHeaderText(watchingTitle ? playbackTarget + ": " + watchingTitle : playbackTarget)
+                showPlaybackError(error, watchingTitle ? playbackTarget + ": " + watchingTitle : playbackTarget)
                 break;
 
             default:
@@ -265,18 +263,16 @@ Page {
         var quality = selectStreamQuality(preferredStreamQuality());
         if (!quality) {
             console.error("did not find a usable stream quality");
-            playbackError = "quality_error"
             startupRetryTimer.stop()
-            setHeaderText("No playable stream quality: " + getWatchingTitle())
+            showPlaybackError("quality_error", "No playable stream quality: " + getWatchingTitle())
             return;
         }
         var url = streamMap[quality]
 
         if (url == null) {
             console.error("did not have a playback url");
-            playbackError = "quality_error"
             startupRetryTimer.stop()
-            setHeaderText("Missing playback URL: " + getWatchingTitle())
+            showPlaybackError("quality_error", "Missing playback URL: " + getWatchingTitle())
             return;
         }
 
@@ -538,6 +534,17 @@ Page {
 
     function setHeaderText(text) {
         title.text = text
+    }
+
+    function twitchFallbackLabel() {
+        return isVod ? "Open VOD on Twitch" : "Open channel on Twitch"
+    }
+
+    function showPlaybackError(error, message) {
+        playbackError = error
+        headersVisible = true
+        hideTimer.stop()
+        setHeaderText(message + ". " + twitchFallbackLabel())
     }
 
     function getWatchingTitle() {
@@ -1154,7 +1161,7 @@ Page {
                     highlighted: playbackError !== ""
                     onClicked: openCurrentOnTwitch()
                     ToolTip.visible: hovered
-                    ToolTip.text: isVod ? "Open VOD on Twitch" : "Open channel on Twitch"
+                    ToolTip.text: playbackError !== "" ? twitchFallbackLabel() + " after playback error" : twitchFallbackLabel()
                 }
 
                 IconButtonFlat {

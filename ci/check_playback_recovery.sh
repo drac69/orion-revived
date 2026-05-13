@@ -24,3 +24,18 @@ if ! rg -q 'unexpectedStopRecoveryTimer' "$player_view"; then
     printf 'PlayerView must retain unexpected STOPPED-state recovery.\n' >&2
     exit 1
 fi
+
+if ! rg -q 'function showPlaybackError' "$player_view"; then
+    printf 'PlayerView must centralize playback error handling.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'headersVisible = true' "$player_view" || ! rg -q 'hideTimer\.stop\(\)' "$player_view"; then
+    printf 'Playback errors must force the Twitch fallback control to remain visible.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'Open VOD on Twitch' "$player_view" || ! rg -q 'Open channel on Twitch' "$player_view"; then
+    printf 'Playback errors must keep explicit Twitch fallback labels.\n' >&2
+    exit 1
+fi
