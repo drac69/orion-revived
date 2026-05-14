@@ -395,6 +395,20 @@ if ! rg -qF 'Viewers.loadChatterList(chat.channel, chat.channelId || 0, ChannelM
     fail=1
 fi
 
+for required_viewer_reload_token in \
+    'property string loadedRequestKey' \
+    'function viewerRequestKey()' \
+    'function scheduleReload()' \
+    'Qt.callLater(reload)' \
+    'onChannelChanged: root.scheduleReload()' \
+    'onChannelIdChanged: root.scheduleReload()'
+do
+    if ! rg -qF "$required_viewer_reload_token" "$viewer_list"; then
+        printf 'ViewerList must reload when the visible chat channel context changes: %s\n' "$required_viewer_reload_token" >&2
+        fail=1
+    fi
+done
+
 if ! rg -q 'loadChatterList\(const QString channel, const quint64 broadcasterId = 0, const quint64 moderatorId = 0\)' "$network_manager_header" \
     || ! rg -q 'quint64 chatterListRequestId = 0;' "$network_manager_header" \
     || ! printf '%s\n' "$load_chatter_block" | rg -q 'broadcasterId != 0' \

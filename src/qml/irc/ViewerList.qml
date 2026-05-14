@@ -8,16 +8,49 @@ import "../components"
 Item {
     id: root
     property bool loading: false
+    property bool reloadPending: false
+    property string loadedRequestKey: ""
 
     Layout.fillHeight: true
     Layout.fillWidth: true
-    
-    onVisibleChanged: {
-        if (visible && chat.channel) {
-            root.loading = true;
-            viewerListModel.clear()
-            Viewers.loadChatterList(chat.channel, chat.channelId || 0, ChannelManager.getUser_id());
+
+    function viewerRequestKey() {
+        return String(chat.channel || "") + ":" + String(chat.channelId || 0) + ":" + String(ChannelManager.getUser_id());
+    }
+
+    function scheduleReload() {
+        if (reloadPending) {
+            return;
         }
+        reloadPending = true;
+        Qt.callLater(reload);
+    }
+
+    function reload() {
+        reloadPending = false;
+        if (!visible || !chat.channel) {
+            return;
+        }
+
+        var requestKey = viewerRequestKey();
+        if (requestKey === loadedRequestKey && viewerListModel.count > 0) {
+            return;
+        }
+
+        loadedRequestKey = requestKey;
+        root.loading = true;
+        viewerListModel.clear()
+        Viewers.loadChatterList(chat.channel, chat.channelId || 0, ChannelManager.getUser_id());
+    }
+
+    onVisibleChanged: {
+        root.scheduleReload();
+    }
+
+    Connections {
+        target: chat
+        onChannelChanged: root.scheduleReload()
+        onChannelIdChanged: root.scheduleReload()
     }
     
     BusyIndicator {
