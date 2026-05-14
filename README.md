@@ -39,9 +39,9 @@ The maintained automation entry point is `.github/workflows/ci.yml`. Older relea
 * Optional Linux journal logging: `libsystemd` development headers
 * Optional legacy backends: `qtav` or `qt5-multimedia`
 
-## Building on linux
+## Building on Linux and FreeBSD
 
-(Using arch linux examples, but can be applied to other distros as well)
+The first command uses Arch Linux package names; distro-specific notes follow.
 
 Run the commands in this section from a terminal application, such as Terminal, Konsole, GNOME Terminal, or another shell.
 
@@ -62,9 +62,11 @@ If the app builds but the window does not appear, run `orion --debug` from a ter
 FreeBSD:
 
 ```
-pkg install qt5-buildtools qt5-core qt5-declarative qt5-graphicaleffects qt5-gui \
-  qt5-network qt5-quickcontrols2 qt5-widgets mpv
+pkg install qt5-buildtools qt5-qmake qt5-core qt5-declarative qt5-graphicaleffects \
+  qt5-gui qt5-network qt5-quickcontrols2 qt5-widgets mpv
 ```
+
+On FreeBSD, the default install prefix is `/usr/local`.
 
 If using backend other than mpv, install those packages instead. Packagers can build multiple backends into one binary by passing more than one backend flag, for example `CONFIG+=mpv CONFIG+=multimedia`. The GitHub Actions workflow validates separate mpv and Qt Multimedia builds as well as a combined mpv plus Qt Multimedia build. At startup, Orion removes a compiled backend from the in-app selector if its QML module cannot load and falls back to another compiled backend when one is available.
 
@@ -97,7 +99,7 @@ To try the build before installing it system-wide:
 ./orion --debug
 ```
 
-To install it into the default prefix:
+To install it into the default prefix (`/usr` on Linux, `/usr/local` on FreeBSD):
 
 ```
 sudo make install

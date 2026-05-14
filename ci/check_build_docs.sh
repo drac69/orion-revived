@@ -28,3 +28,23 @@ if ! rg -q 'latest-supported-vc-redist' "$readme"; then
     printf 'README Windows troubleshooting must point to the current Microsoft VC++ redistributable page.\n' >&2
     exit 1
 fi
+
+if ! rg -q 'pkg install .*qt5-qmake' "$readme"; then
+    printf 'README FreeBSD dependencies must include qt5-qmake for the Qt 5 qmake wrapper.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'default install prefix is `/usr/local`' "$readme"; then
+    printf 'README FreeBSD build notes must document the /usr/local default install prefix.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'freebsd: PREFIX = /usr/local' "$repo_dir/orion.pro"; then
+    printf 'orion.pro must default FreeBSD installs to /usr/local.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'unix:!macx:!android: \{' "$repo_dir/orion.pro"; then
+    printf 'orion.pro install target must cover Unix desktop builds, including FreeBSD.\n' >&2
+    exit 1
+fi

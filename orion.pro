@@ -15,6 +15,7 @@ TARGET = orion
 
 isEmpty(PREFIX){
     PREFIX = /usr
+    freebsd: PREFIX = /usr/local
 }
 
 VERSION = 1.6.8
@@ -129,18 +130,7 @@ multimedia {
 
 DISTFILES += src/qml/icon/orion.svg
 
-linux:!android: {
-    CONFIG += link_pkgconfig
-    QT += dbus
-
-    packagesExist(libsystemd) {
-        PKGCONFIG += libsystemd
-        DEFINES += SYSTEMD_JOURNAL
-    }
-
-    HEADERS += src/notification/notificationsender.h
-    SOURCES +=  src/notification/notificationsender.cpp
-
+unix:!macx:!android: {
     target.path = $$PREFIX/bin
     INSTALLS += target
 
@@ -154,6 +144,19 @@ linux:!android: {
     _icon.path = $$PREFIX/share/icons/hicolor/scalable/apps
 
     INSTALLS += _appdata _desktop _icon
+}
+
+linux:!android: {
+    CONFIG += link_pkgconfig
+    QT += dbus
+
+    packagesExist(libsystemd) {
+        PKGCONFIG += libsystemd
+        DEFINES += SYSTEMD_JOURNAL
+    }
+
+    HEADERS += src/notification/notificationsender.h
+    SOURCES +=  src/notification/notificationsender.cpp
 }
 
 RESOURCES += \

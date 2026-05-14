@@ -104,7 +104,7 @@ References:
 
 These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
 
-* #276: added FreeBSD dependency notes to the README.
+* #276: added FreeBSD dependency notes to the README, including `qt5-qmake`, and made the qmake install target available for FreeBSD with the default `/usr/local` prefix.
 * #216: added FreeBSD SSL-runtime troubleshooting for the reported `SSL_CTX_set1_groups` startup failure; the original FreeBSD 11 crash has not been reproduced in this environment.
 * #235 / #219: Linux desktop packaging metadata now points at this maintained fork, uses a reverse-DNS AppStream component ID with a desktop launchable, includes screenshot captions, and is validated in CI with `appstreamcli`, `desktop-file-validate`, and a staged `make install`. Obsolete Travis/AppVeyor release helpers are now documented as legacy and require an explicit opt-in before running; publishing distro packages or a PPA remains maintainer/distribution work.
 * #239: Fedora's package was built with the Qt Multimedia/GStreamer backend and missing codec/video sink dependencies, while distro comments recommend rebuilding with mpv. The Qt Multimedia backend now forwards MediaPlayer errors into Orion's visible playback error/fallback UI instead of only logging them, and CI now builds the default mpv backend, the Qt Multimedia backend, and a combined mpv/Qt Multimedia binary on Ubuntu; producing Fedora packages with the recommended mpv backend remains distro packaging work.
