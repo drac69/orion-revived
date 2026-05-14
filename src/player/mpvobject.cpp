@@ -138,13 +138,17 @@ MpvObject::MpvObject(QQuickItem * parent)
     mpv_set_option_string(mpv, "msg-level", "all=v");
 #endif
 
-    if (mpv_initialize(mpv) < 0)
-        throw std::runtime_error("could not initialize mpv context");
-
     // Use copy-back hardware decoding by default. Plain "auto" can hand native
     // decoder surfaces to the embedded renderer and has caused runaway GPU
     // memory allocations on some Windows drivers.
-    mpv_set_option_string(mpv, "hwdec", "auto-copy");
+    const int hwdecResult = mpv_set_option_string(mpv, "hwdec", "auto-copy");
+    if (hwdecResult < 0) {
+        qWarning().noquote() << "Could not set default libmpv hwdec option -"
+                             << mpv_error_string(hwdecResult);
+    }
+
+    if (mpv_initialize(mpv) < 0)
+        throw std::runtime_error("could not initialize mpv context");
 
     mpv_set_wakeup_callback(mpv, wakeup, this);
 

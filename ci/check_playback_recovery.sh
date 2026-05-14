@@ -198,6 +198,18 @@ if rg -q 'command_variant|set_property_variant|set_option_variant|get_property_v
     exit 1
 fi
 
+hwdec_default_line=$(rg -n 'mpv_set_option_string\(mpv, "hwdec", "auto-copy"\)' "$mpv_object_source" | head -n1 | cut -d: -f1 || true)
+mpv_initialize_line=$(rg -n 'mpv_initialize\(mpv\)' "$mpv_object_source" | head -n1 | cut -d: -f1 || true)
+if [[ -z "$hwdec_default_line" || -z "$mpv_initialize_line" || "$hwdec_default_line" -ge "$mpv_initialize_line" ]]; then
+    printf 'MpvObject must set the safe auto-copy hwdec default before mpv_initialize().\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'mpv_error_string\(hwdecResult\)' "$mpv_object_source"; then
+    printf 'MpvObject must log failures when applying the safe hwdec default.\n' >&2
+    exit 1
+fi
+
 if rg -q '#error "This helper is deprecated' "$mpv_qt_helper"; then
     printf 'The bundled mpv Qt helper must not require deprecated libmpv APIs to compile.\n' >&2
     exit 1
