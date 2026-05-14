@@ -134,7 +134,9 @@ void ChannelListModel::addChannel(Channel *channel)
 
     if (updateChannelIfExisting(channel)) {
         qDebug() << "ChannelListModel::addChannel got existing channel" << channel->getId() << channel->getName();
-        delete channel;
+        if (find(channel->getId()) != channel) {
+            delete channel;
+        }
     }
     else {
         beginInsertRows(QModelIndex(), channels.size(), channels.size());

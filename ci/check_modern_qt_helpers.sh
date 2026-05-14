@@ -102,6 +102,11 @@ if ! printf '%s\n' "$vod_find_block" | rg -q 'return nullptr;'; then
     exit 1
 fi
 
+if ! printf '%s\n' "$channel_add_block" | rg -q 'find\(channel->getId\(\)\) != channel'; then
+    printf 'ChannelListModel::addChannel must not delete an already-owned channel pointer.\n' >&2
+    exit 1
+fi
+
 if ! printf '%s\n' "$channel_add_block" | rg -q 'delete channel;'; then
     printf 'ChannelListModel::addChannel must delete duplicate input channels after updating existing rows.\n' >&2
     exit 1
