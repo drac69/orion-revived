@@ -482,16 +482,22 @@ void NetworkManager::getStreamsForLanguage(const QString &language, const quint3
 
 void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offset, const quint32 &limit, const QString &language)
 {
-    if (!requireHelixAccessToken("Game stream search")) {
+    const QString gameName = game.trimmed();
+    const QString normalizedLanguage = language.trimmed().toLower();
+    const QString queryKey = gameName + "\n" + normalizedLanguage;
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+
+    if (gameName.isEmpty()) {
         QList<Channel *> empty;
         emit gameStreamsOperationFinished(empty, offset);
         return;
     }
 
-    const QString gameName = game.trimmed();
-    const QString normalizedLanguage = language.trimmed().toLower();
-    const QString queryKey = gameName + "\n" + normalizedLanguage;
-    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+    if (!requireHelixAccessToken("Game stream search")) {
+        QList<Channel *> empty;
+        emit gameStreamsOperationFinished(empty, offset);
+        return;
+    }
 
     if (offset == 0 || queryKey != lastGameStreamsQuery) {
         gameStreamsPageCursors.clear();
@@ -529,10 +535,17 @@ void NetworkManager::getStreamsForGame(const QString &game, const quint32 &offse
 
 void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language)
 {
+    const QString normalizedGameId = gameId.trimmed();
     const QString normalizedLanguage = language.trimmed().toLower();
+    if (normalizedGameId.isEmpty()) {
+        QList<Channel *> empty;
+        emit gameStreamsOperationFinished(empty, offset);
+        return;
+    }
+
     QUrl url(QString(HELIX_API) + "/streams");
     QUrlQuery query;
-    query.addQueryItem("game_id", gameId);
+    query.addQueryItem("game_id", normalizedGameId);
     if (!normalizedLanguage.isEmpty()) {
         query.addQueryItem("language", normalizedLanguage);
     }
@@ -557,8 +570,14 @@ void NetworkManager::getStreamsForGameId(const QString &gameId, const quint32 of
 
 void NetworkManager::getChannelPlaybackStream(const QString &channelName)
 {
+    const QString normalizedChannelName = channelName.trimmed();
+    if (normalizedChannelName.isEmpty()) {
+        emit m3u8OperationFinished(QVariantMap());
+        return;
+    }
+
     QString url = QString(TWITCH_API)
-            + QString("/channels/%1").arg(channelName)
+            + QString("/channels/%1").arg(normalizedChannelName)
             + QString("/access_token");
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getPrivateClientId().toUtf8());

@@ -6,6 +6,9 @@ json_parser="src/util/jsonparser.cpp"
 network_manager="src/network/networkmanager.cpp"
 vod_manager="src/model/vodmanager.cpp"
 get_stream_block=$(sed -n '/void NetworkManager::getStream/,/^}/p' "$network_manager")
+get_streams_for_game_block=$(sed -n '/void NetworkManager::getStreamsForGame(/,/^}/p' "$network_manager")
+get_streams_for_game_id_block=$(sed -n '/void NetworkManager::getStreamsForGameId/,/^}/p' "$network_manager")
+get_channel_playback_block=$(sed -n '/void NetworkManager::getChannelPlaybackStream/,/^}/p' "$network_manager")
 get_broadcasts_block=$(sed -n '/void NetworkManager::getBroadcasts/,/^}/p' "$network_manager")
 get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybackStream/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
@@ -174,6 +177,28 @@ fi
 if ! printf '%s\n' "$get_stream_block" | rg -q 'if \(channelId == 0\)' \
     || ! printf '%s\n' "$get_stream_block" | rg -q 'emit streamGetOperationFinished\(channelId, false\)'; then
     printf 'Single stream-status requests must reject zero channel ids before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_streams_for_game_block" | rg -q 'const QString gameName = game\.trimmed\(\)' \
+    || ! printf '%s\n' "$get_streams_for_game_block" | rg -q 'if \(gameName\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$get_streams_for_game_block" | rg -q 'emit gameStreamsOperationFinished\(empty, offset\)'; then
+    printf 'Game stream searches must reject empty game names before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_streams_for_game_id_block" | rg -q 'const QString normalizedGameId = gameId\.trimmed\(\)' \
+    || ! printf '%s\n' "$get_streams_for_game_id_block" | rg -q 'if \(normalizedGameId\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$get_streams_for_game_id_block" | rg -q 'query\.addQueryItem\("game_id", normalizedGameId\)'; then
+    printf 'Game stream lookups must reject empty game IDs and query with normalized IDs.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_channel_playback_block" | rg -q 'const QString normalizedChannelName = channelName\.trimmed\(\)' \
+    || ! printf '%s\n' "$get_channel_playback_block" | rg -q 'if \(normalizedChannelName\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$get_channel_playback_block" | rg -q 'emit m3u8OperationFinished\(QVariantMap\(\)\)' \
+    || ! printf '%s\n' "$get_channel_playback_block" | rg -q 'arg\(normalizedChannelName\)'; then
+    printf 'Live playback-token requests must reject empty channel names before calling Twitch.\n' >&2
     fail=1
 fi
 
