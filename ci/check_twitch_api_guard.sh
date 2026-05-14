@@ -365,6 +365,19 @@ if ! printf '%s\n' "$user_reply_block" | rg -q 'emit userOperationFinished\(QStr
     fail=1
 fi
 
+for required_network_error_token in \
+    'QString networkReplyErrorMessage(QNetworkReply *reply)' \
+    'QNetworkRequest::HttpStatusCodeAttribute' \
+    'QJsonDocument::fromJson(body, &parseError)' \
+    'object.value(QStringLiteral("message")).toString()' \
+    'qDebug().noquote() << message'
+do
+    if ! rg -qF "$required_network_error_token" "$network_manager"; then
+        printf 'Network errors must include HTTP status and API response details when available: %s\n' "$required_network_error_token" >&2
+        fail=1
+    fi
+done
+
 if ! printf '%s\n' "$channel_manager_on_user_updated_block" | rg -q 'if \(name\.isEmpty\(\) \|\| userId == 0\)' \
     || ! printf '%s\n' "$channel_manager_on_user_updated_block" | rg -q 'emit userNameUpdated\(user_name\)' \
     || ! printf '%s\n' "$channel_manager_on_user_updated_block" | rg -q 'return;'; then

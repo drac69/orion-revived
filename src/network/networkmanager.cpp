@@ -47,6 +47,54 @@ QString githubTagUrl(const QString &tag)
             .arg(QString::fromLatin1(QUrl::toPercentEncoding(tag)));
 }
 
+QString singleLineDetail(QString detail)
+{
+    detail = detail.simplified();
+    constexpr int maxDetailLength = 240;
+    if (detail.length() > maxDetailLength) {
+        detail = detail.left(maxDetailLength - 3) + QStringLiteral("...");
+    }
+    return detail;
+}
+
+QString networkReplyErrorMessage(QNetworkReply *reply)
+{
+    QString message = reply->errorString();
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QString detail;
+
+    const QByteArray body = reply->readAll();
+    if (!body.isEmpty()) {
+        QJsonParseError parseError;
+        const QJsonDocument doc = QJsonDocument::fromJson(body, &parseError);
+        if (parseError.error == QJsonParseError::NoError && doc.isObject()) {
+            const QJsonObject object = doc.object();
+            detail = object.value(QStringLiteral("message")).toString();
+            if (detail.isEmpty()) {
+                detail = object.value(QStringLiteral("error")).toString();
+            }
+            if (statusCode == 0) {
+                statusCode = object.value(QStringLiteral("status")).toInt();
+            }
+        } else {
+            detail = QString::fromUtf8(body);
+        }
+    }
+
+    detail = singleLineDetail(detail);
+
+    if (statusCode > 0 && !detail.isEmpty()) {
+        return QStringLiteral("%1 (HTTP %2: %3)").arg(message).arg(statusCode).arg(detail);
+    }
+    if (statusCode > 0) {
+        return QStringLiteral("%1 (HTTP %2)").arg(message).arg(statusCode);
+    }
+    if (!detail.isEmpty()) {
+        return QStringLiteral("%1: %2").arg(message, detail);
+    }
+    return message;
+}
+
 }
 
 NetworkManager *NetworkManager::singleton = nullptr;
@@ -1604,8 +1652,8 @@ bool NetworkManager::handleNetworkError(QNetworkReply *reply)
                 offlinePoller.start();
         }
 
-        const QString message = reply->errorString();
-        qDebug() << message;
+        const QString message = networkReplyErrorMessage(reply);
+        qDebug().noquote() << message;
         if (!(reply->error() >= 1 && reply->error() <= 199)) {
             emit error(message);
         }
