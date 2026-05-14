@@ -12,6 +12,7 @@ SidePanel {
     property string logoSource: ""
     property bool labelsVisible: width >= 400
     property int textStyle: Text.Sunken
+    property bool plainTextStyle: false
     dim: false
     modal: false
     Material.theme: Material.Dark
@@ -30,6 +31,7 @@ SidePanel {
         title.text = "N/A"
         description.text = "N/A"
         viewerCount.text = "N/A"
+        plainTextStyle = false
 
         if (item) {
             previewSource = item.preview || ""
@@ -39,6 +41,9 @@ SidePanel {
             viewerCount.visible = item.viewers >= 0
             viewerCount.text = item.viewers + " viewers" + (item.language ? " / " + item.language.toUpperCase() : "")
             description.text = item.info
+            plainTextStyle = Util.needsPlainTextStyle(item.title)
+                    || Util.needsPlainTextStyle(item.game)
+                    || Util.needsPlainTextStyle(item.info)
         }
 
         open()
@@ -96,7 +101,7 @@ SidePanel {
                 font.pointSize: 12
                 fontSizeMode: Text.Fit
                 wrapMode: Text.WordWrap
-                style: textStyle
+                style: root.plainTextStyle ? Text.Normal : textStyle
             }
 
             Label {
@@ -105,7 +110,7 @@ SidePanel {
                 font.pointSize: 12
                 fontSizeMode: Text.Fit
                 wrapMode: Text.WordWrap
-                style: textStyle
+                style: root.plainTextStyle ? Text.Normal : textStyle
             }
 
             Label {
@@ -114,7 +119,7 @@ SidePanel {
                 font.pointSize: 10
                 fontSizeMode: Text.Fit
                 wrapMode: Text.WordWrap
-                style: textStyle
+                style: root.plainTextStyle ? Text.Normal : textStyle
             }
         }
 

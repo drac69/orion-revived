@@ -8,7 +8,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 
 ## Addressed in this fork
 
-* #302 / #303: merged the unmerged QObject lifetime crash fix from upstream PR #303, filtered stale/null model objects before list updates, and routed `NetworkManager` reply slots through a checked sender helper so unexpected non-reply invocations cannot dereference a null `QNetworkReply`.
+* #302 / #303: merged the unmerged QObject lifetime crash fix from upstream PR #303, filtered stale/null model objects before list updates, routed `NetworkManager` reply slots through a checked sender helper so unexpected non-reply invocations cannot dereference a null `QNetworkReply`, and disabled the InfoDrawer text style when channel title/description text contains non-ASCII characters to avoid the old Qt 5 styled-emoji render crash while preserving the text.
 * #18: added an mpv playback-stats overlay with codec, resolution, FPS, bitrate, dropped frame, sync, cache, and hardware-decoder data.
 * #26: added Linux MPRIS media-control support for play, pause, stop, seek, volume, and metadata over D-Bus.
 * #295: added an optional mpv audio-compressor filter for reducing stream volume swings.

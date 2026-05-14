@@ -175,6 +175,11 @@ function encodeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+function needsPlainTextStyle(value) {
+    // Older Qt 5 scenegraph text rendering can crash when styled text contains emoji.
+    return /[^\x00-\x7F]/.test(String(value || ""));
+}
+
 function regexContainsHtmlEntity(regexText) {
     return /&(?:amp|lt|gt|quot|apos|#0*(?:34|38|39|60|62)|#x0*(?:22|26|27|3c|3e));/i.test(regexText);
 }

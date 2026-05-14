@@ -11,6 +11,8 @@ repo = pathlib.Path(sys.argv[1])
 main_cpp = (repo / "src" / "main.cpp").read_text(encoding="utf-8")
 main_qml = (repo / "src" / "qml" / "main.qml").read_text(encoding="utf-8")
 options_qml = (repo / "src" / "qml" / "OptionsView.qml").read_text(encoding="utf-8")
+info_drawer_qml = (repo / "src" / "qml" / "components" / "InfoDrawer.qml").read_text(encoding="utf-8")
+util_js = (repo / "src" / "qml" / "util.js").read_text(encoding="utf-8")
 qrc = (repo / "src" / "qml" / "qml.qrc").read_text(encoding="utf-8")
 
 errors = []
@@ -46,6 +48,23 @@ if 'font.family: Settings.font || appFont.name' not in main_qml:
 
 if 'Settings.font = ""' not in options_qml:
     errors.append("OptionsView.qml must reset to the bundled default font through an empty saved font")
+
+for token, description in (
+    ('function needsPlainTextStyle(value)', "util.js must expose the styled-text emoji crash guard"),
+    (r'/[^\x00-\x7F]/', "util.js must detect non-ASCII text before styled rendering"),
+):
+    if token not in util_js:
+        errors.append(description)
+
+for token, description in (
+    ('property bool plainTextStyle: false', "InfoDrawer must track when styled text should be disabled"),
+    ('plainTextStyle = Util.needsPlainTextStyle(item.title)', "InfoDrawer must inspect channel titles before styled rendering"),
+    ('|| Util.needsPlainTextStyle(item.game)', "InfoDrawer must inspect game names before styled rendering"),
+    ('|| Util.needsPlainTextStyle(item.info)', "InfoDrawer must inspect channel descriptions before styled rendering"),
+    ('style: root.plainTextStyle ? Text.Normal : textStyle', "InfoDrawer labels must disable text style for risky Unicode text"),
+):
+    if token not in info_drawer_qml:
+        errors.append(description)
 
 if errors:
     for error in errors:
