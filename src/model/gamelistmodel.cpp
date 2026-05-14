@@ -95,9 +95,17 @@ QHash<int, QByteArray> GameListModel::roleNames() const
 
 void GameListModel::addAll(const QList<Game *> &list)
 {
-    if (!list.isEmpty()){
-        beginInsertRows(QModelIndex(), games.size(), games.size() + list.size() - 1);
-        for (Game *game : list) {
+    QList<Game *> newItems;
+    newItems.reserve(list.size());
+    for (Game *game : list) {
+        if (game) {
+            newItems.append(game);
+        }
+    }
+
+    if (!newItems.isEmpty()){
+        beginInsertRows(QModelIndex(), games.size(), games.size() + newItems.size() - 1);
+        for (Game *game : newItems) {
             games.append(new Game(*game));
         }
         endInsertRows();
@@ -106,6 +114,10 @@ void GameListModel::addAll(const QList<Game *> &list)
 
 void GameListModel::addGame(Game *game)
 {
+    if (!game) {
+        return;
+    }
+
     beginInsertRows(QModelIndex(), games.size(), games.size());
     games.append(game);
     endInsertRows();

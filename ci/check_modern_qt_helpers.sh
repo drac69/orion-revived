@@ -5,6 +5,8 @@ repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 json_parser="$repo_dir/src/util/jsonparser.cpp"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
 game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
+game_add_all_block=$(sed -n '/void GameListModel::addAll/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
+game_add_game_block=$(sed -n '/void GameListModel::addGame/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
 vod_find_block=$(sed -n '/Vod \*VodListModel::find/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 channel_add_block=$(sed -n '/void ChannelListModel::addChannel/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
 vod_add_all_block=$(sed -n '/void VodListModel::addAll/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
@@ -96,6 +98,17 @@ fi
 
 if ! printf '%s\n' "$game_find_block" | rg -q 'return nullptr;'; then
     printf 'GameListModel::find must return nullptr for missing games.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$game_add_all_block" | rg -q 'newItems\.append\(game\)' \
+    || ! printf '%s\n' "$game_add_all_block" | rg -q 'newItems\.size\(\)'; then
+    printf 'GameListModel::addAll must insert only filtered non-null game pointers.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$game_add_game_block" | rg -q 'if \(!game\)'; then
+    printf 'GameListModel::addGame must ignore null game pointers.\n' >&2
     exit 1
 fi
 
