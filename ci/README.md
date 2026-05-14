@@ -12,7 +12,8 @@ GitHub community health files,
 desktop/AppStream metadata, checks the install target, runs the Twitch API and emote-ID regression
 guards, validates the local OAuth callback parser and stored-token validation,
 verifies that preserved legacy release helpers keep their explicit opt-in
-guard, validates source-build documentation, checks that the upstream issue
+guard, validates source-build documentation, validates the release-readiness
+matrix, checks that the upstream issue
 triage covers every audited open issue,
 validates Android package metadata, validates Apple bundle metadata,
 validates the QML resource manifest

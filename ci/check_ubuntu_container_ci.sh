@@ -38,7 +38,10 @@ static_scripts=(
     ci/check_legacy_ci_guard.sh
     ci/check_shell_scripts.sh
     ci/check_build_docs.sh
+    ci/check_release_readiness.sh
     ci/check_workflow_hygiene.sh
+    ci/check_github_issue_templates.sh
+    ci/check_github_community_files.sh
     ci/check_version_checker.sh
     ci/check_patch_whitespace.sh
     ci/check_upstream_issue_triage.sh
@@ -48,6 +51,7 @@ static_scripts=(
     ci/check_twitch_emote_ids.sh
     ci/check_irc_tag_parsing.sh
     ci/check_android_metadata.sh
+    ci/check_fdroid_metadata.sh
     ci/check_apple_metadata.sh
     ci/check_qml_resources.sh
     ci/check_qml_runtime_deps.sh

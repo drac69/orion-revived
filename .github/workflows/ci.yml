@@ -58,6 +58,9 @@ jobs:
       - name: Validate build documentation
         run: ci/check_build_docs.sh
 
+      - name: Validate release readiness
+        run: ci/check_release_readiness.sh
+
       - name: Validate workflow hygiene
         run: ci/check_workflow_hygiene.sh
 
