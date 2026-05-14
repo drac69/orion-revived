@@ -113,6 +113,12 @@ model_data_sources=(
     "$repo_dir/src/model/channellistmodel.cpp|index.row() < 0 || index.row() >= channels.size()"
     "$repo_dir/src/model/gamelistmodel.cpp|index.row() < 0 || index.row() >= games.size()"
     "$repo_dir/src/model/vodlistmodel.cpp|index.row() < 0 || index.row() >= vods.size()"
+    "$repo_dir/src/model/channellistmodel.cpp|if (!index.isValid())"
+    "$repo_dir/src/model/gamelistmodel.cpp|if (!index.isValid())"
+    "$repo_dir/src/model/vodlistmodel.cpp|if (!index.isValid())"
+    "$repo_dir/src/model/channellistmodel.cpp|if (parent.isValid())"
+    "$repo_dir/src/model/gamelistmodel.cpp|if (parent.isValid())"
+    "$repo_dir/src/model/vodlistmodel.cpp|if (parent.isValid())"
 )
 
 for entry in "${model_data_sources[@]}"; do

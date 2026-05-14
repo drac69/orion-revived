@@ -24,8 +24,12 @@ GameListModel::~GameListModel()
     clear();
 }
 
-Qt::ItemFlags GameListModel::flags(const QModelIndex &/*index*/) const
+Qt::ItemFlags GameListModel::flags(const QModelIndex &index) const
 {
+    if (!index.isValid()) {
+        return Qt::NoItemFlags;
+    }
+
     return Qt::ItemIsEnabled;
 }
 
@@ -66,8 +70,12 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
     return var;
 }
 
-int GameListModel::rowCount(const QModelIndex &/*parent*/) const
+int GameListModel::rowCount(const QModelIndex &parent) const
 {
+    if (parent.isValid()) {
+        return 0;
+    }
+
     return games.size();
 }
 

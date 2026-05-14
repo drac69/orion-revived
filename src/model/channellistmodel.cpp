@@ -24,11 +24,12 @@ ChannelListModel::~ChannelListModel()
     clear();
 }
 
-Qt::ItemFlags ChannelListModel::flags(const QModelIndex &/*index*/) const
+Qt::ItemFlags ChannelListModel::flags(const QModelIndex &index) const
 {
-    //int row = index.row();
-    //    Channel* channel = source.at(index);
-    //    if (channel->online)
+    if (!index.isValid()) {
+        return Qt::NoItemFlags;
+    }
+
     return Qt::ItemIsEnabled;
 }
 
@@ -97,8 +98,12 @@ QVariant ChannelListModel::data(const QModelIndex &index, int role) const
     return var;
 }
 
-int ChannelListModel::rowCount(const QModelIndex &/*parent*/) const
+int ChannelListModel::rowCount(const QModelIndex &parent) const
 {
+    if (parent.isValid()) {
+        return 0;
+    }
+
     return channels.size();
 }
 
