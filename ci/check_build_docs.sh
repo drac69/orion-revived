@@ -47,7 +47,7 @@ if ! rg -q 'validates source builds on Linux, macOS, and Windows through GitHub 
 fi
 
 if ! rg -q 'Windows source builds are validated in GitHub Actions with MSYS2 UCRT64' "$readme" \
-    || ! rg -q '`windows-2025` runner' "$readme" \
+    || ! rg -q '`windows-2025-vs2026` runner' "$readme" \
     || ! rg -q 'mingw-w64-ucrt-x86_64-mpv' "$readme" \
     || ! rg -q 'mingw32-make -j"\$\(nproc\)"' "$readme"; then
     printf 'README must document Windows MSYS2 source-build CI validation without claiming signed installers.\n' >&2

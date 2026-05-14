@@ -201,7 +201,7 @@ There will now be an orion.app application in the build directory.
 ## Building on Windows with MSYS2
 
 Windows source builds are validated in GitHub Actions with MSYS2 UCRT64,
-Qt 5, and mpv on the `windows-2025` runner. Signed installers are not
+Qt 5, and mpv on the `windows-2025-vs2026` runner. Signed installers are not
 published yet.
 
 Install MSYS2, open the UCRT64 shell, then install build dependencies:

@@ -45,7 +45,7 @@ if ! rg -q 'runs-on:\s*macos-15' "$workflow" \
     exit 1
 fi
 
-if ! rg -q 'runs-on:\s*windows-2025' "$workflow" \
+if ! rg -q 'runs-on:\s*windows-2025-vs2026' "$workflow" \
         || ! rg -q 'msys2/setup-msys2@v2' "$workflow" \
         || ! rg -q 'msystem:\s*UCRT64' "$workflow" \
         || ! rg -q 'mingw-w64-ucrt-x86_64-mpv' "$workflow" \
