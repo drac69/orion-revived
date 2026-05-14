@@ -14,6 +14,7 @@
 
 #include "jsonparser.h"
 #include "../model/settingsmanager.h"
+#include <QJsonValue>
 #include <QRandomGenerator>
 #include <QStringList>
 #include <QUrlQuery>
@@ -40,6 +41,21 @@ QString formatVodOffset(const quint32 totalSeconds)
     return QString("%1:%2")
             .arg(minutes)
             .arg(seconds, 2, 10, QLatin1Char('0'));
+}
+
+QString vodIdFromJson(const QJsonValue &value)
+{
+    if (value.isString()) {
+        return value.toString().trimmed();
+    }
+    if (value.isDouble()) {
+        const quint64 id = static_cast<quint64>(value.toDouble());
+        if (id != 0) {
+            return QString::number(id);
+        }
+    }
+
+    return QString();
 }
 }
 
@@ -644,10 +660,12 @@ QString JsonParser::parseVodExtractionInfo(const QByteArray &data)
         QJsonDocument tokenDoc = QJsonDocument::fromJson(tokenData.toUtf8(), &error);
         if (error.error == QJsonParseError::NoError){
             QJsonObject tokenJson = tokenDoc.object();
-            vod = QString::number(tokenJson["vod_id"].toInt());
+            vod = vodIdFromJson(tokenJson["vod_id"]);
         }
 
-        if (vod.isEmpty() || tokenData.isEmpty() || sig.isEmpty()) {
+        bool vodOk = false;
+        const quint64 vodId = vod.toULongLong(&vodOk);
+        if (!vodOk || vodId == 0 || tokenData.isEmpty() || sig.isEmpty()) {
             return url;
         }
 

@@ -2,6 +2,7 @@
 set -euo pipefail
 
 fail=0
+json_parser="src/util/jsonparser.cpp"
 
 check_absent() {
     local label="$1"
@@ -91,8 +92,20 @@ if ! rg -q 'ORION_TWITCH_CLIENT_SECRET' README.md docs/upstream-issue-triage.md;
 fi
 
 for required_vod_field in description language published_at url muted_segments; do
-    if ! rg -q "\"$required_vod_field\"" src/util/jsonparser.cpp; then
+    if ! rg -q "\"$required_vod_field\"" "$json_parser"; then
         printf 'Helix VOD metadata field %s must be parsed for filtering/display.\n' "$required_vod_field" >&2
+        fail=1
+    fi
+done
+
+if rg -qF 'QString::number(tokenJson["vod_id"].toInt())' "$json_parser"; then
+    printf 'VOD playback-token parsing must not coerce string vod_id values to zero.\n' >&2
+    fail=1
+fi
+
+for required_vod_token_parser_token in 'vodIdFromJson' 'vod.toULongLong(&vodOk)' 'vodId == 0'; do
+    if ! rg -qF "$required_vod_token_parser_token" "$json_parser"; then
+        printf 'VOD playback-token parsing is missing token: %s\n' "$required_vod_token_parser_token" >&2
         fail=1
     fi
 done
