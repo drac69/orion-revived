@@ -182,10 +182,18 @@ defineTest(copyToDestdir) {
 win32: {
     RC_ICONS = distfiles/orion.ico
 
-    EXTRA_BINFILES = $$PWD/libs/ssleay32.dll \
-                    $$PWD/libs/libeay32.dll
+    OPENSSL_BINFILES = $$files($$PWD/libs/libssl*.dll) \
+                       $$files($$PWD/libs/libcrypto*.dll) \
+                       $$files($$PWD/libs/ssleay32.dll) \
+                       $$files($$PWD/libs/libeay32.dll)
 
-    mpv: EXTRA_BINFILES += $$PWD/libs/mpv-1.dll
+    isEmpty(OPENSSL_BINFILES) {
+        message("No OpenSSL DLLs found under libs/. Qt Network HTTPS depends on matching runtime SSL libraries.")
+    }
+
+    EXTRA_BINFILES = $$OPENSSL_BINFILES
+
+    mpv:exists($$PWD/libs/mpv-1.dll): EXTRA_BINFILES += $$PWD/libs/mpv-1.dll
 
     EXTRA_BINFILES_WIN = $${EXTRA_BINFILES}
     EXTRA_BINFILES_WIN ~= s,/,\\,g

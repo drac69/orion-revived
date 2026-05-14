@@ -233,7 +233,10 @@ If a Windows build starts but every content tab stays empty or only shows a
 connection error after login, run it with `--debug` and check the Qt Network SSL
 messages. Older Orion Windows builds could silently load OpenSSL DLLs from the
 wrong architecture; local Windows packages must ship SSL libraries that match
-the executable and Qt build.
+the executable and Qt build. The qmake project stages modern
+`libs/libssl*.dll` and `libs/libcrypto*.dll` files when present, while still
+recognizing the old `ssleay32.dll` / `libeay32.dll` names used by older Qt
+packages.
 
 ## Known limitations
 

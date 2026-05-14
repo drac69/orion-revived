@@ -31,8 +31,19 @@ fi
 
 if ! rg -q 'every content tab stays empty' "$readme" \
     || ! rg -q 'Qt Network SSL' "$readme" \
-    || ! rg -q 'wrong architecture' "$readme"; then
+    || ! rg -q 'wrong architecture' "$readme" \
+    || ! rg -q 'libs/libssl\*\.dll' "$readme" \
+    || ! rg -q 'libs/libcrypto\*\.dll' "$readme"; then
     printf 'README Windows troubleshooting must document the old empty-tabs/SSL DLL architecture failure path.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'OPENSSL_BINFILES = \$\$files\(\$\$PWD/libs/libssl\*\.dll\)' "$repo_dir/orion.pro" \
+    || ! rg -q '\$\$files\(\$\$PWD/libs/libcrypto\*\.dll\)' "$repo_dir/orion.pro" \
+    || ! rg -q '\$\$files\(\$\$PWD/libs/ssleay32\.dll\)' "$repo_dir/orion.pro" \
+    || ! rg -q '\$\$files\(\$\$PWD/libs/libeay32\.dll\)' "$repo_dir/orion.pro" \
+    || rg -q 'EXTRA_BINFILES = \$\$PWD/libs/ssleay32\.dll' "$repo_dir/orion.pro"; then
+    printf 'orion.pro Windows packaging must discover modern OpenSSL DLL names while preserving old-name compatibility.\n' >&2
     exit 1
 fi
 
