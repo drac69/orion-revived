@@ -622,7 +622,15 @@ Page {
                 filterTextProperty: "emoteName"
 
                 onItemClicked: {
+                    if (index < 0 || index >= _emoteButton.setsVisible.count) {
+                        return;
+                    }
+
                     var item = _emoteButton.setsVisible.get(index);
+                    if (!item) {
+                        return;
+                    }
+
                     addEmoteToChat(item.insertText || item.emoteName);
                 }
 

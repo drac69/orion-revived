@@ -97,6 +97,10 @@ Page {
     }
 
     function _visibleItemClicked(index) {
+        if (typeof index !== "number" || !_innerModel || index < 0 || index >= _innerModel.count) {
+            return false;
+        }
+
         var actualIndex = index;
         if (_filterIndexMap.length > 0) {
             if (0 > index || index >= _filterIndexMap.length) {
@@ -254,8 +258,9 @@ Page {
             cursorShape: hoveringIndex != -1 ? Qt.PointingHandCursor : Qt.ArrowCursor
             property int hoveringIndex: containsMouse ? _emotesGrid.indexAt(_emotesGrid.contentX + mouseX, _emotesGrid.contentY + mouseY) : -1
             onClicked: {
-                root._visibleItemClicked(hoveringIndex);
-                moveFocusDown()
+                if (root._visibleItemClicked(hoveringIndex)) {
+                    moveFocusDown()
+                }
             }
         }
 

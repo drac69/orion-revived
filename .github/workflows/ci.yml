@@ -97,6 +97,9 @@ jobs:
       - name: Validate QML window contracts
         run: ci/check_qml_window_contracts.sh
 
+      - name: Validate QML emote picker contracts
+        run: ci/check_qml_emote_picker_contracts.sh
+
       - name: Validate QML HTML utilities
         run: ci/check_qml_util_html.sh
 
