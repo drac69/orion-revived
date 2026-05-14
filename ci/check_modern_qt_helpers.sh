@@ -84,6 +84,11 @@ if ! printf '%s\n' "$parse_game_results_block" | rg -q 'delete game;'; then
     exit 1
 fi
 
+if ! rg -q 'int total = 0;' "$repo_dir/src/util/jsonparser.h"; then
+    printf 'Paged JSON parse results must default total to zero for failed or partial responses.\n' >&2
+    exit 1
+fi
+
 required_override_lines=(
     "$repo_dir/src/model/channellistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
     "$repo_dir/src/model/gamelistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"

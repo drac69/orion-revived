@@ -33,7 +33,7 @@
 template <typename U>
 struct PagedResult {
     QList<U> items;
-    int total;
+    int total = 0;
     QString cursor;
 };
 
