@@ -6,13 +6,34 @@ emote_picker_qml="$repo_dir/src/qml/components/EmotePicker.qml"
 chat_view_qml="$repo_dir/src/qml/irc/ChatView.qml"
 
 for required in \
-    'if (typeof index !== "number" || !_innerModel || index < 0 || index >= _innerModel.count)' \
+    'if (!model) {' \
+    'function visibleIndexToSourceIndex(index)' \
+    'if (typeof index !== "number" || !root.model || !_innerModel || index < 0 || index >= _innerModel.count)' \
+    'var mappedIndex = _filterIndexMap[index];' \
+    'mappedIndex >= 0 && mappedIndex < root.model.count' \
+    'var actualIndex = visibleIndexToSourceIndex(index);' \
+    'if (actualIndex === -1)' \
+    'visible: root.visibleIndexToSourceIndex(_emotesGrid.currentIndex) !== -1' \
+    'property int index: root.visibleIndexToSourceIndex(_emotesGrid.currentIndex)' \
+    'text: index !== -1 ? root.model.get(index)[root.filterTextProperty] : ""' \
+    '_emotesGrid.currentIndex = _innerModel && _innerModel.count > 0 ? 0 : -1' \
     'if (root._visibleItemClicked(hoveringIndex)) {' \
     'if (root._visibleItemClicked(_emotesGrid.currentIndex) && (event.modifiers & Qt.ShiftModifier) !== Qt.ShiftModifier)' \
     'if (root._visibleItemClicked(0) && (event.modifiers & Qt.ShiftModifier) !== Qt.ShiftModifier)'
 do
     if ! rg -q -F "$required" "$emote_picker_qml"; then
         printf 'EmotePicker must guard visible-item selection before emitting itemClicked: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for forbidden in \
+    'property int index: _filterIndexMap[_emotesGrid.currentIndex] || _emotesGrid.currentIndex' \
+    'text: index !== -1 ? model.get(index)[root.filterTextProperty] : ""' \
+    '_emotesGrid.currentIndex = 0 // todo: find correct new index'
+do
+    if rg -q -F "$forbidden" "$emote_picker_qml"; then
+        printf 'EmotePicker must not use unguarded filtered index/model access: %s\n' "$forbidden" >&2
         exit 1
     fi
 done

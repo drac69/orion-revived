@@ -73,6 +73,14 @@ Page {
     }
 
     function updateFilter() {
+        if (!model) {
+            _filteredModel.clear();
+            _innerModel = _filteredModel;
+            _filterIndexMap = [];
+            _emotesGrid.currentIndex = -1;
+            return;
+        }
+
         if (_filterTextInput.text == "") {
             _innerModel = model;
             _filterIndexMap = [];
@@ -96,19 +104,31 @@ Page {
         }
     }
 
+    function visibleIndexToSourceIndex(index) {
+        if (typeof index !== "number" || !root.model || !_innerModel || index < 0 || index >= _innerModel.count) {
+            return -1;
+        }
+
+        if (_filterIndexMap.length > 0) {
+            if (index >= _filterIndexMap.length) {
+                return -1;
+            }
+
+            var mappedIndex = _filterIndexMap[index];
+            return typeof mappedIndex === "number" && mappedIndex >= 0 && mappedIndex < root.model.count
+                    ? mappedIndex
+                    : -1;
+        }
+
+        return index < root.model.count ? index : -1;
+    }
+
     function _visibleItemClicked(index) {
-        if (typeof index !== "number" || !_innerModel || index < 0 || index >= _innerModel.count) {
+        var actualIndex = visibleIndexToSourceIndex(index);
+        if (actualIndex === -1) {
             return false;
         }
 
-        var actualIndex = index;
-        if (_filterIndexMap.length > 0) {
-            if (0 > index || index >= _filterIndexMap.length) {
-                // index out of range
-                return false;
-            }
-            actualIndex = _filterIndexMap[index];
-        }
         itemClicked(actualIndex);
         return true
     }
@@ -122,14 +142,14 @@ Page {
             x: _emotesGrid.currentItem ? _emotesGrid.currentItem.x : -1
             y: _emotesGrid.currentItem ? _emotesGrid.currentItem.y : -1
             z: 10
-            opacity: 0.5
-            visible: _emotesGrid.currentIndex !== -1
+            opacity: visible ? 0.5 : 0
+            visible: root.visibleIndexToSourceIndex(_emotesGrid.currentIndex) !== -1
             Behavior on x { NumberAnimation { duration: 150 } }
             Behavior on y { NumberAnimation { duration: 150 } }
             EmoteTooltip {
                 visible: (_emotesGrid.activeFocus || gridKeyHandler.activeFocus) && index !== -1
-                property int index: _filterIndexMap[_emotesGrid.currentIndex] || _emotesGrid.currentIndex
-                text: index !== -1 ? model.get(index)[root.filterTextProperty] : ""
+                property int index: root.visibleIndexToSourceIndex(_emotesGrid.currentIndex)
+                text: index !== -1 ? root.model.get(index)[root.filterTextProperty] : ""
             }
         }
     }
@@ -331,7 +351,7 @@ Page {
                 var prevIndex = _emotesGrid.currentIndex
                 updateFilter();
                 if (prevIndex !== -1) {
-                    _emotesGrid.currentIndex = 0 // todo: find correct new index
+                    _emotesGrid.currentIndex = _innerModel && _innerModel.count > 0 ? 0 : -1
                 }
             }
 
