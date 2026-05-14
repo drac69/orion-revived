@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 emote_picker_qml="$repo_dir/src/qml/components/EmotePicker.qml"
+emote_selector_qml="$repo_dir/src/qml/irc/EmoteSelector.qml"
 chat_view_qml="$repo_dir/src/qml/irc/ChatView.qml"
 
 for required in \
@@ -57,6 +58,36 @@ for required in \
 do
     if ! rg -q -F "$required" "$chat_view_qml"; then
         printf 'ChatView must guard emote picker indexes before reading the emote model: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'case "ffzGlobal":' \
+    'appendVisibleItem("image://ffzemote/" + chat.lastFfzGlobalEmotes[i], i);' \
+    'case "ffzChannel":' \
+    'appendVisibleItem("image://ffzemote/" + chat.lastFfzChannelEmotes[i], i);' \
+    'chat.downloadFfzEmotesGlobal();' \
+    'chat.downloadFfzEmotesChannel();' \
+    'setsToDownload.push("ffzGlobal");' \
+    'setsToDownload.push("ffzChannel");'
+do
+    if ! rg -q -F "$required" "$emote_selector_qml"; then
+        printf 'EmoteSelector must expose FFZ global/channel emotes in the picker: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'chat.lastFfzChannelEmotes = null;' \
+    'property variant lastFfzChannelEmotes' \
+    'property variant lastFfzGlobalEmotes' \
+    'onFfzEmotesLoaded:' \
+    'chat.lastFfzGlobalEmotes = emotesByCode;' \
+    'chat.lastFfzChannelEmotes = emotesByCode;'
+do
+    if ! rg -q -F "$required" "$chat_view_qml"; then
+        printf 'ChatView must track FFZ global/channel emotes for picker state: %s\n' "$required" >&2
         exit 1
     fi
 done
