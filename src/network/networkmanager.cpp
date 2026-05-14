@@ -251,6 +251,11 @@ void NetworkManager::checkVersion()
  */
 void NetworkManager::getStream(const quint64 channelId)
 {
+    if (channelId == 0) {
+        emit streamGetOperationFinished(channelId, false);
+        return;
+    }
+
     if (!requireHelixAccessToken("Stream status")) {
         emit streamGetOperationFinished(channelId, false);
         return;
@@ -568,6 +573,11 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
 
 void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type)
 {
+    if (channelId == 0) {
+        emit broadcastsOperationFailed();
+        return;
+    }
+
     if (!requireHelixAccessToken("VOD listing")) {
         emit broadcastsOperationFailed();
         return;

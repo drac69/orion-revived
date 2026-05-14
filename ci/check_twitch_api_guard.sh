@@ -4,6 +4,10 @@ set -euo pipefail
 fail=0
 json_parser="src/util/jsonparser.cpp"
 network_manager="src/network/networkmanager.cpp"
+vod_manager="src/model/vodmanager.cpp"
+get_stream_block=$(sed -n '/void NetworkManager::getStream/,/^}/p' "$network_manager")
+get_broadcasts_block=$(sed -n '/void NetworkManager::getBroadcasts/,/^}/p' "$network_manager")
+vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
 add_offline_channels_block=$(sed -n '/void addOfflineChannels/,/^}/p' "$network_manager")
 add_ulong_list_block=$(sed -n '/void addULongLongStringList/,/^}/p' "$network_manager")
 
@@ -162,6 +166,25 @@ if ! printf '%s\n' "$add_ulong_list_block" | rg -q 'bool ok = false' \
     || ! printf '%s\n' "$add_ulong_list_block" | rg -q 's\.toULongLong\(&ok\)' \
     || ! printf '%s\n' "$add_ulong_list_block" | rg -q 'ok && value != 0'; then
     printf 'Stream query id extraction must reject malformed or zero channel ids.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_stream_block" | rg -q 'if \(channelId == 0\)' \
+    || ! printf '%s\n' "$get_stream_block" | rg -q 'emit streamGetOperationFinished\(channelId, false\)'; then
+    printf 'Single stream-status requests must reject zero channel ids before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_broadcasts_block" | rg -q 'if \(channelId == 0\)' \
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFailed\(\)'; then
+    printf 'VOD listing requests must reject zero channel ids before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$vod_search_block" | rg -q 'if \(channelId == 0\)' \
+    || ! printf '%s\n' "$vod_search_block" | rg -q '_model->clear\(\)' \
+    || ! printf '%s\n' "$vod_search_block" | rg -q 'emit searchFailed\(\)'; then
+    printf 'VodManager::search must reject zero channel ids and end the QML loading state.\n' >&2
     fail=1
 fi
 

@@ -99,6 +99,14 @@ void VodManager::search(const quint64 channelId, const quint32 offset, const qui
     currentSearchChannelId = channelId;
     currentSearchOffset = offset;
     currentSearchType = videoType;
+    if (channelId == 0) {
+        if (offset == 0) {
+            _model->clear();
+        }
+        emit searchFailed();
+        return;
+    }
+
     if (offset == 0) {
         _model->clear();
         loadCachedVods(channelId, videoType);
