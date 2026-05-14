@@ -2,7 +2,7 @@
 set -euo pipefail
 
 apt_update_timeout=${ORION_CI_APT_UPDATE_TIMEOUT:-300s}
-apt_install_timeout=${ORION_CI_APT_INSTALL_TIMEOUT:-1800s}
+apt_install_timeout=${ORION_CI_APT_INSTALL_TIMEOUT:-600s}
 apt_retries=${ORION_CI_APT_RETRIES:-2}
 if [[ ! "$apt_retries" =~ ^[1-9][0-9]*$ ]]; then
     printf 'ORION_CI_APT_RETRIES must be a positive integer, got %s\n' "$apt_retries" >&2

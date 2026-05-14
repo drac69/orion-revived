@@ -61,6 +61,11 @@ if ! rg -q '^shellcheck$' <<<"$ci_packages"; then
     exit 1
 fi
 
+if ! rg -Fq 'apt_install_timeout=${ORION_CI_APT_INSTALL_TIMEOUT:-600s}' "$repo_dir/ci/install_ubuntu_ci_deps.sh"; then
+    printf 'CI dependency installation must keep a bounded retry timeout for hosted-runner stalls.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'ci/check_build_docs\.sh' "$workflow"; then
     printf 'CI workflow must validate source-build documentation.\n' >&2
     exit 1
