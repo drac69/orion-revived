@@ -170,6 +170,10 @@ Item{
                             vodsModel.filterText = text
                         }
                     }
+                    onActiveFocusChanged: {
+                        if (activeFocus)
+                            Settings.showVirtualKeyboard()
+                    }
                 }
 
                 ToolButton {

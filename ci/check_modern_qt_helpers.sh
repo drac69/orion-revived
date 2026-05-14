@@ -7,8 +7,15 @@ network_manager="$repo_dir/src/network/networkmanager.cpp"
 network_manager_header="$repo_dir/src/network/networkmanager.h"
 mpris_manager="$repo_dir/src/model/mprismanager.cpp"
 mpris_manager_header="$repo_dir/src/model/mprismanager.h"
+settings_manager="$repo_dir/src/model/settingsmanager.cpp"
+settings_manager_header="$repo_dir/src/model/settingsmanager.h"
 player_view="$repo_dir/src/qml/PlayerView.qml"
 search_view="$repo_dir/src/qml/SearchView.qml"
+search_bar="$repo_dir/src/qml/SearchBar.qml"
+vods_view="$repo_dir/src/qml/VodsView.qml"
+options_view="$repo_dir/src/qml/OptionsView.qml"
+chat_view="$repo_dir/src/qml/irc/ChatView.qml"
+emote_picker="$repo_dir/src/qml/components/EmotePicker.qml"
 main_cpp="$repo_dir/src/main.cpp"
 file_utils="$repo_dir/src/util/fileutils.cpp"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
@@ -67,6 +74,62 @@ done
 
 if rg -n 'QT_AUTO_SCREEN_SCALE_FACTOR|AA_DisableHighDpiScaling' "$repo_dir/src" "$repo_dir/orion.pro"; then
     printf 'Desktop high-DPI startup must not reintroduce deprecated auto-screen-scale-factor paths.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'QString mOpengl = "angle (d3d11)";' \
+    'if (savedOpengl == "angle (d3d9)")' \
+    'savedOpengl = mOpengl;' \
+    'settings.setValue("opengl", savedOpengl);' \
+    'qputenv("QT_ANGLE_PLATFORM", "d3d11");' \
+    'qputenv("QT_ANGLE_PLATFORM", "d3d9");' \
+    'qputenv("QT_ANGLE_PLATFORM", "warp");' \
+    'opengl = ["angle (d3d11)", "angle", "angle (d3d9)", "angle (warp)"]'
+do
+    if ! rg -q -F "$required" "$settings_manager_header" "$settings_manager" "$main_cpp" "$options_view"; then
+        printf 'Windows OpenGL selection must default and migrate ANGLE D3D11 while preserving explicit fallbacks: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    '#include <QInputMethod>' \
+    'Q_INVOKABLE void showVirtualKeyboard() const;' \
+    'void SettingsManager::showVirtualKeyboard() const' \
+    'QGuiApplication::inputMethod()->show();' \
+    'ORION_SM_TABLETPC' \
+    'ORION_SM_CONVERTIBLESLATEMODE' \
+    'bool shouldLaunchWindowsTouchKeyboard()' \
+    'QString windowsTouchKeyboardPath()' \
+    'QStandardPaths::findExecutable(QStringLiteral("TabTip.exe"), searchPaths);' \
+    'QStandardPaths::findExecutable(QStringLiteral("osk.exe"))' \
+    'QProcess::startDetached(keyboard, QStringList())'
+do
+    if ! rg -q -F "$required" "$settings_manager_header" "$settings_manager"; then
+        printf 'SettingsManager must keep the Qt input-method and Windows touch-keyboard helper: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for entry in \
+    "$search_bar|Settings.showVirtualKeyboard()" \
+    "$vods_view|Settings.showVirtualKeyboard()" \
+    "$chat_view|Settings.showVirtualKeyboard()" \
+    "$emote_picker|Settings.showVirtualKeyboard()" \
+    "$options_view|Settings.showVirtualKeyboard()"
+do
+    file=${entry%%|*}
+    token=${entry#*|}
+    if ! rg -q -F "$token" "$file"; then
+        printf 'Editable QML text controls must request the shared input-method helper in %s.\n' "$file" >&2
+        exit 1
+    fi
+done
+
+options_keyboard_count=$(rg -c -F 'Settings.showVirtualKeyboard()' "$options_view" || true)
+if (( options_keyboard_count < 2 )); then
+    printf 'OptionsView editable text areas must keep virtual-keyboard activation on focus.\n' >&2
     exit 1
 fi
 
