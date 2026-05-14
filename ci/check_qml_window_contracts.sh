@@ -27,6 +27,14 @@ do
 done
 
 for required in \
+    'QString singleInstanceLockPath()' \
+    'QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation)' \
+    'QStandardPaths::writableLocation(QStandardPaths::TempLocation)' \
+    'QDir::tempPath()' \
+    'QCoreApplication::organizationName()' \
+    'QCoreApplication::applicationName()' \
+    'baseDir.mkpath(lockDirName)' \
+    'return baseDir.absoluteFilePath(lockDirName + "/orion.lock");' \
     '#include <QLockFile>' \
     'const QString lockPath = singleInstanceLockPath();' \
     'QLockFile lockfile(lockPath);' \

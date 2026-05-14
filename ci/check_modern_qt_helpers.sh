@@ -238,8 +238,12 @@ fi
 
 if ! rg -q 'QPointer<QNetworkReply> connectionTestReply;' "$network_manager_header" \
     || ! rg -q 'timeoutTimer\.setSingleShot\(true\)' "$network_manager" \
+    || ! rg -q 'connect\(&timeoutTimer, &QTimer::timeout, this' "$network_manager" \
     || ! rg -q 'Network connection test timed out' "$network_manager" \
-    || ! rg -q 'connectionTestReply->abort\(\)' "$network_manager"; then
+    || ! rg -q 'connectionTestReply->abort\(\)' "$network_manager" \
+    || ! rg -q 'timeoutTimer\.start\(10000\)' "$network_manager" \
+    || ! rg -q 'loop\.exec\(\)' "$network_manager" \
+    || ! rg -q 'emit finishedConnectionTest\(\)' "$network_manager"; then
     printf 'Network reachability checks must be bounded and abort stale replies.\n' >&2
     exit 1
 fi
