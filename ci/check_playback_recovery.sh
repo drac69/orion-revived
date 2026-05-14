@@ -198,6 +198,60 @@ do
 done
 
 for required in \
+    'property bool showPlaybackStats: false' \
+    'function playbackStatsAvailable()' \
+    'typeof renderer.getPlaybackStats === "function"' \
+    'if (root.showPlaybackStats) {' \
+    'statsPanel.refresh()' \
+    'id: statsPanel' \
+    'visible: root.showPlaybackStats && root.playbackStatsAvailable()' \
+    'statsText.text = renderer.getPlaybackStats()' \
+    'running: statsPanel.visible' \
+    'font.family: "monospace"' \
+    'textFormat: Text.PlainText' \
+    'wrapMode: Text.NoWrap' \
+    'id: statsBtn' \
+    'visible: !isMobile() && root.playbackStatsAvailable()' \
+    'highlighted: root.showPlaybackStats' \
+    'root.showPlaybackStats = !root.showPlaybackStats'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must keep the mpv playback-stats overlay guarded and refreshable: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'function getPlaybackStats()' \
+    'renderer.getProperty("width") || renderer.getProperty("dwidth")' \
+    'renderer.getProperty("height") || renderer.getProperty("dheight")' \
+    'renderer.getProperty("estimated-vf-fps") || renderer.getProperty("container-fps")' \
+    'renderer.getProperty("estimated-display-fps") || renderer.getProperty("display-fps")' \
+    'renderer.getProperty("packet-video-bitrate") || renderer.getProperty("video-bitrate")' \
+    'renderer.getProperty("packet-audio-bitrate") || renderer.getProperty("audio-bitrate")' \
+    'renderer.getProperty("demuxer-cache-duration")' \
+    'renderer.getProperty("avsync")' \
+    'renderer.getProperty("video-codec")' \
+    'renderer.getProperty("audio-codec")' \
+    'renderer.getProperty("frame-drop-count")' \
+    'renderer.getProperty("decoder-frame-drop-count")' \
+    'renderer.getProperty("hwdec-current")' \
+    '"Video: "' \
+    '"Audio: "' \
+    '"FPS: "' \
+    '"Bitrate: V "' \
+    '"Dropped: "' \
+    '"A/V sync: "' \
+    '"Cache: "' \
+    '"HW decode: "'
+do
+    if ! rg -q -F "$required" "$mpv_backend"; then
+        printf 'MpvBackend must report the full playback-stats overlay data set: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
     'function currentSeekPreviewSource()' \
     'return currentChannel && currentChannel.seekPreviews ? currentChannel.seekPreviews : ""' \
     'onCurrentChannelChanged: preview.source = currentSeekPreviewSource()' \
