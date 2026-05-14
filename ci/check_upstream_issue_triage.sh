@@ -109,6 +109,9 @@ for required_text in (
         errors.append(f"Needs Twitch API or product support must keep blocker text: {required_text}")
 
 for required_url in (
+    "https://github.com/belagrf/orion-revived/issues/1",
+    "https://github.com/belagrf/orion-revived/issues/2",
+    "https://github.com/belagrf/orion-revived/issues/3",
     "https://dev.twitch.tv/docs/api/videos",
     "https://dev.twitch.tv/docs/api/markers/",
     "https://dev.twitch.tv/docs/drops/",

@@ -261,7 +261,7 @@ References:
 
 ## Platform, packaging, and distribution follow-up
 
-These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems:
+These are packaging/distribution requests or platform-specific reports that need maintainers with those target systems. The maintained-fork trackers are [issue #2](https://github.com/belagrf/orion-revived/issues/2) for Android/F-Droid target validation and [issue #3](https://github.com/belagrf/orion-revived/issues/3) for desktop release artifacts and signing/notarization policy.
 
 * #276: added FreeBSD dependency notes to the README, including `qt5-qmake`, and made the qmake install target available for FreeBSD with the default `/usr/local` prefix.
 * #216: added FreeBSD SSL-runtime troubleshooting for the reported `SSL_CTX_set1_groups` startup failure, startup now logs Qt build/runtime SSL library details when Qt reports SSL support is unavailable, and Twitch IRC TLS setup reports the same SSL runtime details before attempting chat connection; the original FreeBSD 11 crash has not been reproduced in this environment.
