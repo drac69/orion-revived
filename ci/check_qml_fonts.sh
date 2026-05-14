@@ -15,6 +15,7 @@ info_drawer_qml = (repo / "src" / "qml" / "components" / "InfoDrawer.qml").read_
 chat_view_qml = (repo / "src" / "qml" / "irc" / "ChatView.qml").read_text(encoding="utf-8")
 chat_message_qml = (repo / "src" / "qml" / "irc" / "ChatMessage.qml").read_text(encoding="utf-8")
 chat_messages_view_qml = (repo / "src" / "qml" / "irc" / "ChatMessagesView.qml").read_text(encoding="utf-8")
+text_menu_qml = (repo / "src" / "qml" / "components" / "TextMenu.qml").read_text(encoding="utf-8")
 settings_header = (repo / "src" / "model" / "settingsmanager.h").read_text(encoding="utf-8")
 settings_source = (repo / "src" / "model" / "settingsmanager.cpp").read_text(encoding="utf-8")
 util_js = (repo / "src" / "qml" / "util.js").read_text(encoding="utf-8")
@@ -96,6 +97,46 @@ for token, description in (
 ):
     haystack = chat_view_qml + "\n" + chat_messages_view_qml
     if token not in haystack:
+        errors.append(description)
+
+send_index = chat_view_qml.find("function sendMessage()")
+clear_index = chat_view_qml.find('_input.text = ""', send_index)
+focus_index = chat_view_qml.find("_input.forceActiveFocus()", clear_index)
+next_function_index = chat_view_qml.find("function loadEmoteSets()", send_index)
+if not (send_index != -1 and clear_index != -1 and focus_index != -1 and focus_index < next_function_index):
+    errors.append("ChatView must clear sent chat text and restore input focus from sendMessage()")
+
+for token, description in (
+    ("chatList.positionViewAtEnd()", "ChatView must keep sent messages visible after send"),
+    ('sequence: "Esc"', "ChatView must keep an Escape shortcut for the emote picker"),
+    ("context: Qt.ApplicationShortcut", "ChatView Escape must work as an application shortcut"),
+    ("enabled: root.visible && _emotePicker.visible", "ChatView Escape shortcut must only target visible emote picker state"),
+    ("Keys.onEscapePressed:", "Chat input must handle Escape presses"),
+    ("_emotePicker.startClosing()", "ChatView Escape handling must close the emote picker"),
+):
+    if token not in chat_view_qml:
+        errors.append(description)
+
+for token, description in (
+    ("function copyText()", "ChatMessage must produce whole-message copy text"),
+    ("TextMenu { copyAllText: root.copyText() }", "ChatMessage text segments must expose whole-message copy"),
+    ("selectByMouse: true", "ChatMessage text segments must be mouse-selectable"),
+    ("selectByKeyboard: true", "ChatMessage text segments must be keyboard-selectable"),
+    ("textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard",
+     "ChatMessage plain text must allow text selection"),
+    ("Qt.LinksAccessibleByMouse", "ChatMessage link text must keep clickable links while selectable"),
+):
+    if token not in chat_message_qml:
+        errors.append(description)
+
+for token, description in (
+    ("property string copyAllText", "TextMenu must accept whole-message copy text"),
+    ('text: "Copy"', "TextMenu must keep selected-text copy action"),
+    ("source.copy()", "TextMenu selected-text copy must use the source text control"),
+    ("text: copyAllLabel", "TextMenu must label the whole-message copy action"),
+    ("Settings.copyToClipboard(copyAllText)", "TextMenu must copy whole-message text through Settings"),
+):
+    if token not in text_menu_qml:
         errors.append(description)
 
 for token, description in (

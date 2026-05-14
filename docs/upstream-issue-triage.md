@@ -83,10 +83,16 @@ The upstream repository is archived and had 79 open issues at the time this fork
   replaying/reloading, including the Qt Multimedia stopped-state reset path; CI
   now guards PlayerView position saves, VodManager sync thresholds, and the
   multimedia zero-position suppression.
-* #199: chat input focus is restored after sending a message.
-* #195: chat input text now follows the chat text scaling setting.
-* #190: Escape is handled as an application shortcut while the emote picker is open.
-* #40: chat text segments are selectable and copyable, and whole messages can still be copied from the row context menu.
+* #199: chat input focus is restored after sending a message; CI now guards
+  send-message clearing, input refocus, and keeping the sent line visible.
+* #195: chat input text now follows the chat text scaling setting; CI now
+  guards the persisted text-scale setting plus chat input, message, emote, and
+  badge scaling.
+* #190: Escape is handled as an application shortcut while the emote picker is
+  open; CI now guards the application shortcut and input Escape close path.
+* #40: chat text segments are selectable and copyable, and whole messages can
+  still be copied from the row context menu; CI now guards selectable text
+  flags, link interaction, and TextMenu selected/whole-message copy actions.
 * #232: the single-instance lock now uses an app-specific runtime/temp path instead of an opaque fixed temp filename, startup warnings include the lock path, and the initial network reachability probe now has a bounded timeout instead of being able to hold startup indefinitely after Qt selects a network configuration.
 * #236: Ubuntu/Linux Mint build instructions include `libmpv-dev` for the `mpv/client.h` header and `qml-module-qt-labs-settings` for Orion's Qt Labs Settings imports; CI guards the documented Ubuntu QML runtime dependency list and the README points users to `orion --debug` when a build starts without showing a window.
 * #45: Windows desktop notifications are wired through the in-app QML notification surface again, with settings for notification corner and target screen so multi-monitor users can choose where alerts appear.
