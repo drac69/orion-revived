@@ -39,6 +39,10 @@ QVariant VodListModel::data(const QModelIndex &index, int role) const
         return var;
     }
 
+    if (index.row() < 0 || index.row() >= vods.size()) {
+        return var;
+    }
+
     Vod *vod = vods.at(index.row());
 
     if (vod){

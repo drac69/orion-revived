@@ -37,6 +37,10 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
         return var;
     }
 
+    if (index.row() < 0 || index.row() >= games.size()) {
+        return var;
+    }
+
     Game *game = games.at(index.row());
 
     if (game){

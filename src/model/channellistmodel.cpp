@@ -40,6 +40,10 @@ QVariant ChannelListModel::data(const QModelIndex &index, int role) const
         return var;
     }
 
+    if (index.row() < 0 || index.row() >= channels.size()) {
+        return var;
+    }
+
     Channel *channel = channels.at(index.row());
 
     if (channel){

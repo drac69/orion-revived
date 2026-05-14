@@ -108,3 +108,18 @@ for entry in "${required_override_lines[@]}"; do
         exit 1
     fi
 done
+
+model_data_sources=(
+    "$repo_dir/src/model/channellistmodel.cpp|index.row() < 0 || index.row() >= channels.size()"
+    "$repo_dir/src/model/gamelistmodel.cpp|index.row() < 0 || index.row() >= games.size()"
+    "$repo_dir/src/model/vodlistmodel.cpp|index.row() < 0 || index.row() >= vods.size()"
+)
+
+for entry in "${model_data_sources[@]}"; do
+    file=${entry%%|*}
+    guard=${entry#*|}
+    if ! rg -Fq "$guard" "$file"; then
+        printf 'Model data() must guard stale or out-of-range QModelIndex rows in %s.\n' "$file" >&2
+        exit 1
+    fi
+done
