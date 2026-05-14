@@ -4,6 +4,13 @@ set -euo pipefail
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 irc_chat="$repo_dir/src/model/ircchat.cpp"
 chat_qml="$repo_dir/src/qml/irc/Chat.qml"
+chat_view="$repo_dir/src/qml/irc/ChatView.qml"
+chat_drawer="$repo_dir/src/qml/ChatDrawer.qml"
+chat_message="$repo_dir/src/qml/irc/ChatMessage.qml"
+player_view="$repo_dir/src/qml/PlayerView.qml"
+options_view="$repo_dir/src/qml/OptionsView.qml"
+settings_manager="$repo_dir/src/model/settingsmanager.cpp"
+settings_manager_header="$repo_dir/src/model/settingsmanager.h"
 triage="$repo_dir/docs/upstream-issue-triage.md"
 workflow="$repo_dir/.github/workflows/ci.yml"
 
@@ -80,6 +87,89 @@ done
 for command in PRIVMSG USERNOTICE WHISPER NOTICE GLOBALUSERSTATE USERSTATE CLEARCHAT; do
     if ! rg -q "commandKeyword == \"$command\"" "$irc_chat"; then
         printf 'IRC parser must dispatch %s through the structured command keyword.\n' "$command" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'QString raidChannel;' \
+    'tag.key == "msg-id"' \
+    'tag.key == "msg-param-login"' \
+    'raidChannel = tag.value;' \
+    'const bool isRaidNotice = noticeId == "raid" && !raidChannel.isEmpty();' \
+    'parse.chatMessage.systemMessage += QString(" https://www.twitch.tv/%1").arg(raidChannel);' \
+    'emit raidReceived(raidChannel);'
+do
+    if ! rg -q -F "$required" "$irc_chat"; then
+        printf 'USERNOTICE raid handling must append the raid target URL and emit the raid signal: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'signal raidReceived(string channel)' \
+    'onRaidReceived:' \
+    'root.raidReceived(channel)'
+do
+    if ! rg -q -F "$required" "$chat_qml" "$chat_view" "$chat_drawer"; then
+        printf 'QML chat layers must propagate raid signals to the player: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'Q_PROPERTY(bool autoRaidRedirect READ autoRaidRedirect WRITE setAutoRaidRedirect NOTIFY autoRaidRedirectChanged)' \
+    'bool mAutoRaidRedirect = false;' \
+    'bool autoRaidRedirect() const;' \
+    'void setAutoRaidRedirect(bool autoRaidRedirect);' \
+    'void autoRaidRedirectChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose the automatic raid redirect setting: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setAutoRaidRedirect(settings.value("autoRaidRedirect", mAutoRaidRedirect).toBool());' \
+    'settings.setValue("autoRaidRedirect", autoRaidRedirect);' \
+    'emit autoRaidRedirectChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist the automatic raid redirect setting: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: "Follow raids automatically"' \
+    'checked: Settings.autoRaidRedirect' \
+    'onClicked: Settings.autoRaidRedirect = checked'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must expose the automatic raid redirect toggle: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'if (Settings.autoRaidRedirect && channel && !isVod)' \
+    'rootWindow.openChannelName(channel)'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must optionally follow live raids without redirecting VOD playback: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: Util.makeUrl(root.systemMessage)' \
+    'textInteractionFlags: Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard | Qt.LinksAccessibleByMouse' \
+    'onLinkActivated: linkActivation(link)' \
+    'Qt.openUrlExternally(link)'
+do
+    if ! rg -q -F "$required" "$chat_message"; then
+        printf 'ChatMessage must render system notices as selectable/clickable links: %s\n' "$required" >&2
         exit 1
     fi
 done
