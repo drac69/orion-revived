@@ -43,7 +43,7 @@ NotificationManager::NotificationManager(QQmlApplicationEngine *engine, QNetwork
 
     queue.clear();
 
-    timer = new QTimer();
+    timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &NotificationManager::showNext);
     timer->setInterval(3000);
     timer->setSingleShot(true);
@@ -55,6 +55,9 @@ NotificationManager::~NotificationManager()
 {
     timer->stop();
     delete timer;
+
+    delete currentObject;
+    currentObject = nullptr;
 
     qDeleteAll(queue);
     queue.clear();

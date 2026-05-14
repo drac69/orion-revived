@@ -39,3 +39,13 @@ if ! rg -q 'this->deleteLater\(\);' "$repo_dir/src/notification/notificationsend
     printf 'Linux NotificationSender must delete itself after sending.\n' >&2
     exit 1
 fi
+
+if ! rg -q 'timer = new QTimer\(this\);' "$repo_dir/src/notification/notificationmanager.cpp"; then
+    printf 'NotificationManager timer must be parented to the manager.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'delete currentObject;' "$repo_dir/src/notification/notificationmanager.cpp"; then
+    printf 'NotificationManager must release any active QML notification object on shutdown.\n' >&2
+    exit 1
+fi
