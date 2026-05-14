@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 player_view="$repo_dir/src/qml/PlayerView.qml"
+main_qml="$repo_dir/src/qml/main.qml"
 options_view="$repo_dir/src/qml/OptionsView.qml"
 status_changed_block=$(sed -n '/onStatusChanged:/,/^        }/p' "$player_view")
 seek_preview="$repo_dir/src/qml/components/SeekPreview.qml"
@@ -271,6 +272,42 @@ done
 
 if rg -q 'onCurrentChannelChanged: .*currentChannel\.seekPreviews' "$player_view"; then
     printf 'PlayerView must not dereference currentChannel.seekPreviews directly from seek-preview handlers.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'property bool appFullScreen: isMobile() ? (view.playerVisible && !isPortraitMode) : false' \
+    'property bool sideNavigationVisible: Settings.sideNavigation && !appFullScreen && !isMobile()' \
+    'visible: !root.sideNavigationVisible && !appFullScreen'
+do
+    if ! rg -q -F "$required" "$main_qml"; then
+        printf 'main.qml must hide app navigation while playback is fullscreen: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'function refreshHeaders()' \
+    'if (!hideTimer.running && !root.headersVisible)' \
+    'root.headersVisible = true' \
+    'hideTimer.restart()' \
+    'onPositionChanged: refreshHeaders()' \
+    'cursorShape: headersVisible ? Qt.ArrowCursor : Qt.BlankCursor' \
+    'if (!root.headersVisible || headerBarArea.containsMouse || bottomBarArea.containsMouse) return' \
+    'root.headersVisible = false' \
+    'id: headerBar' \
+    'height: root.headersVisible ? 55 : 0' \
+    'id: fsBtn' \
+    'onClicked: appFullScreen = !appFullScreen'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must keep fullscreen navigation separate from in-player header hover state: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if rg -n 'onPositionChanged:.*appFullScreen|mouse[XY].*appFullScreen|appFullScreen.*mouse[XY]' "$player_view"; then
+    printf 'PlayerView mouse movement must not toggle application fullscreen or app navigation state.\n' >&2
     exit 1
 fi
 
