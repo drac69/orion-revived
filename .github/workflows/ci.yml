@@ -87,6 +87,9 @@ jobs:
       - name: Validate Android metadata
         run: ci/check_android_metadata.sh
 
+      - name: Validate F-Droid metadata
+        run: ci/check_fdroid_metadata.sh
+
       - name: Validate Apple metadata
         run: ci/check_apple_metadata.sh
 

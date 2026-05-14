@@ -76,6 +76,11 @@ if ! rg -q 'ci/check_apple_metadata\.sh' "$workflow"; then
     exit 1
 fi
 
+if ! rg -q 'ci/check_fdroid_metadata\.sh' "$workflow"; then
+    printf 'CI workflow must validate F-Droid metadata.\n' >&2
+    exit 1
+fi
+
 while IFS= read -r script; do
     script_path="$repo_dir/$script"
     mode=$(git -C "$repo_dir" ls-files -s -- "$script" | awk '{print $1}')

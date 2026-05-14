@@ -1,0 +1,32 @@
+Categories:
+  - Internet
+  - Multimedia
+License: GPL-3.0-or-later
+WebSite: https://github.com/belagrf/orion-revived
+SourceCode: https://github.com/belagrf/orion-revived
+IssueTracker: https://github.com/belagrf/orion-revived/issues
+Changelog: https://github.com/belagrf/orion-revived/releases
+Name: Orion
+Summary: Twitch client maintained from the archived Orion source
+Description: |-
+  Orion is a Qt/QML Twitch client maintained from the archived upstream Orion
+  project. This fork keeps the desktop source build usable and preserves the
+  legacy Qt 5 Android package sources for future validation.
+
+  Android release publishing is disabled until the fork has a maintained,
+  reproducible Qt Android build recipe and target-device validation.
+AntiFeatures:
+  - NonFreeNet
+RepoType: git
+Repo: https://github.com/belagrf/orion-revived.git
+Builds:
+  - versionName: 1.6.8
+    versionCode: 168
+    commit: 98d70139c9459ec7977b33a1c69a57740d78a3d9
+    disable: Qt Android release builds are not reproducibly validated yet.
+Disabled: Qt Android release builds are not reproducibly validated yet.
+ArchivePolicy: 1 versions
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
+UpdateCheckData: android/AndroidManifest.xml|android:versionCode="([0-9]+)"|.|android:versionName="([^"]+)"
+CurrentVersion: 1.6.8
+CurrentVersionCode: 168
