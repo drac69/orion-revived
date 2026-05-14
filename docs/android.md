@@ -1,6 +1,6 @@
 # Android status
 
-This fork keeps the legacy Qt 5 Android package sources in the tree, but Android release builds are not currently validated by CI and no Play Store or F-Droid package is published from this fork.
+This fork keeps the legacy Qt 5 Android package sources in the tree, but Android release builds are not currently validated by CI and no Play Store or F-Droid package is published from this fork. The target-device and F-Droid release validation work is tracked in [issue #2](https://github.com/belagrf/orion-revived/issues/2).
 
 Current source-level maintenance:
 

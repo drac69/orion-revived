@@ -11,11 +11,11 @@ QML/C++-written desktop client for Twitch.tv
 
 This fork starts from the final upstream `master` state and focuses on keeping the desktop build usable on current Linux/Qt5 systems. It includes the unmerged upstream crash fix from PR #303, safer mpv hardware decoding defaults, dynamic search pagination for large windows, VOD resume persistence fixes, modern high-DPI setup, and GitHub Actions CI.
 
-Some old upstream issues are broad feature requests or depend on Twitch API behavior that has changed since the original project was archived. See `docs/upstream-issue-triage.md` for the current issue audit.
+Some old upstream issues are broad feature requests or depend on Twitch API behavior that has changed since the original project was archived. See `docs/upstream-issue-triage.md` for the current issue audit. The remaining Twitch API/product decision is tracked in [issue #1](https://github.com/belagrf/orion-revived/issues/1).
 
 ## Downloads
 
-This fork currently validates source builds on Linux, macOS, and Windows through GitHub Actions. Revalidated Windows/macOS installers, Android packages, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
+This fork currently validates source builds on Linux, macOS, and Windows through GitHub Actions. Revalidated Windows/macOS installers, Android packages, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. The desktop release-channel decision is tracked in [issue #3](https://github.com/belagrf/orion-revived/issues/3), and Android source status is tracked in `docs/android.md` plus [issue #2](https://github.com/belagrf/orion-revived/issues/2). Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
 
 The maintained automation entry point is `.github/workflows/ci.yml`. Older release helper scripts under `ci/` are preserved for reference only, require an explicit legacy opt-in before running, and should not be treated as current build instructions.
 
@@ -177,7 +177,8 @@ orion --libmpv-config ~/.config/orion/mpv.conf
 
 macOS source builds are validated in GitHub Actions with Homebrew `qt@5` and
 `mpv` on the `macos-15` runner. Signed or notarized `.app` packages are not
-published yet.
+published yet; that release-channel decision is tracked in
+[issue #3](https://github.com/belagrf/orion-revived/issues/3).
 
 #### Install needed libraries and software
 
