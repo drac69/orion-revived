@@ -10,9 +10,10 @@ Official maintained releases are source-only. CI-built binaries are validation
 outputs, not signed or notarized release artifacts.
 
 Android packages, signed Windows installers, and signed or notarized macOS
-packages are not currently published by this fork. Treat reports about those
-channels as source-maintenance or packaging-validation work unless a maintained
-artifact from this fork exists.
+packages are not currently published by this fork. The Android/F-Droid release
+channel is retired; treat reports about those channels as source-maintenance or
+future packaging-restoration work unless a maintained artifact from this fork
+exists.
 
 ## Reporting a vulnerability
 

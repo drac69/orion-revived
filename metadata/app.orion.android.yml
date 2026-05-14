@@ -11,10 +11,11 @@ Summary: Twitch client maintained from the archived Orion source
 Description: |-
   Orion is a Qt/QML Twitch client maintained from the archived upstream Orion
   project. This fork keeps the desktop source build usable and preserves the
-  legacy Qt 5 Android package sources for future validation.
+  legacy Qt 5 Android package sources for source-level reference only.
 
-  Android release publishing is disabled until the fork has a maintained,
-  reproducible Qt Android build recipe and target-device validation.
+  Android/F-Droid release publishing is retired for this fork. The metadata
+  remains disabled because no maintained, reproducible Qt Android build recipe or
+  target-device validation is available.
 AntiFeatures:
   - NonFreeNet
 RepoType: git
@@ -23,8 +24,8 @@ Builds:
   - versionName: 1.6.9
     versionCode: 169
     commit: v1.6.9
-    disable: Qt Android release builds are not reproducibly validated yet.
-Disabled: Qt Android release builds are not reproducibly validated yet.
+    disable: Android/F-Droid release channel is retired; Qt Android builds are not reproducibly validated.
+Disabled: Android/F-Droid release channel is retired; Qt Android builds are not reproducibly validated.
 ArchivePolicy: 1 versions
 UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: android/AndroidManifest.xml|android:versionCode="([0-9]+)"|.|android:versionName="([^"]+)"

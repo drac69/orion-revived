@@ -18,7 +18,7 @@ List the commands, CI jobs, devices, or manual checks you ran.
 - [ ] Twitch API changes are backed by current official Twitch documentation, or
       the PR explicitly documents a fallback/product decision.
 - [ ] Android changes include the Qt/SDK/NDK/toolchain versions and target-device
-      validation results, or keep Android release publishing disabled.
+      validation results, or keep Android release publishing retired and disabled.
 - [ ] Packaging changes do not claim signed Windows installers, signed/notarized
       macOS packages, Play Store packages, F-Droid packages, or APK releases
       unless those artifacts are actually produced and validated.

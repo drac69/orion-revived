@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Android release publishing is disabled until reproducible builds and target-device behavior are validated. Use this template for real device or emulator results.
+        Android/F-Droid release publishing is retired for this fork. Use this template for a future restoration proposal with reproducible build output and real device or emulator results.
 
         Do not paste OAuth tokens, client secrets, cookies, passwords, signing keys, keystore passwords, or other private credentials.
   - type: input

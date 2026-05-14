@@ -47,11 +47,11 @@ require(r"^Repo:\s*https://github\.com/belagrf/orion-revived\.git\s*$", "F-Droid
 require(r"^SourceCode:\s*https://github\.com/belagrf/orion-revived\s*$", "F-Droid SourceCode must point at the maintained fork")
 require(r"^IssueTracker:\s*https://github\.com/belagrf/orion-revived/issues\s*$", "F-Droid IssueTracker must point at the maintained fork")
 require(r"(?ms)^AntiFeatures:\n(?:\s+-\s+\S+\n)*\s+-\s+NonFreeNet\s*$", "F-Droid metadata must flag Twitch's non-free network dependency")
-require(r"^Disabled:\s*.+reproducibly validated.+$", "F-Droid metadata must stay disabled until Android release builds are reproducibly validated")
+require(r"^Disabled:\s*.+release channel is retired.+reproducibly validated.+$", "F-Droid metadata must stay disabled with the retired release-channel decision")
 require(r"^ArchivePolicy:\s*1 versions\s*$", "F-Droid metadata must keep the current release archive policy")
 require(r"(?ms)^Builds:\n\s+-\s+versionName:\s*" + re.escape(version_name) + r"\s*$", "F-Droid build entry must match android:versionName")
 require(r"(?m)^\s+versionCode:\s*" + re.escape(version_code) + r"\s*$", "F-Droid build entry must match android:versionCode")
-require(r"(?m)^\s+disable:\s*.+reproducibly validated.+$", "The Android build entry must stay disabled until a reproducible recipe is validated")
+require(r"(?m)^\s+disable:\s*.+release channel is retired.+reproducibly validated.+$", "The Android build entry must stay disabled with the retired release-channel decision")
 require(r"^UpdateCheckMode:\s*Tags \^v\[0-9\]\+\\\.\[0-9\]\+\\\.\[0-9\]\+\$\s*$", "F-Droid update checks must use version tags")
 require(r"^UpdateCheckData:\s*android/AndroidManifest\.xml\|android:versionCode=\"\(\[0-9\]\+\)\"\|\.\|android:versionName=\"\(\[\^\"\]\+\)\"\s*$", "F-Droid update checks must read the Android manifest version")
 
@@ -78,12 +78,12 @@ else:
         errors.append(f"Missing release tag v{version_name} for F-Droid build pin")
 
 triage = triage_path.read_text(encoding="utf-8")
-if "disabled F-Droid metadata scaffold" not in triage or "reproducible Android build recipe" not in triage:
-    errors.append("Upstream issue triage must document the F-Droid metadata scaffold and remaining recipe work")
+if "disabled F-Droid metadata scaffold" not in triage or "Android/F-Droid publishing is retired" not in triage:
+    errors.append("Upstream issue triage must document the F-Droid metadata scaffold and retired channel decision")
 
 android_doc = android_doc_path.read_text(encoding="utf-8")
-if "disabled F-Droid metadata scaffold" not in android_doc or "reproducible build recipe" not in android_doc:
-    errors.append("Android status docs must document the disabled F-Droid metadata scaffold and remaining recipe work")
+if "disabled F-Droid metadata scaffold" not in android_doc or "Android/F-Droid release channel is retired" not in android_doc:
+    errors.append("Android status docs must document the disabled F-Droid metadata scaffold and retired channel decision")
 if "F-Droid metadata plus a reproducible build recipe" in android_doc:
     errors.append("Android status docs must not claim F-Droid metadata is still entirely missing")
 

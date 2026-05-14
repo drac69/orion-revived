@@ -20,7 +20,7 @@ Currently maintained:
 * Windows source builds validated by GitHub Actions with MSYS2 UCRT64, Qt 5,
   and mpv.
 * Source-level Android metadata and manifest checks documented in
-  `docs/android.md`.
+  `docs/android.md`; the Android/F-Droid release channel is retired.
 
 Not currently published or supported as release channels:
 
@@ -40,9 +40,10 @@ documentation. Unsupported native HLS playlist-token behavior, VOD replay chat,
 and rewards-credit behavior may need a product fallback to twitch.tv instead of
 a native implementation.
 
-For Android, include the target device or emulator, Android version, ABI, screen
-density, Qt/SDK/NDK/toolchain versions, and validation results for playback,
-chat, emotes, lifecycle/backgrounding, and audio-focus behavior.
+For Android restoration proposals, include the target device or emulator,
+Android version, ABI, screen density, Qt/SDK/NDK/toolchain versions, a
+reproducible build recipe, and validation results for playback, chat, emotes,
+lifecycle/backgrounding, and audio-focus behavior.
 
 Do not paste OAuth tokens, client secrets, cookies, passwords, signing keys, or
 keystore passwords into public issues, pull requests, logs, or screenshots.
