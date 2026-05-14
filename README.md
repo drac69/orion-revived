@@ -222,4 +222,4 @@ C++ Redistributable for Visual Studio 2015, 2017, 2019, and 2022:
 
 * Native live and VOD playback still depends on Twitch playlist-token endpoints that are not documented as a supported Helix API. If Orion cannot load a playable playlist, use the player header action to open the channel or VOD on twitch.tv.
 * Twitch's Helix viewer-list API requires the logged-in user to be the broadcaster or one of the broadcaster's moderators with the `moderator:read:chatters` scope. Orion falls back to Twitch's legacy TMI chatters endpoint when Helix chatters are unavailable, but that fallback is best-effort.
-* VOD replay chat is not available through Twitch's current supported APIs. Orion shows a chat notice for VOD playback and links users to the Twitch VOD fallback.
+* VOD replay chat is not available through Twitch's current supported APIs. Orion shows a chat notice for VOD playback and links users to the Twitch VOD fallback at the current playback time.

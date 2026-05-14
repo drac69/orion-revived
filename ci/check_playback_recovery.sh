@@ -129,10 +129,8 @@ if ! rg -q 'Open VOD on Twitch' "$player_view" || ! rg -q 'Open channel on Twitc
 fi
 
 for required in \
-    'function twitchVodTimestamp(position)' \
-    'return "?t=" + timestamp' \
     'function currentVodFallbackPosition()' \
-    'twitchVodTimestamp(currentVodFallbackPosition())'
+    'Util.twitchVodTimestamp(currentVodFallbackPosition())'
 do
     if ! rg -q -F "$required" "$player_view"; then
         printf 'VOD Twitch fallback links must preserve the current playback timestamp: %s\n' "$required" >&2

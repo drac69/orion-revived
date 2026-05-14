@@ -15,6 +15,8 @@
 import QtQuick 2.5
 import aldrog.twitchtube.ircchat 1.0
 
+import "../util.js" as Util
+
 import app.orion 1.0
 
 Item {
@@ -88,14 +90,15 @@ Item {
         chat.replay(channelName, channelId, vodId, startEpochTime, startPos)
         enterChannelCommon(channelName, channelId);
         root.replayMode = true
-        messageReceived("notice", null, "", false, false, false, [], true, replayUnavailableNotice(vodId), false)
+        messageReceived("notice", null, "", false, false, false, [], true, replayUnavailableNotice(vodId, startPos), false)
     }
 
-    function replayUnavailableNotice(vodId) {
+    function replayUnavailableNotice(vodId, startPos) {
         var normalizedVodId = String(vodId || "").replace(/^v/, "")
         if (normalizedVodId) {
             return "VOD chat replay is unavailable through Twitch's current supported APIs. Open https://www.twitch.tv/videos/"
                     + encodeURIComponent(normalizedVodId)
+                    + Util.twitchVodTimestamp(startPos)
                     + " for native replay chat."
         }
         return "VOD chat replay is unavailable through Twitch's current supported APIs. Open this VOD on Twitch for native replay chat."

@@ -53,6 +53,30 @@ function getTime(totalSec){
     return result
 }
 
+function twitchVodTimestamp(position) {
+    var seconds = Math.floor(Number(position))
+    if (!isFinite(seconds) || seconds <= 0) {
+        return ""
+    }
+
+    var hours = Math.floor(seconds / 3600)
+    var minutes = Math.floor((seconds % 3600) / 60)
+    var remainingSeconds = seconds % 60
+    var timestamp = ""
+
+    if (hours > 0) {
+        timestamp += hours + "h"
+    }
+    if (minutes > 0) {
+        timestamp += minutes + "m"
+    }
+    if (remainingSeconds > 0 || timestamp === "") {
+        timestamp += remainingSeconds + "s"
+    }
+
+    return "?t=" + timestamp
+}
+
 /*
    Some urls to consider
 

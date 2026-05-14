@@ -71,6 +71,11 @@ assertEqual(context.makeUrl('this.is.not.a.url'),
             'this.is.not.a.url',
             'makeUrl preserves likely false positives');
 
+assertEqual(context.twitchVodTimestamp(0), '', 'twitchVodTimestamp omits zero positions');
+assertEqual(context.twitchVodTimestamp(59), '?t=59s', 'twitchVodTimestamp formats seconds');
+assertEqual(context.twitchVodTimestamp(125), '?t=2m5s', 'twitchVodTimestamp formats minutes and seconds');
+assertEqual(context.twitchVodTimestamp(7384), '?t=2h3m4s', 'twitchVodTimestamp formats hours, minutes, and seconds');
+
 assert(context.regexContainsHtmlEntity('(?:foo|&lt;3)'), 'regexContainsHtmlEntity scans alternatives');
 assert(context.regexContainsHtmlEntity('foo&#60;bar'), 'regexContainsHtmlEntity detects decimal entities');
 assert(context.regexContainsHtmlEntity('foo&#x3c;bar'), 'regexContainsHtmlEntity detects hex entities');

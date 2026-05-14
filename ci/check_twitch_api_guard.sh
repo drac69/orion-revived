@@ -168,8 +168,9 @@ for required_chat_settings_sync in 'syncSettings("chat blacklist")' 'syncSetting
     fi
 done
 
-if ! rg -q 'www\.twitch\.tv/videos' src/qml/irc/Chat.qml; then
-    printf 'VOD replay-chat fallback notices must include a direct Twitch VOD URL.\n' >&2
+if ! rg -q 'www\.twitch\.tv/videos' src/qml/irc/Chat.qml \
+    || ! rg -q 'Util\.twitchVodTimestamp\(startPos\)' src/qml/irc/Chat.qml; then
+    printf 'VOD replay-chat fallback notices must include a timestamped direct Twitch VOD URL.\n' >&2
     fail=1
 fi
 

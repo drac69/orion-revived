@@ -622,30 +622,6 @@ Page {
         }
     }
 
-    function twitchVodTimestamp(position) {
-        var seconds = Math.floor(position)
-        if (isNaN(seconds) || seconds <= 0) {
-            return ""
-        }
-
-        var hours = Math.floor(seconds / 3600)
-        var minutes = Math.floor((seconds % 3600) / 60)
-        var remainingSeconds = seconds % 60
-        var timestamp = ""
-
-        if (hours > 0) {
-            timestamp += hours + "h"
-        }
-        if (minutes > 0) {
-            timestamp += minutes + "m"
-        }
-        if (remainingSeconds > 0 || timestamp === "") {
-            timestamp += remainingSeconds + "s"
-        }
-
-        return "?t=" + timestamp
-    }
-
     function currentVodFallbackPosition() {
         var position = currentPlaybackPosition()
         if ((!position || position <= 0) && seekBar) {
@@ -658,7 +634,7 @@ Page {
         if (isVod && curVodId) {
             var vodId = String(curVodId).replace(/^v/, "")
             return "https://www.twitch.tv/videos/" + encodeURIComponent(vodId)
-                    + twitchVodTimestamp(currentVodFallbackPosition())
+                    + Util.twitchVodTimestamp(currentVodFallbackPosition())
         }
 
         return app.channelPageUrl(currentChannel)
