@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 irc_chat="$repo_dir/src/model/ircchat.cpp"
+chat_qml="$repo_dir/src/qml/irc/Chat.qml"
 triage="$repo_dir/docs/upstream-issue-triage.md"
 workflow="$repo_dir/.github/workflows/ci.yml"
 
@@ -63,6 +64,18 @@ if ! rg -q '#167:.*unescapes IRCv3 message-tag values' "$triage"; then
     printf 'Upstream issue triage must document IRCv3 tag unescaping coverage.\n' >&2
     exit 1
 fi
+
+for required in \
+    'onNetworkAccessChanged:' \
+    'if (up && root.channel && !root.replayMode && !chat.connected)' \
+    'onErrorOccured:' \
+    'Chat connection error:'
+do
+    if ! rg -q -F "$required" "$chat_qml"; then
+        printf 'Chat QML must surface IRC errors and reconnect active live chat after network recovery: %s\n' "$required" >&2
+        exit 1
+    fi
+done
 
 for command in PRIVMSG USERNOTICE WHISPER NOTICE GLOBALUSERSTATE USERSTATE CLEARCHAT; do
     if ! rg -q "commandKeyword == \"$command\"" "$irc_chat"; then

@@ -65,6 +65,17 @@ Item {
         }
     }
 
+    Connections {
+        target: Network
+
+        onNetworkAccessChanged: {
+            if (up && root.channel && !root.replayMode && !chat.connected) {
+                console.log("Network restored; reconnecting chat")
+                chat.reopenSocket()
+            }
+        }
+    }
+
     function enterChannelCommon(channelName, channelId) {
         root.channel = channelName
         root.channelId = channelId
@@ -162,6 +173,14 @@ Item {
                 }
             } else {
                 console.log("Disconnected from chat")
+            }
+        }
+
+        onErrorOccured: {
+            console.warn("Chat connection error:", errorDescription)
+            if (root.channel && !root.replayMode) {
+                root.messageReceived("notice", null, "", false, false, false, [], true,
+                                     "Chat connection error: " + errorDescription, false)
             }
         }
 
