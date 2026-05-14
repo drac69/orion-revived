@@ -2,6 +2,8 @@
 set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+channel_manager="$repo_dir/src/model/channelmanager.cpp"
+channel_list_model="$repo_dir/src/model/channellistmodel.cpp"
 
 for source_file in "$repo_dir/src/notification/notificationsender.cpp" "$repo_dir/src/notification/notificationsender.mm"; do
     if rg -Uq 'else\s+pushNotification\(this->title, this->subtitle\)' "$source_file"; then
@@ -54,5 +56,57 @@ if rg -q 'QList<NotificationData\*>|new NotificationData|qDeleteAll\(queue\)' \
     "$repo_dir/src/notification/notificationmanager.h" \
     "$repo_dir/src/notification/notificationmanager.cpp"; then
     printf 'NotificationManager queue must store notification data by value instead of raw pointers.\n' >&2
+    exit 1
+fi
+
+channel_manager_constructor=$(sed -n '/ChannelManager::ChannelManager()/,/^}/p' "$channel_manager")
+followed_model_factory=$(sed -n '/ChannelListModel \*ChannelManager::createFollowedChannelsModel()/,/^}/p' "$channel_manager")
+channel_manager_update_streams=$(sed -n '/void ChannelManager::updateStreams/,/^}/p' "$channel_manager")
+channel_list_update_stream=$(sed -n '/bool ChannelListModel::updateStream/,/^}/p' "$channel_list_model")
+channel_list_update_streams=$(sed -n '/void ChannelListModel::updateStreams/,/^}/p' "$channel_list_model")
+
+if ! printf '%s\n' "$channel_manager_constructor" | rg -q 'resultsModel = new ChannelListModel\(\);' \
+    || ! printf '%s\n' "$channel_manager_constructor" | rg -q 'favouritesModel = createFollowedChannelsModel\(\);'; then
+    printf 'ChannelManager must keep search results separate from the notification-enabled followed-channel model.\n' >&2
+    exit 1
+fi
+
+if printf '%s\n' "$channel_manager" | rg -q 'connect\(resultsModel, &ChannelListModel::(channelOnlineStateChanged|multipleChannelsChangedOnline)'; then
+    printf 'Search results must not be connected to online/offline notification slots.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$followed_model_factory" | rg -q 'connect\(model, &ChannelListModel::channelOnlineStateChanged, this, &ChannelManager::notify\);' \
+    || ! printf '%s\n' "$followed_model_factory" | rg -q 'connect\(model, &ChannelListModel::multipleChannelsChangedOnline, this, &ChannelManager::notifyMultipleChannelsOnline\);'; then
+    printf 'Followed-channel model must be the only model wired to channel online notification slots.\n' >&2
+    exit 1
+fi
+
+if [ "$(rg -c '&ChannelListModel::channelOnlineStateChanged' "$channel_manager")" -ne 1 ] \
+    || [ "$(rg -c '&ChannelListModel::multipleChannelsChangedOnline' "$channel_manager")" -ne 1 ]; then
+    printf 'Channel online notification signals must only be connected once through createFollowedChannelsModel.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_manager_update_streams" | rg -q 'favouritesModel->updateStreams\(list\);' \
+    || ! printf '%s\n' "$channel_manager_update_streams" | rg -q 'resultsModel->updateStreams\(list\);' \
+    || ! printf '%s\n' "$channel_manager_update_streams" | rg -q 'qDeleteAll\(list\);'; then
+    printf 'ChannelManager::updateStreams must refresh both models while leaving notification delivery isolated to favourites.\n' >&2
+    exit 1
+fi
+
+if printf '%s\n' "$channel_list_update_stream" | rg -q '^[[:space:]]*emit channelOnlineStateChanged' \
+    || printf '%s\n' "$channel_list_update_stream" | rg -q '^[[:space:]]*emit multipleChannelsChangedOnline'; then
+    printf 'ChannelListModel::updateStream must report state changes without directly sending notifications.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_list_update_stream" | rg -q 'if \(channel->isOnline\(\) != item->isOnline\(\)\)' \
+    || ! printf '%s\n' "$channel_list_update_stream" | rg -q 'onlineStateChanged = true;' \
+    || ! printf '%s\n' "$channel_list_update_streams" | rg -q 'if \(updateStream\(channel\)\)' \
+    || ! printf '%s\n' "$channel_list_update_streams" | rg -q 'onlineChannels << channel;' \
+    || ! printf '%s\n' "$channel_list_update_streams" | rg -q 'emit channelOnlineStateChanged\(channel\);' \
+    || ! printf '%s\n' "$channel_list_update_streams" | rg -q 'emit multipleChannelsChangedOnline\(onlineChannels\);'; then
+    printf 'ChannelListModel must only emit online notification signals after a real online-state transition.\n' >&2
     exit 1
 fi
