@@ -132,7 +132,7 @@ ORION_TWITCH_CLIENT_ID=your_client_id ORION_TWITCH_APP_ACCESS_TOKEN=your_app_acc
 
 The app access token must belong to the same Twitch app as the client ID, and it expires according to Twitch's OAuth response. This is only used for public Helix metadata such as streams, categories, VOD listings, badges, emote sets, and Cheermotes; user-specific follows, chat login, chatters, and block-list actions still need the in-app Twitch login.
 
-Alternatively, Orion can request a short-lived app access token at startup when both values are present:
+Alternatively, Orion can request and refresh a short-lived app access token when both values are present:
 
 ```
 ORION_TWITCH_CLIENT_ID=your_client_id ORION_TWITCH_CLIENT_SECRET=your_client_secret orion

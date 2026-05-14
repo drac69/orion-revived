@@ -73,6 +73,11 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
     accessTokenValidator.setInterval(60 * 60 * 1000);
     connect(&accessTokenValidator, &QTimer::timeout, this, &NetworkManager::validateAccessToken);
 
+    appAccessTokenRefresh.setSingleShot(true);
+    connect(&appAccessTokenRefresh, &QTimer::timeout, this, [this]() {
+        requestAppAccessToken(true);
+    });
+
     //SSL errors handle (down the drain)
     connect(operation, &QNetworkAccessManager::sslErrors, this, &NetworkManager::handleSslErrors);
 
@@ -104,6 +109,7 @@ void NetworkManager::setAccessToken(const QString &accessToken)
         return;
     }
 
+    appAccessTokenRefresh.stop();
     validateAccessToken();
     if (!accessTokenValidator.isActive())
         accessTokenValidator.start();
@@ -157,9 +163,9 @@ void NetworkManager::addHelixHeaders(QNetworkRequest &request, HelixAuthMode mod
     }
 }
 
-void NetworkManager::requestAppAccessToken()
+void NetworkManager::requestAppAccessToken(bool refresh)
 {
-    if (!app_access_token.isEmpty()
+    if ((!refresh && !app_access_token.isEmpty())
             || app_access_token_request_pending
             || !access_token.isEmpty()
             || app_client_id.isEmpty()
@@ -202,6 +208,7 @@ NetworkManager::~NetworkManager()
 {
     offlinePoller.stop();
     accessTokenValidator.stop();
+    appAccessTokenRefresh.stop();
     qDebug() << "Destroyer: NetworkManager";
     //operation->deleteLater();
 }
@@ -1649,6 +1656,7 @@ void NetworkManager::appAccessTokenReply()
     const QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &parseError);
     const QJsonObject json = jsonDocument.object();
     const QString token = json.value("access_token").toString().trimmed();
+    const int expiresIn = json.value("expires_in").toInt();
 
     if (parseError.error != QJsonParseError::NoError || token.isEmpty()) {
         qWarning() << "Twitch app access token response did not contain an access token";
@@ -1658,6 +1666,10 @@ void NetworkManager::appAccessTokenReply()
     }
 
     app_access_token = token;
+    if (expiresIn > 0 && !app_client_id.isEmpty() && !app_client_secret.isEmpty()) {
+        const int refreshSeconds = qMax(60, qMin(expiresIn - 300, 24 * 60 * 60));
+        appAccessTokenRefresh.start(refreshSeconds * 1000);
+    }
     qInfo() << "Loaded Twitch app access token from client credentials";
     reply->deleteLater();
 }

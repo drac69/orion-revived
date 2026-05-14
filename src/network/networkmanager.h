@@ -65,7 +65,7 @@ class NetworkManager: public QObject
     QString helixAccessToken(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
     QString helixClientId(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
     void addHelixHeaders(QNetworkRequest &request, HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
-    void requestAppAccessToken();
+    void requestAppAccessToken(bool refresh = false);
     void validateAccessToken();
     void checkVersionTags();
 
@@ -222,6 +222,7 @@ private:
     QPointer<QNetworkReply> connectionTestReply;
     QTimer offlinePoller;
     QTimer accessTokenValidator;
+    QTimer appAccessTokenRefresh;
 
     QString lastSearchChannelsQuery;
     QMap<quint32, QString> searchChannelsPageCursors;

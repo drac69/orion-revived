@@ -177,7 +177,12 @@ for required_app_token_token in \
     'ORION_TWITCH_CLIENT_SECRET' \
     'https://id\.twitch\.tv/oauth2/token' \
     'grant_type", "client_credentials' \
-    'appAccessTokenReply'
+    'appAccessTokenReply' \
+    'appAccessTokenRefresh' \
+    'requestAppAccessToken\(true\)' \
+    '\(!refresh && !app_access_token.isEmpty\(\)\)' \
+    'json.value\("expires_in"\).toInt\(\)' \
+    'qMin\(expiresIn - 300, 24 \* 60 \* 60\)'
 do
     if ! rg -q "$required_app_token_token" src/network/networkmanager.*; then
         printf 'Helix app access token client-credentials support is missing token: %s\n' "$required_app_token_token" >&2
