@@ -40,6 +40,16 @@ if ! rg -q 'runs-on:\s*macos-15' "$workflow" \
     exit 1
 fi
 
+if ! rg -q 'runs-on:\s*windows-2025' "$workflow" \
+        || ! rg -q 'msys2/setup-msys2@v2' "$workflow" \
+        || ! rg -q 'msystem:\s*UCRT64' "$workflow" \
+        || ! rg -q 'mingw-w64-ucrt-x86_64-mpv' "$workflow" \
+        || ! rg -q 'ci/run_qmake\.sh orion\.pro CONFIG\+=mpv' "$workflow" \
+        || ! rg -q 'release/orion\.exe' "$workflow"; then
+    printf 'CI workflow must keep the Windows MSYS2 Qt 5/mpv source-build validation job.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'ci/check_shell_scripts\.sh' "$workflow"; then
     printf 'CI workflow must run ShellCheck for maintained shell scripts.\n' >&2
     exit 1

@@ -177,3 +177,46 @@ jobs:
           test -d orion.app
           test -x orion.app/Contents/MacOS/orion
           plutil -lint orion.app/Contents/Info.plist
+
+  windows-build:
+    name: Windows Qt5/mpv
+    runs-on: windows-2025
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Install dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            git
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-make
+            mingw-w64-ucrt-x86_64-mpv
+            mingw-w64-ucrt-x86_64-qt5-base
+            mingw-w64-ucrt-x86_64-qt5-declarative
+            mingw-w64-ucrt-x86_64-qt5-graphicaleffects
+            mingw-w64-ucrt-x86_64-qt5-quickcontrols2
+            mingw-w64-ucrt-x86_64-qt5-svg
+
+      - name: Configure
+        run: ci/run_qmake.sh orion.pro CONFIG+=mpv
+
+      - name: Build
+        run: mingw32-make -j"$(nproc)"
+
+      - name: Validate executable
+        run: |
+          if [ -x release/orion.exe ]; then
+              exit 0
+          fi
+          test -x orion.exe

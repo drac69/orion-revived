@@ -15,7 +15,7 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 
 ## Downloads
 
-This fork currently validates source builds on Linux and macOS through GitHub Actions. Revalidated Windows, macOS, Android, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
+This fork currently validates source builds on Linux, macOS, and Windows through GitHub Actions. Revalidated Windows/macOS installers, Android packages, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
 
 The maintained automation entry point is `.github/workflows/ci.yml`. Older release helper scripts under `ci/` are preserved for reference only, require an explicit legacy opt-in before running, and should not be treated as current build instructions.
 
@@ -197,6 +197,28 @@ make
 ```
 
 There will now be an orion.app application in the build directory.
+
+## Building on Windows with MSYS2
+
+Windows source builds are validated in GitHub Actions with MSYS2 UCRT64,
+Qt 5, and mpv on the `windows-2025` runner. Signed installers are not
+published yet.
+
+Install MSYS2, open the UCRT64 shell, then install build dependencies:
+
+```
+pacman -S --needed git mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-make mingw-w64-ucrt-x86_64-mpv mingw-w64-ucrt-x86_64-qt5-base mingw-w64-ucrt-x86_64-qt5-declarative mingw-w64-ucrt-x86_64-qt5-graphicaleffects mingw-w64-ucrt-x86_64-qt5-quickcontrols2 mingw-w64-ucrt-x86_64-qt5-svg
+```
+
+Build from the UCRT64 shell:
+
+```
+git clone https://github.com/belagrf/orion-revived
+cd orion-revived
+ci/run_qmake.sh orion.pro CONFIG+=mpv
+mingw32-make -j"$(nproc)"
+./release/orion.exe --debug
+```
 
 ## Qt version
 

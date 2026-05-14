@@ -38,11 +38,19 @@ if ! rg -q 'Qt 5 qmake wrapper' "$readme"; then
     exit 1
 fi
 
-if ! rg -q 'validates source builds on Linux and macOS through GitHub Actions' "$readme" \
+if ! rg -q 'validates source builds on Linux, macOS, and Windows through GitHub Actions' "$readme" \
     || ! rg -q 'macOS source builds are validated in GitHub Actions' "$readme" \
     || ! rg -q 'Homebrew `qt@5` and' "$readme" \
     || ! rg -q '`macos-15` runner' "$readme"; then
     printf 'README must document macOS source-build CI validation without claiming signed packages.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'Windows source builds are validated in GitHub Actions with MSYS2 UCRT64' "$readme" \
+    || ! rg -q '`windows-2025` runner' "$readme" \
+    || ! rg -q 'mingw-w64-ucrt-x86_64-mpv' "$readme" \
+    || ! rg -q 'mingw32-make -j"\$\(nproc\)"' "$readme"; then
+    printf 'README must document Windows MSYS2 source-build CI validation without claiming signed installers.\n' >&2
     exit 1
 fi
 

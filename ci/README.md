@@ -3,7 +3,9 @@
 The maintained CI entry point for this fork is `.github/workflows/ci.yml`. It
 builds Linux Qt 5/mpv, Qt 5/Qt Multimedia, and combined mpv plus Qt Multimedia
 targets on Ubuntu 24.04, builds the macOS Qt 5/mpv source target on the
-`macos-15` GitHub-hosted runner with Homebrew `qt@5` and `mpv`, validates
+`macos-15` GitHub-hosted runner with Homebrew `qt@5` and `mpv`, builds the
+Windows Qt 5/mpv source target on the `windows-2025` runner with MSYS2 UCRT64,
+validates
 least-privilege workflow permissions and stale-run cancellation,
 desktop/AppStream metadata, checks the install target, runs the Twitch API and emote-ID regression
 guards, validates the local OAuth callback parser and stored-token validation,
