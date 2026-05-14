@@ -46,7 +46,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #134: added a Ctrl+Q application shortcut; CI now guards the application-level
   quit shortcut.
 * #44: the existing version checker now checks this fork's releases instead of the archived upstream repository, and falls back to this fork's semantic version tags when no GitHub Release has been published.
-* #242: QML startup warnings are now printed before the fatal startup error, which exposes missing QML modules directly.
+* #242: QML startup warnings are now printed before the fatal startup error,
+  which exposes missing QML modules directly; CI now guards the warning hook,
+  load order, and fatal diagnostic text.
 * #274: added a default stream-quality setting with lower-quality fallback when the exact variant is unavailable.
 * #282: added `--channel` and positional `twitch.tv` URL startup handling for opening a specific channel from a launcher.
 * #273: chat lines mentioning the logged-in username are highlighted.
