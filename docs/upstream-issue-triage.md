@@ -153,7 +153,11 @@ The upstream repository is archived and had 79 open issues at the time this fork
   CI now guards the persisted compact/side-navigation settings, top-bar compact
   icon mode, desktop side-bar routing, fullscreen/topbar interaction, and
   right-side chat-position option.
-* #142: the emote picker now includes a common Unicode emoji subset that inserts real Unicode text while displaying image-backed Twemoji assets with font fallback when an image cannot be loaded.
+* #142: the emote picker now includes a common Unicode emoji subset that
+  inserts real Unicode text while displaying image-backed Twemoji assets with
+  font fallback when an image cannot be loaded; CI now guards the emoji picker
+  model, Twemoji URL generation, surrogate-pair and variation-selector
+  handling, fallback emoji text rendering, and insert-text path.
 * #187: documented multi-backend builds, kept the manual player selector for builds with more than one backend, added runtime fallback that removes a compiled backend from the selector when its QML module fails to load, wired Qt Multimedia, QtAV, and libmpv playback errors into the common player error surface, and added CI coverage for both separate and combined mpv/Qt Multimedia builds.
 
 ## Partially addressed

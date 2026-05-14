@@ -63,6 +63,39 @@ do
 done
 
 for required in \
+    'property string unicodeEmojiImageBase: "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/"' \
+    'property var unicodeEmoji: [' \
+    'Component.onCompleted: addUnicodeEmoji()' \
+    'function appendVisibleItem(imageUrl, emoteName, insertText, emojiText)' \
+    '"insertText": insertText || emoteName,' \
+    '"emojiText": emojiText || ""' \
+    'function unicodeEmojiImageUrl(text)' \
+    'code >= 0xD800 && code <= 0xDBFF' \
+    'code === 0xFE0F' \
+    'codepoints.join("-") + ".png"' \
+    'function addUnicodeEmoji()' \
+    'appendVisibleItem(unicodeEmojiImageUrl(emoji.text), emoji.name, emoji.text, emoji.text);' \
+    '_emotePicker.updateFilter();'
+do
+    if ! rg -q -F "$required" "$emote_selector_qml"; then
+        printf 'EmoteSelector must expose Unicode emoji with Twemoji images and real insert text: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'visible: model.emojiText !== "" && (model.imageUrl === "" || _itemImage.status !== Image.Ready)' \
+    'text: model.emojiText' \
+    'font.pixelSize: Math.max(16, Math.round(parent.width * 0.68))' \
+    'placeholderText: "Filter emotes and emoji"'
+do
+    if ! rg -q -F "$required" "$emote_picker_qml"; then
+        printf 'EmotePicker must show Unicode emoji fallback text and filter wording: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
     'case "ffzGlobal":' \
     'appendVisibleItem("image://ffzemote/" + chat.lastFfzGlobalEmotes[i], i);' \
     'case "ffzChannel":' \
