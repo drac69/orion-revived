@@ -965,6 +965,8 @@ void IrcChat::createMessageList(const QMap<int, QPair<int, QString>> & emotePosi
     }
 }
 
+static int ircCommandPosition(const QString &cmd);
+
 void IrcChat::parseMessageCommand(const QString cmd, const QString cmdKeyword, CommandParse & commandParse) {
     QString displayName = "";
 
@@ -1016,7 +1018,11 @@ void IrcChat::parseMessageCommand(const QString cmd, const QString cmdKeyword, C
         }
     }
 
-    int cmdKeywordPos = cmd.indexOf(cmdKeyword);
+    int cmdKeywordPos = ircCommandPosition(cmd);
+    if (cmdKeywordPos == -1 || cmd.mid(cmdKeywordPos, cmdKeyword.length()) != cmdKeyword) {
+        commandParse.wrongChannel = true;
+        return;
+    }
 
     commandParse.params = cmd.left(cmdKeywordPos);
     QString nickname = commandParse.params.left(commandParse.params.lastIndexOf('!')).remove(0, commandParse.params.lastIndexOf(':') + 1);
@@ -1049,20 +1055,45 @@ void IrcChat::parseMessageCommand(const QString cmd, const QString cmdKeyword, C
     //qDebug() << "emotes " << emotes;
 }
 
-static QString ircCommandKeyword(const QString &cmd)
+static int ircCommandPosition(const QString &cmd)
 {
-    QString message = cmd;
-    if (message.startsWith('@')) {
-        const int tagEnd = message.indexOf(' ');
+    int start = 0;
+    if (cmd.startsWith('@')) {
+        const int tagEnd = cmd.indexOf(' ');
         if (tagEnd == -1) {
-            return QString();
+            return -1;
         }
-        message = message.mid(tagEnd + 1);
+        start = tagEnd + 1;
     }
 
-    const QStringList parts = message.split(' ', Qt::SkipEmptyParts);
-    const int commandIndex = !parts.isEmpty() && parts.first().startsWith(':') ? 1 : 0;
-    return commandIndex < parts.length() ? parts.at(commandIndex) : QString();
+    while (start < cmd.length() && cmd.at(start).isSpace()) {
+        ++start;
+    }
+
+    if (start < cmd.length() && cmd.at(start) == QLatin1Char(':')) {
+        const int sourceEnd = cmd.indexOf(' ', start);
+        if (sourceEnd == -1) {
+            return -1;
+        }
+        start = sourceEnd + 1;
+    }
+
+    while (start < cmd.length() && cmd.at(start).isSpace()) {
+        ++start;
+    }
+
+    return start < cmd.length() ? start : -1;
+}
+
+static QString ircCommandKeyword(const QString &cmd)
+{
+    const int commandStart = ircCommandPosition(cmd);
+    if (commandStart == -1) {
+        return QString();
+    }
+
+    const int commandEnd = cmd.indexOf(' ', commandStart);
+    return commandEnd == -1 ? cmd.mid(commandStart) : cmd.mid(commandStart, commandEnd - commandStart);
 }
 
 static QString ircTrailingMessage(const QString &cmd, int afterPos)
@@ -1072,6 +1103,7 @@ static QString ircTrailingMessage(const QString &cmd, int afterPos)
 }
 
 void IrcChat::parseCommand(QString cmd) {
+    const int commandPos = ircCommandPosition(cmd);
     const QString commandKeyword = ircCommandKeyword(cmd);
 
     if (commandKeyword == "RECONNECT") {
@@ -1086,7 +1118,7 @@ void IrcChat::parseCommand(QString cmd) {
     }
 
     if (commandKeyword == "HOSTTARGET") {
-        const QString hostTarget = ircTrailingMessage(cmd, cmd.indexOf("HOSTTARGET")).section(' ', 0, 0);
+        const QString hostTarget = ircTrailingMessage(cmd, commandPos + commandKeyword.length()).section(' ', 0, 0);
         if (hostTarget == "-") {
             emit noticeReceived("No longer hosting another channel.");
         }
@@ -1096,7 +1128,7 @@ void IrcChat::parseCommand(QString cmd) {
         return;
     }
 
-    if(cmd.contains("PRIVMSG")) {
+    if (commandKeyword == "PRIVMSG") {
 
         // Structure of message: '@color=#HEX;display-name=NicK;emotes=id:start-end,start-end/id:start-end;subscriber=0or1;turbo=0or1;user-type=type :nick!nick@nick.tmi.twitch.tv PRIVMSG #channel :message'
 
@@ -1128,7 +1160,7 @@ void IrcChat::parseCommand(QString cmd) {
         disposeOfMessage(parse.chatMessage);
         return;
     }
-    if (cmd.contains("USERNOTICE")) {
+    if (commandKeyword == "USERNOTICE") {
         // Structure of message: 
         // @badges=staff/1,broadcaster/1,turbo/1;color=#008000;display-name=TWITCH_UserName;emotes=;mod=0;msg-id=resub;msg-param-months=6;room-id=1337;subscriber=1;system-msg=TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!;login=twitch_username;turbo=1;user-id=1337;user-type=staff :tmi.twitch.tv USERNOTICE #channel :Great stream -- keep it up!
         // when there is no message, last part is omitted
@@ -1175,7 +1207,7 @@ void IrcChat::parseCommand(QString cmd) {
         }
         return;
     }
-    if (cmd.contains("WHISPER")) {
+    if (commandKeyword == "WHISPER") {
         // Structure of message: 
         // @badges=;color=;display-name=TWitch_UserName;emotes=;message-id=2;thread-id=56781234_142000000;turbo=0;user-id=123456789;user-type= :twitch_username!twitch_username@twitch_username.tmi.twitch.tv WHISPER other_twitch_user :hi
         CommandParse parse;
@@ -1205,14 +1237,14 @@ void IrcChat::parseCommand(QString cmd) {
         return;
 
     }
-    if(cmd.contains("NOTICE") && !cmd.contains(QRegularExpression(QStringLiteral("\\bban_success")))
+    if(commandKeyword == "NOTICE" && !cmd.contains(QRegularExpression(QStringLiteral("\\bban_success")))
         && !cmd.contains(QRegularExpression(QStringLiteral("\\btimeout_success"))))
     {
-        QString text = cmd.remove(0, cmd.indexOf(':', cmd.indexOf("NOTICE")) + 1);
+        QString text = ircTrailingMessage(cmd, commandPos + commandKeyword.length());
         emit noticeReceived(text);
         return;
     }
-    if(cmd.contains("GLOBALUSERSTATE")) {
+    if(commandKeyword == "GLOBALUSERSTATE") {
 		// Structure of message: @badges=turbo/1;color=#4100CC;display-name=user_name;emote-sets=0,1,22,345;user-id=12345678;user-type= :tmi.twitch.tv GLOBALUSERSTATE
 		// We want this for the emote ids
         const QList<QString> tags = getTags(cmd);
@@ -1251,10 +1283,9 @@ void IrcChat::parseCommand(QString cmd) {
 		}
         return;
     }
-    const QString USERSTATE_CMD = " USERSTATE ";
-    if (cmd.contains(USERSTATE_CMD)) {
+    if (commandKeyword == "USERSTATE") {
         //@badges=global_mod/1,turbo/1;color=#0D4200;display-name=TWITCH_UserNaME :tmi.twitch.tv USERSTATE #channel
-        QString channel = cmd.mid(cmd.indexOf(USERSTATE_CMD) + USERSTATE_CMD.length());
+        QString channel = cmd.mid(commandPos + commandKeyword.length() + 1);
         userChannelColors.remove(channel);
         badgesByChannel.remove(channel);
         userChannelMod.remove(channel);
@@ -1300,28 +1331,32 @@ void IrcChat::parseCommand(QString cmd) {
         return;
     }
 
-    if(cmd.contains("CLEARCHAT")) {
+    if(commandKeyword == "CLEARCHAT") {
         //@ban-duration=<ban-duration>;ban-reason=<ban-reason> :tmi.twitch.tv CLEARCHAT #<channel> :<user>
-        QString user = cmd.mid(cmd.lastIndexOf(":")+1);
-        QString banText = "ban-reason";
-        int banIndex = cmd.indexOf(banText) + banText.count();
-        QString banReason = cmd.mid( banIndex + 1,
-            cmd.indexOf(";", banIndex) - banIndex - 1);
-        banReason.replace(QString("\\s"), QString(" "));
-
-        QString durationText = "ban-duration";
-        if(cmd.contains(durationText)) {
-          int durationIndex = cmd.indexOf(durationText)+durationText.count();
-          QString banDuration = cmd.mid(durationIndex + 1,
-              cmd.indexOf(";") - durationIndex - 1);
-          QString banText = QString("%1 has been timed out for %2 seconds. %3")
-                             .arg(user).arg(banDuration).arg(banReason);
-          emit noticeReceived(banText);
+        const QString user = ircTrailingMessage(cmd, commandPos + commandKeyword.length());
+        QString banReason;
+        QString banDuration;
+        const QList<QString> tags = getTags(cmd);
+        for (const QString &tagStr : tags) {
+            Tag tag(tagStr);
+            if (tag.key == "ban-reason") {
+                banReason = tag.value;
+            }
+            else if (tag.key == "ban-duration") {
+                banDuration = tag.value;
+            }
         }
-        else {
-          QString banText = QString("%1 is now banned from this room. %2")
-                             .arg(user).arg(banReason);
-          emit noticeReceived(banText);
+
+        if (user.isEmpty()) {
+            emit noticeReceived("Chat was cleared by a moderator.");
+        } else if (!banDuration.isEmpty()) {
+            const QString banText = QString("%1 has been timed out for %2 seconds. %3")
+                    .arg(user).arg(banDuration).arg(banReason);
+            emit noticeReceived(banText);
+        } else {
+            const QString banText = QString("%1 is now banned from this room. %2")
+                    .arg(user).arg(banReason);
+            emit noticeReceived(banText);
         }
         return;
     }

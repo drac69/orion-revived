@@ -11,6 +11,14 @@ if ! rg -q 'QString unescapeIrcTagValue\(const QString &value\)' "$irc_chat"; th
     exit 1
 fi
 
+if ! rg -q 'static int ircCommandPosition\(const QString &cmd\)' "$irc_chat" \
+    || ! rg -Fq "cmd.startsWith('@')" "$irc_chat" \
+    || ! rg -Fq "cmd.at(start) == QLatin1Char(':')" "$irc_chat" \
+    || ! rg -Fq 'int cmdKeywordPos = ircCommandPosition(cmd);' "$irc_chat"; then
+    printf 'IRC command parsing must locate the command after message tags and source prefixes.\n' >&2
+    exit 1
+fi
+
 for expected in \
     "character == QLatin1Char(':')" \
     "out.append(QLatin1Char(';'))" \
@@ -53,6 +61,27 @@ fi
 
 if ! rg -q '#167:.*unescapes IRCv3 message-tag values' "$triage"; then
     printf 'Upstream issue triage must document IRCv3 tag unescaping coverage.\n' >&2
+    exit 1
+fi
+
+for command in PRIVMSG USERNOTICE WHISPER NOTICE GLOBALUSERSTATE USERSTATE CLEARCHAT; do
+    if ! rg -q "commandKeyword == \"$command\"" "$irc_chat"; then
+        printf 'IRC parser must dispatch %s through the structured command keyword.\n' "$command" >&2
+        exit 1
+    fi
+done
+
+if rg -q 'cmd\.contains\("(PRIVMSG|USERNOTICE|WHISPER|NOTICE|GLOBALUSERSTATE|CLEARCHAT)"' "$irc_chat" \
+    || rg -q 'const QString USERSTATE_CMD' "$irc_chat" \
+    || rg -q 'cmd\.indexOf\(cmdKeyword\)|cmd\.indexOf\("HOSTTARGET"\)|cmd\.indexOf\("NOTICE"\)' "$irc_chat"; then
+    printf 'IRC parser must not dispatch commands through substring matching.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'tag\.key == "ban-reason"' "$irc_chat" \
+    || ! rg -q 'tag\.key == "ban-duration"' "$irc_chat" \
+    || ! rg -q 'Chat was cleared by a moderator\.' "$irc_chat"; then
+    printf 'CLEARCHAT handling must parse moderation tags through the shared Tag parser and handle room clears.\n' >&2
     exit 1
 fi
 
