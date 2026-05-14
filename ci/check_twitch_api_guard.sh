@@ -379,6 +379,12 @@ if ! rg -q 'moderator%3Aread%3Achatters' src/qml/OptionsView.qml; then
     fail=1
 fi
 
+if ! rg -q 'moderator:read:chatters' README.md \
+    || ! rg -q 'legacy TMI chatters endpoint' README.md; then
+    printf 'README must document Helix viewer-list scope requirements and legacy TMI fallback behavior.\n' >&2
+    fail=1
+fi
+
 if ! rg -q 'Q_INVOKABLE quint64 getUser_id\(\) const;' "$channel_manager_header"; then
     printf 'ChannelManager must expose the logged-in user ID to QML for Helix viewer-list requests.\n' >&2
     fail=1

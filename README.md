@@ -130,7 +130,7 @@ Optional logged-out Twitch metadata:
 ORION_TWITCH_CLIENT_ID=your_client_id ORION_TWITCH_APP_ACCESS_TOKEN=your_app_access_token orion
 ```
 
-The app access token must belong to the same Twitch app as the client ID, and it expires according to Twitch's OAuth response. This is only used for public Helix metadata such as streams, categories, VOD listings, badges, emote sets, and Cheermotes; user-specific follows, chat login, and block-list actions still need the in-app Twitch login.
+The app access token must belong to the same Twitch app as the client ID, and it expires according to Twitch's OAuth response. This is only used for public Helix metadata such as streams, categories, VOD listings, badges, emote sets, and Cheermotes; user-specific follows, chat login, chatters, and block-list actions still need the in-app Twitch login.
 
 Alternatively, Orion can request a short-lived app access token at startup when both values are present:
 
@@ -221,4 +221,5 @@ C++ Redistributable for Visual Studio 2015, 2017, 2019, and 2022:
 ## Known limitations
 
 * Native live and VOD playback still depends on Twitch playlist-token endpoints that are not documented as a supported Helix API. If Orion cannot load a playable playlist, use the player header action to open the channel or VOD on twitch.tv.
+* Twitch's Helix viewer-list API requires the logged-in user to be the broadcaster or one of the broadcaster's moderators with the `moderator:read:chatters` scope. Orion falls back to Twitch's legacy TMI chatters endpoint when Helix chatters are unavailable, but that fallback is best-effort.
 * VOD replay chat is not available through Twitch's current supported APIs. Orion shows a chat notice for VOD playback and links users to the Twitch VOD fallback.
