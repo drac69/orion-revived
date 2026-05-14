@@ -131,6 +131,75 @@ for token, description in (
         errors.append(description)
 
 for token, description in (
+    ("Q_PROPERTY(QString chatBlacklist READ chatBlacklist WRITE setChatBlacklist NOTIFY chatBlacklistChanged)",
+     "SettingsManager must expose the chat blacklist setting"),
+    ("Q_PROPERTY(QString chatHighlightUsers READ chatHighlightUsers WRITE setChatHighlightUsers NOTIFY chatHighlightUsersChanged)",
+     "SettingsManager must expose highlighted chat users"),
+    ('setChatBlacklist(settings.value("chatBlacklist", mChatBlacklist).toString())',
+     "SettingsManager must load persisted chat blacklist terms"),
+    ('setChatHighlightUsers(settings.value("chatHighlightUsers", mChatHighlightUsers).toString())',
+     "SettingsManager must load persisted highlighted chat users"),
+    ('syncSettings("chat blacklist")', "SettingsManager must sync chat blacklist changes"),
+    ('syncSettings("chat highlight users")', "SettingsManager must sync highlighted chat user changes"),
+    ("emit chatBlacklistChanged()", "SettingsManager must notify chat blacklist changes"),
+    ("emit chatHighlightUsersChanged()", "SettingsManager must notify highlighted chat user changes"),
+):
+    if token not in settings_header and token not in settings_source:
+        errors.append(description)
+
+for token, description in (
+    ("property bool mentionedCurrentUser: mentionsCurrentUser()",
+     "ChatMessage must mark messages that mention the logged-in user"),
+    ("property bool highlightedUser: userHighlighted()",
+     "ChatMessage must mark messages from highlighted users"),
+    ("function mentionsCurrentUser()", "ChatMessage must keep mention detection"),
+    ("var currentUser = ChannelManager.username()", "ChatMessage must detect mentions against the logged-in username"),
+    ('new RegExp("(^|\\\\W)@" + escapeRegExp(currentUser) + "\\\\b", "i")',
+     "ChatMessage mention detection must match @username as a case-insensitive word"),
+    ("function userHighlighted()", "ChatMessage must keep highlighted-user detection"),
+    ("var highlightUsers = Settings.chatHighlightUsers",
+     "ChatMessage must read highlighted users from Settings"),
+    ("var entries = highlightUsers.split(/[\\r\\n,]+/)",
+     "ChatMessage must accept comma- and newline-separated highlighted users"),
+    ('trim().replace(/^@+/, "").toLowerCase()',
+     "ChatMessage must normalize highlighted user entries"),
+    ("entry !== \"\" && entry === currentUser",
+     "ChatMessage must ignore empty highlighted-user entries"),
+    ("visible: mentionedCurrentUser || highlightedUser",
+     "ChatMessage must show the highlight background for mentions and highlighted users"),
+    ("color: mentionedCurrentUser",
+     "ChatMessage must distinguish mention and highlighted-user background colors"),
+):
+    if token not in chat_message_qml:
+        errors.append(description)
+
+for token, description in (
+    ("function messageBlocked(message)", "ChatView must keep chat blacklist filtering"),
+    ("var blacklist = Settings.chatBlacklist", "ChatView must read blacklist terms from Settings"),
+    ("var lowerMessage = plainMessageText(message).toLowerCase()",
+     "ChatView must compare blacklist terms against plain lower-case message text"),
+    ("var entries = blacklist.split(/[\\r\\n,]+/)",
+     "ChatView must accept comma- and newline-separated blacklist terms"),
+    ("entry !== \"\" && lowerMessage.indexOf(entry) !== -1",
+     "ChatView must ignore empty blacklist terms and match configured substrings"),
+    ("if (!isChannelNotice && messageBlocked(message))",
+     "ChatView must apply the blacklist before normal chat messages are appended"),
+):
+    if token not in chat_view_qml:
+        errors.append(description)
+
+for token, description in (
+    ('text: "Highlighted chat users"', "OptionsView must label the highlighted-user list"),
+    ("text: Settings.chatHighlightUsers", "OptionsView must display saved highlighted users"),
+    ("Settings.chatHighlightUsers = text", "OptionsView must persist highlighted-user edits"),
+    ('text: "Filtered chat terms"', "OptionsView must label the chat blacklist list"),
+    ("text: Settings.chatBlacklist", "OptionsView must display saved blacklist terms"),
+    ("Settings.chatBlacklist = text", "OptionsView must persist blacklist edits"),
+):
+    if token not in options_qml:
+        errors.append(description)
+
+for token, description in (
     ('function needsPlainTextStyle(value)', "util.js must expose the styled-text emoji crash guard"),
     (r'/[^\x00-\x7F]/', "util.js must detect non-ASCII text before styled rendering"),
 ):

@@ -55,10 +55,15 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #282: added `--channel` and positional `twitch.tv` URL startup handling for
   opening a specific channel from a launcher; CI now guards command-line
   normalization, QML startup handoff, and README examples.
-* #273: chat lines mentioning the logged-in username are highlighted.
-* #270: added a persisted chat blacklist for hiding messages containing configured terms.
+* #273: chat lines mentioning the logged-in username are highlighted; CI now
+  guards `@username` detection and mention background styling.
+* #270: added a persisted chat blacklist for hiding messages containing
+  configured terms; CI now guards setting persistence, options editing, and
+  QML message filtering.
 * #263: the emote picker now follows the selected light/dark theme.
-* #241: added a highlighted-user list for chat styling of specific chatters.
+* #241: added a highlighted-user list for chat styling of specific chatters; CI
+  now guards setting persistence, options editing, user normalization, and row
+  highlighting.
 * #234: BTTV emotes now carry direct source URLs and render through `AnimatedImage`, allowing animated formats to move.
 * #141: added FrankerFaceZ global and channel emote loading, rendering, and picker entries.
 * #123: added `--libmpv-config` / `--mpv-config` for loading an explicit mpv config file with the mpv backend, and the saved mpv hardware-decoder preference is now applied when the backend loads.
