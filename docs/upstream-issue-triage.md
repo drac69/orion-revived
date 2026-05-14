@@ -52,7 +52,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #274: added a default stream-quality setting with lower-quality fallback when
   the exact variant is unavailable; CI now guards the persisted default,
   options selector, and lower/source/first-playable fallback logic.
-* #282: added `--channel` and positional `twitch.tv` URL startup handling for opening a specific channel from a launcher.
+* #282: added `--channel` and positional `twitch.tv` URL startup handling for
+  opening a specific channel from a launcher; CI now guards command-line
+  normalization, QML startup handoff, and README examples.
 * #273: chat lines mentioning the logged-in username are highlighted.
 * #270: added a persisted chat blacklist for hiding messages containing configured terms.
 * #263: the emote picker now follows the selected light/dark theme.

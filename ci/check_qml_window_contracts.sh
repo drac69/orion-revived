@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+readme="$repo_dir/README.md"
 main_qml="$repo_dir/src/qml/main.qml"
 options_view="$repo_dir/src/qml/OptionsView.qml"
 common_grid_qml="$repo_dir/src/qml/components/CommonGrid.qml"
@@ -86,6 +87,51 @@ for required in \
 do
     if ! rg -q -F "$required" "$main_qml"; then
         printf 'main.qml must keep the Ctrl+Q application quit shortcut: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'QString normalizedStartupChannel(QString value)' \
+    'const QUrl url = QUrl::fromUserInput(value);' \
+    'host == "twitch.tv" || host == "www.twitch.tv"' \
+    "url.path().split('/', Qt::SkipEmptyParts)" \
+    'value.remove(QRegularExpression("^[#@/]+"));' \
+    'value.remove(QRegularExpression("[/?#].*$"));' \
+    'QCommandLineOption channelOption(QStringList() << "c" << "channel"' \
+    'parser.addPositionalArgument("channel", "Twitch channel name or twitch.tv URL to open on startup.");' \
+    'startupChannel = normalizedStartupChannel(parser.value(channelOption));' \
+    'startupChannel = normalizedStartupChannel(parser.positionalArguments().first());' \
+    'rootContext->setContextProperty("g_startupChannel", startupChannel);'
+do
+    if ! rg -q -F "$required" "$main_cpp"; then
+        printf 'main.cpp must normalize --channel and positional twitch.tv startup targets: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'function openChannelName(channelName)' \
+    'channelName = (channelName || "").trim().replace(/^[@#\/]+/, "")' \
+    'view.playerView.getStreams({' \
+    '"name": channelName' \
+    'topbar.setCurrentIndex(4)' \
+    'if (g_startupChannel && openChannelName(g_startupChannel)) {' \
+    'console.log("Opening startup channel", g_startupChannel)'
+do
+    if ! rg -q -F "$required" "$main_qml"; then
+        printf 'main.qml must open normalized startup channels in the player view: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'Open a channel directly from a launcher or shell:' \
+    'orion --channel channelname' \
+    'orion https://www.twitch.tv/channelname'
+do
+    if ! rg -q -F "$required" "$readme"; then
+        printf 'README must document direct startup channel examples: %s\n' "$required" >&2
         exit 1
     fi
 done
