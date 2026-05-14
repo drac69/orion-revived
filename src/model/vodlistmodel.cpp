@@ -155,6 +155,10 @@ void VodListModel::addAll(QList<Vod *> &items)
     QList<Vod *> newItems;
     const QList<Vod *> &incomingItems = items;
     for (Vod *vod : incomingItems) {
+        if (!vod) {
+            continue;
+        }
+
         Vod *existing = find(vod->getId());
         if (existing) {
             *existing = *vod;
@@ -184,11 +188,17 @@ void VodListModel::mergePage(QList<Vod *> &items, quint32 offset)
     }
 
     QSet<QString> incomingIds;
+    QList<Vod *> newItems;
     const QList<Vod *> &incomingItems = items;
     for (Vod *vod : incomingItems) {
         if (vod) {
             incomingIds.insert(vod->getId());
+            newItems.append(vod);
         }
+    }
+
+    if (newItems.isEmpty()) {
+        return;
     }
 
     for (int row = vods.size() - 1; row >= 0; row--) {
@@ -202,9 +212,9 @@ void VodListModel::mergePage(QList<Vod *> &items, quint32 offset)
 
     const int requestedRow = static_cast<int>(offset);
     const int insertRow = qMax(0, qMin(requestedRow, vods.size()));
-    beginInsertRows(QModelIndex(), insertRow, insertRow + items.size() - 1);
-    for (int i = 0; i < items.size(); i++) {
-        vods.insert(insertRow + i, new Vod(*items.at(i)));
+    beginInsertRows(QModelIndex(), insertRow, insertRow + newItems.size() - 1);
+    for (int i = 0; i < newItems.size(); i++) {
+        vods.insert(insertRow + i, new Vod(*newItems.at(i)));
     }
     endInsertRows();
 }

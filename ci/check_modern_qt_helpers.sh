@@ -7,6 +7,8 @@ parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameRes
 game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
 vod_find_block=$(sed -n '/Vod \*VodListModel::find/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 channel_add_block=$(sed -n '/void ChannelListModel::addChannel/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
+vod_add_all_block=$(sed -n '/void VodListModel::addAll/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
+vod_merge_page_block=$(sed -n '/void VodListModel::mergePage/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 
 if rg -n '\bforeach\s*\(' "$repo_dir/src"; then
     printf 'src must use range-based loops instead of Qt foreach.\n' >&2
@@ -109,6 +111,18 @@ fi
 
 if ! printf '%s\n' "$channel_add_block" | rg -q 'delete channel;'; then
     printf 'ChannelListModel::addChannel must delete duplicate input channels after updating existing rows.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$vod_add_all_block" | rg -q 'if \(!vod\)'; then
+    printf 'VodListModel::addAll must skip null incoming VOD pointers.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$vod_merge_page_block" | rg -q 'newItems\.append\(vod\)' \
+    || ! printf '%s\n' "$vod_merge_page_block" | rg -q 'newItems\.isEmpty\(\)' \
+    || ! printf '%s\n' "$vod_merge_page_block" | rg -q 'newItems\.size\(\)'; then
+    printf 'VodListModel::mergePage must insert only filtered non-null VOD pointers.\n' >&2
     exit 1
 fi
 
