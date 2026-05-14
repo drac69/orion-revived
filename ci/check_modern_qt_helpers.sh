@@ -2,6 +2,8 @@
 set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+json_parser="$repo_dir/src/util/jsonparser.cpp"
+parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
 
 if rg -n '\bforeach\s*\(' "$repo_dir/src"; then
     printf 'src must use range-based loops instead of Qt foreach.\n' >&2
@@ -74,6 +76,11 @@ fi
 
 if ! rg -q 'Favourite channel settings sync failed with status' "$repo_dir/src/model/channelmanager.cpp"; then
     printf 'ChannelManager must warn when favourite channel settings fail to sync.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$parse_game_results_block" | rg -q 'delete game;'; then
+    printf 'JsonParser must delete ignored game result objects instead of leaking them.\n' >&2
     exit 1
 fi
 

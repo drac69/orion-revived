@@ -199,6 +199,9 @@ PagedResult<Game*> JsonParser::parseGameResults(const QByteArray &data)
                 if (!game->getName().isEmpty()){
                     out.items.append(game);
                 }
+                else {
+                    delete game;
+                }
             }
         }
 
