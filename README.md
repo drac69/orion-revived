@@ -59,6 +59,17 @@ sudo apt install build-essential libmpv-dev libsystemd-dev pkg-config qt5-qmake 
 
 If the app builds but the window does not appear, run `orion --debug` from a terminal and look for missing QML module messages.
 
+Fedora:
+
+```
+sudo dnf install git gcc-c++ make mpv mpv-libs-devel pkgconf-pkg-config qt5-qtbase-devel qt5-qtdeclarative-devel qt5-qtgraphicaleffects qt5-qtquickcontrols2-devel qt5-qtsvg-devel systemd-devel
+```
+
+Fedora packages should prefer the mpv backend. The Qt Multimedia backend uses
+GStreamer and needs `qt5-qtmultimedia-devel` plus working GStreamer H.264/AAC
+plugins from Fedora or RPM Fusion; missing or incompatible GStreamer plugins can
+produce audio-only playback or immediate playback failures.
+
 FreeBSD:
 
 ```

@@ -34,6 +34,13 @@ if ! rg -q 'pkg install .*qt5-qmake' "$readme"; then
     exit 1
 fi
 
+if ! rg -q 'sudo dnf install .*mpv-libs-devel' "$readme" \
+    || ! rg -q 'Fedora packages should prefer the mpv backend' "$readme" \
+    || ! rg -q 'GStreamer H\.264/AAC' "$readme"; then
+    printf 'README Fedora notes must document mpv build dependencies and the Qt Multimedia/GStreamer playback caveat.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'default install prefix is `/usr/local`' "$readme"; then
     printf 'README FreeBSD build notes must document the /usr/local default install prefix.\n' >&2
     exit 1
