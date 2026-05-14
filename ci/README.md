@@ -48,5 +48,9 @@ explicit opt-in so they are not run accidentally:
 ORION_ALLOW_LEGACY_CI=1 ci/prepare_linux.sh
 ```
 
+The guarded Windows OpenSSL helper no longer downloads obsolete OpenSSL 1.0.x
+or NASM installers. If a maintainer intentionally uses it, provide a matching
+Windows OpenSSL build output directory with `ORION_WINDOWS_OPENSSL_DIR`.
+
 Use the README source build steps or the GitHub Actions workflow as the
 supported automation baseline.

@@ -77,7 +77,7 @@ These issues remained open upstream but the final `master` code already contains
 * #217: chat background opacity is configurable in the chat settings.
 * #215: VOD seek/open paths no longer emit duplicate online notifications in the current channel model update flow.
 * #275: Linux `make install` target in `orion.pro`; CI now stages and validates the installed binary, AppStream metadata, desktop entry, and icon paths.
-* #47: later upstream Windows builds resolved the reported no-content/SSL packaging failure path according to the reporter's 1.6.0-beta retest; this fork does not publish revalidated Windows installers yet, but the README now documents the empty-tabs/connection-error symptom and SSL DLL architecture check for older or local Windows packages, and the qmake Windows packaging now stages discovered modern `libssl*.dll` / `libcrypto*.dll` files while preserving old OpenSSL 1.0 DLL-name compatibility.
+* #47: later upstream Windows builds resolved the reported no-content/SSL packaging failure path according to the reporter's 1.6.0-beta retest; this fork does not publish revalidated Windows installers yet, but the README now documents the empty-tabs/connection-error symptom and SSL DLL architecture check for older or local Windows packages, the qmake Windows packaging now stages discovered modern `libssl*.dll` / `libcrypto*.dll` files while preserving old OpenSSL 1.0 DLL-name compatibility, and the guarded legacy Windows OpenSSL helper no longer downloads obsolete OpenSSL 1.0.x or NASM installers.
 
 ## Needs Twitch API or product support
 

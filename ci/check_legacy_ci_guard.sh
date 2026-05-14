@@ -40,6 +40,16 @@ if ! rg -q 'ORION_ALLOW_LEGACY_CI' "$ci_dir/legacy_ci_guard.sh" "$ci_dir/legacy_
     fail=1
 fi
 
+if rg -q --glob '!check_legacy_ci_guard.sh' 'OpenSSL_1_0_2|nasminst|libgd\.blob|libssl1\.0\.0' "$ci_dir"; then
+    printf 'legacy CI helpers must not download or install obsolete OpenSSL 1.0/NASM dependencies.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'ORION_WINDOWS_OPENSSL_DIR' "$ci_dir/build_openssl.bat" "$ci_dir/README.md"; then
+    printf 'legacy Windows OpenSSL helper must require caller-supplied OpenSSL build output.\n' >&2
+    fail=1
+fi
+
 dependency_installer="$ci_dir/install_ubuntu_ci_deps.sh"
 if rg -q 'timeout --foreground' "$dependency_installer"; then
     printf 'install_ubuntu_ci_deps.sh must not use timeout --foreground; CI apt children must stay under timeout control\n' >&2
