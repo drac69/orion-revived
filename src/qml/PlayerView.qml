@@ -619,6 +619,9 @@ Page {
         if (isVod && renderer){
             chatdrawer.chat.playerSeek(position)
             renderer.seekTo(position)
+            if (MprisManager.available()) {
+                MprisManager.notifySeeked(Math.round(position * 1000000))
+            }
         }
     }
 

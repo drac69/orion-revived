@@ -5,6 +5,9 @@ repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 json_parser="$repo_dir/src/util/jsonparser.cpp"
 network_manager="$repo_dir/src/network/networkmanager.cpp"
 network_manager_header="$repo_dir/src/network/networkmanager.h"
+mpris_manager="$repo_dir/src/model/mprismanager.cpp"
+mpris_manager_header="$repo_dir/src/model/mprismanager.h"
+player_view="$repo_dir/src/qml/PlayerView.qml"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
 game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
 game_add_all_block=$(sed -n '/void GameListModel::addAll/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
@@ -113,6 +116,14 @@ if ! rg -q 'QNetworkReply \*replyFromSender\(const char \*context\) const;' "$ne
     || ! rg -q 'QNetworkReply \*NetworkManager::replyFromSender\(const char \*context\) const' "$network_manager" \
     || ! rg -q 'finished without a network reply sender' "$network_manager"; then
     printf 'NetworkManager reply slots must validate sender() before dereferencing QNetworkReply objects.\n' >&2
+    exit 1
+fi
+
+if ! rg -q 'Q_INVOKABLE void notifySeeked\(qint64 position\);' "$mpris_manager_header" \
+    || ! rg -q 'void MprisManager::notifySeeked\(qint64 position\)' "$mpris_manager" \
+    || ! rg -q 'QStringLiteral\("Seeked"\)' "$mpris_manager" \
+    || ! rg -q 'MprisManager\.notifySeeked\(Math\.round\(position \* 1000000\)\)' "$player_view"; then
+    printf 'MPRIS seek handling must emit the Seeked signal with the VOD position in microseconds.\n' >&2
     exit 1
 fi
 

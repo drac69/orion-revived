@@ -237,6 +237,23 @@ void MprisManager::setMetadata(const QString &title, const QString &artist, qint
     }
 }
 
+void MprisManager::notifySeeked(qint64 position)
+{
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+    if (!mAvailable) {
+        return;
+    }
+
+    QDBusMessage message = QDBusMessage::createSignal(QStringLiteral("/org/mpris/MediaPlayer2"),
+                                                      QStringLiteral("org.mpris.MediaPlayer2.Player"),
+                                                      QStringLiteral("Seeked"));
+    message << qMax<qint64>(0, position);
+    QDBusConnection::sessionBus().send(message);
+#else
+    Q_UNUSED(position)
+#endif
+}
+
 bool MprisManager::available() const
 {
     return mAvailable;

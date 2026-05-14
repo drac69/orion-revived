@@ -10,7 +10,7 @@ The upstream repository is archived and had 79 open issues at the time this fork
 
 * #302 / #303: merged the unmerged QObject lifetime crash fix from upstream PR #303, converted the remaining app-parented QML singleton objects and QML image providers away from stack storage, filtered stale/null model objects before list updates, routed `NetworkManager` reply slots through a checked sender helper so unexpected non-reply invocations cannot dereference a null `QNetworkReply`, and disabled the InfoDrawer text style when channel title/description text contains non-ASCII characters to avoid the old Qt 5 styled-emoji render crash while preserving the text.
 * #18: added an mpv playback-stats overlay with codec, resolution, FPS, bitrate, dropped frame, sync, cache, and hardware-decoder data.
-* #26: added Linux MPRIS media-control support for play, pause, stop, seek, volume, and metadata over D-Bus.
+* #26: added Linux MPRIS media-control support for play, pause, stop, seek, volume, metadata, and `Seeked` notifications over D-Bus.
 * #295: added an optional mpv audio-compressor filter for reducing stream volume swings.
 * #306: changed the mpv default hardware decoder from `auto` to `auto-copy` to avoid unsafe native-surface handling in the embedded renderer, and removed the deprecated `mpv_opengl_cb` rendering fallback so maintained builds use libmpv's render API.
 * #305: search result pages now size their initial and follow-up fetches from the visible grid capacity, with a small row buffer instead of a hard-coded 25 items.

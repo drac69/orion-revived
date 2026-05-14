@@ -31,6 +31,7 @@ public:
 
     QVariantMap metadata() const;
     Q_INVOKABLE void setMetadata(const QString &title, const QString &artist, qint64 length, const QString &artUrl);
+    Q_INVOKABLE void notifySeeked(qint64 position);
     Q_INVOKABLE bool available() const;
 
 signals:
