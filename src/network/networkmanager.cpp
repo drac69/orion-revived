@@ -18,6 +18,7 @@
 #include "../util/m3u8parser.h"
 #include <QEventLoop>
 #include <QSet>
+#include <QSslSocket>
 #include <QtGlobal>
 #include <QUrlQuery>
 #include "../model/settingsmanager.h"
@@ -55,11 +56,17 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
     accessTokenValidator.setInterval(60 * 60 * 1000);
     connect(&accessTokenValidator, &QTimer::timeout, this, &NetworkManager::validateAccessToken);
 
-    //Initial network reachability check
-    testNetworkConnection();
-
     //SSL errors handle (down the drain)
     connect(operation, &QNetworkAccessManager::sslErrors, this, &NetworkManager::handleSslErrors);
+
+    if (!QSslSocket::supportsSsl()) {
+        qWarning().noquote() << "Qt Network SSL support is unavailable; HTTPS requests will fail."
+                             << "Build SSL:" << QSslSocket::sslLibraryBuildVersionString()
+                             << "Runtime SSL:" << QSslSocket::sslLibraryVersionString();
+    }
+
+    //Initial network reachability check
+    testNetworkConnection();
 
     //Handshake
     operation->connectToHostEncrypted(QStringLiteral("api.twitch.tv"));
@@ -188,10 +195,23 @@ void NetworkManager::initialize(QNetworkAccessManager *mgr)
 
 void NetworkManager::testNetworkConnection()
 {
+    if (connectionTestReply) {
+        return;
+    }
+
     QEventLoop loop;
+    QTimer timeoutTimer;
+    timeoutTimer.setSingleShot(true);
     connect(this, &NetworkManager::finishedConnectionTest, &loop, &QEventLoop::quit);
+    connect(&timeoutTimer, &QTimer::timeout, this, [this]() {
+        if (connectionTestReply) {
+            qWarning() << "Network connection test timed out";
+            connectionTestReply->abort();
+        }
+    });
 
     testConnection();
+    timeoutTimer.start(10000);
     loop.exec();
 
     if (!connectionOK && !offlinePoller.isActive())
@@ -208,6 +228,7 @@ void NetworkManager::testConnection()
     request.setUrl(QUrl("https://www.twitch.tv"));
 
     QNetworkReply *reply = operation->get(request);
+    connectionTestReply = reply;
 
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::testConnectionReply);
 }
@@ -219,6 +240,10 @@ void NetworkManager::testConnectionReply()
         qWarning() << "Network connection test finished without a reply sender";
         emit finishedConnectionTest();
         return;
+    }
+
+    if (reply == connectionTestReply) {
+        connectionTestReply = nullptr;
     }
 
 //    if (reply->error() == QNetworkReply::NoError)

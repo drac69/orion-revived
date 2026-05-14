@@ -70,7 +70,12 @@ On FreeBSD, the default install prefix is `/usr/local`.
 
 If using backend other than mpv, install those packages instead. Packagers can build multiple backends into one binary by passing more than one backend flag, for example `CONFIG+=mpv CONFIG+=multimedia`. The GitHub Actions workflow validates separate mpv and Qt Multimedia builds as well as a combined mpv plus Qt Multimedia build. At startup, Orion removes a compiled backend from the in-app selector if its QML module cannot load and falls back to another compiled backend when one is available.
 
-If a FreeBSD build fails at runtime with unresolved `QSslSocket` or OpenSSL symbols, check that the runtime Qt Network package and OpenSSL libraries come from the same package set. Old FreeBSD 11-era reports of `SSL_CTX_set1_groups` failures were consistent with an SSL runtime mismatch rather than an Orion-only crash.
+If a FreeBSD build fails at runtime with unresolved `QSslSocket` or OpenSSL
+symbols, check that the runtime Qt Network package and OpenSSL libraries come
+from the same package set. Orion logs the Qt build/runtime SSL library versions
+when Qt reports SSL support is unavailable. Old FreeBSD 11-era reports of
+`SSL_CTX_set1_groups` failures were consistent with an SSL runtime mismatch
+rather than an Orion-only crash.
 
 #### Choosing player backend (optional)
 To select one or more backends, pass suitable CONFIG variables to the Qt 5 qmake wrapper (alternatively edit straight to `.pro` file):

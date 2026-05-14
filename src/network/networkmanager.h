@@ -23,6 +23,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QList>
+#include <QPointer>
 #include <QStringList>
 #include <QTimer>
 #include "urls.h"
@@ -215,6 +216,7 @@ private:
 
     QNetworkAccessManager *operation;
     bool connectionOK;
+    QPointer<QNetworkReply> connectionTestReply;
     QTimer offlinePoller;
     QTimer accessTokenValidator;
 
