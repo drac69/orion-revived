@@ -156,14 +156,20 @@ GridView {
             root.currentIndex = clickedIndex;
             if (clickedIndex !== -1){
                 var clickedItem = itemAt(mouse.x + root.contentX, mouse.y + root.contentY);
-                if (mouse.button === Qt.LeftButton) {
-                    foo = function(){ itemClicked(clickedIndex, clickedItem) }
-                } else if (mouse.button === Qt.RightButton){
-                    foo = function(){ itemRightClicked(clickedIndex, clickedItem, mouse.x, mouse.y) }
+                if (clickedItem) {
+                    if (mouse.button === Qt.LeftButton) {
+                        foo = function(){ itemClicked(clickedIndex, clickedItem) }
+                    } else if (mouse.button === Qt.RightButton){
+                        foo = function(){ itemRightClicked(clickedIndex, clickedItem, mouse.x, mouse.y) }
+                    }
                 }
             }
             _ct.foo = foo
-            _ct.restart()
+            if (foo) {
+                _ct.restart()
+            } else {
+                _ct.stop()
+            }
         }
 
         onDoubleClicked: {
@@ -173,7 +179,7 @@ GridView {
             var clickedIndex = indexAt(mouse.x + root.contentX, mouse.y + root.contentY);
             if (clickedIndex !== -1){
                 var clickedItem = itemAt(mouse.x + root.contentX, mouse.y + root.contentY);
-                if (mouse.button === Qt.LeftButton) {
+                if (clickedItem && mouse.button === Qt.LeftButton) {
                     itemDoubleClicked(clickedIndex, clickedItem)
                 }
             }
@@ -189,7 +195,9 @@ GridView {
             var clickedIndex = indexAt(mouse.x + root.contentX, mouse.y + root.contentY);
             if (clickedIndex !== -1){
                 var clickedItem = itemAt(mouse.x + root.contentX, mouse.y + root.contentY);
-                itemRightClicked(clickedIndex, clickedItem, mouse.x, mouse.y);
+                if (clickedItem) {
+                    itemRightClicked(clickedIndex, clickedItem, mouse.x, mouse.y);
+                }
             }
         }
     }

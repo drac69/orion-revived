@@ -40,3 +40,14 @@ do
         exit 1
     fi
 done
+
+for required in \
+    'if (clickedItem) {' \
+    'if (foo) {' \
+    'if (clickedItem && mouse.button === Qt.LeftButton)'
+do
+    if ! rg -q -F "$required" "$common_grid_qml"; then
+        printf 'CommonGrid must guard delegate item lookup before emitting click signals: %s\n' "$required" >&2
+        exit 1
+    fi
+done
