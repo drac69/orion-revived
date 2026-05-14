@@ -124,6 +124,19 @@ for required_filter_role in Description Language PublishedAt Url MutedSegments; 
     fi
 done
 
+for required_vod_filter_guard in \
+    'const QAbstractItemModel *model = sourceModel()' \
+    'if (!model)' \
+    'if (sourceParent.isValid())' \
+    'if (!sourceIndex.isValid())' \
+    'if (!model || !left.isValid() || !right.isValid())'
+do
+    if ! rg -qF "$required_vod_filter_guard" src/model/vodfilterproxymodel.cpp; then
+        printf 'VOD filter proxy must guard invalid model/index state: %s\n' "$required_vod_filter_guard" >&2
+        fail=1
+    fi
+done
+
 if ! rg -q 'fast_bread' src/util/jsonparser.cpp; then
     printf 'Low-latency live playback must request Twitch fast_bread playlists.\n' >&2
     fail=1

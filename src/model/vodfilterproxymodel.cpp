@@ -2,6 +2,7 @@
 
 #include "vodlistmodel.h"
 
+#include <QAbstractItemModel>
 #include <QRegularExpression>
 #include <QStringList>
 
@@ -73,21 +74,34 @@ QVariantMap VodFilterProxyModel::itemAt(int row) const
 
 bool VodFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
+    const QAbstractItemModel *model = sourceModel();
+    if (!model) {
+        return false;
+    }
+
+    if (sourceParent.isValid()) {
+        return false;
+    }
+
     if (mFilterText.isEmpty()) {
         return true;
     }
 
-    const QModelIndex sourceIndex = sourceModel()->index(sourceRow, 0, sourceParent);
-    const QString mutedSegments = sourceModel()->data(sourceIndex, VodListModel::MutedSegments).toString();
-    const QString mutedSegmentRanges = sourceModel()->data(sourceIndex, VodListModel::MutedSegmentRanges).toString();
-    const QString haystack = sourceModel()->data(sourceIndex, VodListModel::Title).toString()
-            + "\n" + sourceModel()->data(sourceIndex, VodListModel::Game).toString()
-            + "\n" + sourceModel()->data(sourceIndex, VodListModel::Description).toString()
-            + "\n" + sourceModel()->data(sourceIndex, VodListModel::Language).toString()
-            + "\n" + sourceModel()->data(sourceIndex, VodListModel::Type).toString()
-            + "\n" + sourceModel()->data(sourceIndex, VodListModel::CreatedAt).toString()
-            + "\n" + sourceModel()->data(sourceIndex, VodListModel::PublishedAt).toString()
-            + "\n" + sourceModel()->data(sourceIndex, VodListModel::Url).toString()
+    const QModelIndex sourceIndex = model->index(sourceRow, 0, sourceParent);
+    if (!sourceIndex.isValid()) {
+        return false;
+    }
+
+    const QString mutedSegments = model->data(sourceIndex, VodListModel::MutedSegments).toString();
+    const QString mutedSegmentRanges = model->data(sourceIndex, VodListModel::MutedSegmentRanges).toString();
+    const QString haystack = model->data(sourceIndex, VodListModel::Title).toString()
+            + "\n" + model->data(sourceIndex, VodListModel::Game).toString()
+            + "\n" + model->data(sourceIndex, VodListModel::Description).toString()
+            + "\n" + model->data(sourceIndex, VodListModel::Language).toString()
+            + "\n" + model->data(sourceIndex, VodListModel::Type).toString()
+            + "\n" + model->data(sourceIndex, VodListModel::CreatedAt).toString()
+            + "\n" + model->data(sourceIndex, VodListModel::PublishedAt).toString()
+            + "\n" + model->data(sourceIndex, VodListModel::Url).toString()
             + "\n" + (mutedSegments.isEmpty() ? QString() : QStringLiteral("muted ") + mutedSegments)
             + "\n" + mutedSegmentRanges;
     const QStringList tokens = mFilterText.split(QRegularExpression(QStringLiteral("\\s+")), Qt::SkipEmptyParts);
@@ -103,8 +117,13 @@ bool VodFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sou
 
 bool VodFilterProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    const QString leftCreatedAt = sourceModel()->data(left, VodListModel::CreatedAt).toString();
-    const QString rightCreatedAt = sourceModel()->data(right, VodListModel::CreatedAt).toString();
+    const QAbstractItemModel *model = sourceModel();
+    if (!model || !left.isValid() || !right.isValid()) {
+        return false;
+    }
+
+    const QString leftCreatedAt = model->data(left, VodListModel::CreatedAt).toString();
+    const QString rightCreatedAt = model->data(right, VodListModel::CreatedAt).toString();
 
     if (leftCreatedAt != rightCreatedAt) {
         return leftCreatedAt < rightCreatedAt;
