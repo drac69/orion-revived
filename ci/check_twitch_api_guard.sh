@@ -390,10 +390,12 @@ if ! rg -qF 'Viewers.loadChatterList(chat.channel, chat.channelId || 0, ChannelM
 fi
 
 if ! rg -q 'loadChatterList\(const QString channel, const quint64 broadcasterId = 0, const quint64 moderatorId = 0\)' "$network_manager_header" \
+    || ! rg -q 'quint64 chatterListRequestId = 0;' "$network_manager_header" \
     || ! printf '%s\n' "$load_chatter_block" | rg -q 'broadcasterId != 0 && moderatorId != 0 && !access_token\.isEmpty\(\)' \
-    || ! printf '%s\n' "$load_chatter_block" | rg -q 'requestHelixChatterList\(normalizedChannel, broadcasterId, moderatorId\)' \
-    || ! printf '%s\n' "$load_chatter_block" | rg -q 'loadLegacyChatterList\(normalizedChannel\)'; then
-    printf 'Viewer-list loading must prefer Helix when logged-in IDs are available and keep legacy fallback.\n' >&2
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'const quint64 requestId = \+\+chatterListRequestId' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'requestHelixChatterList\(normalizedChannel, broadcasterId, moderatorId, requestId\)' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'loadLegacyChatterList\(normalizedChannel, requestId\)'; then
+    printf 'Viewer-list loading must prefer Helix when logged-in IDs are available, keep legacy fallback, and tag requests for stale-reply rejection.\n' >&2
     fail=1
 fi
 
@@ -401,23 +403,27 @@ if ! printf '%s\n' "$helix_chatter_block" | rg -q '/chat/chatters' \
     || ! printf '%s\n' "$helix_chatter_block" | rg -q 'query\.addQueryItem\("broadcaster_id", QString::number\(broadcasterId\)\)' \
     || ! printf '%s\n' "$helix_chatter_block" | rg -q 'query\.addQueryItem\("moderator_id", QString::number\(moderatorId\)\)' \
     || ! printf '%s\n' "$helix_chatter_block" | rg -q 'query\.addQueryItem\("first", "1000"\)' \
-    || ! printf '%s\n' "$helix_chatter_block" | rg -q 'addHelixHeaders\(request, HelixAuthMode::UserOnly\)'; then
-    printf 'Helix viewer-list requests must use Get Chatters with user auth and the maximum documented page size.\n' >&2
+    || ! printf '%s\n' "$helix_chatter_block" | rg -q 'addHelixHeaders\(request, HelixAuthMode::UserOnly\)' \
+    || ! printf '%s\n' "$helix_chatter_block" | rg -q 'setAttribute\(RequestContextAttribute4, requestId\)'; then
+    printf 'Helix viewer-list requests must use Get Chatters with user auth, maximum documented page size, and request IDs.\n' >&2
     fail=1
 fi
 
 if ! printf '%s\n' "$legacy_chatter_block" | rg -q 'TWITCH_TMI_USER_API' \
-    || ! printf '%s\n' "$legacy_chatter_block" | rg -q 'QUrl::toPercentEncoding\(channel\)'; then
-    printf 'Legacy viewer-list fallback must preserve the old TMI path with encoded channel names.\n' >&2
+    || ! printf '%s\n' "$legacy_chatter_block" | rg -q 'QUrl::toPercentEncoding\(channel\)' \
+    || ! printf '%s\n' "$legacy_chatter_block" | rg -q 'setAttribute\(RequestContextAttribute4, requestId\)'; then
+    printf 'Legacy viewer-list fallback must preserve the old TMI path with encoded channel names and request IDs.\n' >&2
     fail=1
 fi
 
 if ! rg -q 'parseHelixChatterListPage' "$json_parser_header" "$json_parser" \
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'requestId != chatterListRequestId' \
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'Ignoring stale viewer-list reply' \
     || ! printf '%s\n' "$chatter_reply_block" | rg -q 'JsonParser::parseHelixChatterListPage\(data\)' \
     || ! printf '%s\n' "$chatter_reply_block" | rg -q 'pendingHelixChatters\.append\(result\.items\)' \
-    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'requestHelixChatterList\(channel, broadcasterId, moderatorId, result\.cursor\)' \
-    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'loadLegacyChatterList\(channel\)'; then
-    printf 'Viewer-list replies must parse/paginate Helix Get Chatters and fall back when Helix is unavailable.\n' >&2
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'requestHelixChatterList\(channel, broadcasterId, moderatorId, requestId, result\.cursor\)' \
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'loadLegacyChatterList\(channel, requestId\)'; then
+    printf 'Viewer-list replies must reject stale replies, parse/paginate Helix Get Chatters, and fall back when Helix is unavailable.\n' >&2
     fail=1
 fi
 

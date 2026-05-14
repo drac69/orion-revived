@@ -241,10 +241,11 @@ private:
     QString pendingHelixChatterChannel;
     quint64 pendingHelixChatterBroadcasterId = 0;
     quint64 pendingHelixChatterModeratorId = 0;
+    quint64 chatterListRequestId = 0;
 
     void getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language = QString());
-    void requestHelixChatterList(const QString &channel, const quint64 broadcasterId, const quint64 moderatorId, const QString &cursor = QString());
-    void loadLegacyChatterList(const QString &channel);
+    void requestHelixChatterList(const QString &channel, const quint64 broadcasterId, const quint64 moderatorId, const quint64 requestId, const QString &cursor = QString());
+    void loadLegacyChatterList(const QString &channel, const quint64 requestId);
     void editUserBlockWithId(const quint64 myUserId, const QString & blockUsername, const quint64 blockUserId, const bool isBlock);
 };
 
