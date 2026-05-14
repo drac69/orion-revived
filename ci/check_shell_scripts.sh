@@ -6,5 +6,6 @@ cd "$repo_dir"
 
 shellcheck \
     ci/check_*.sh \
+    ci/legacy_ci_guard.sh \
     ci/install_ubuntu_ci_deps.sh \
     ci/run_qmake.sh

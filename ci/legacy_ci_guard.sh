@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
 if [[ "${ORION_ALLOW_LEGACY_CI:-}" == "1" ]]; then
-    return 0 2>/dev/null || exit 0
+    if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+        return 0
+    fi
+    exit 0
 fi
 
 cat >&2 <<'EOF'
@@ -13,4 +16,7 @@ automation. To run this legacy helper intentionally, set:
 
   ORION_ALLOW_LEGACY_CI=1
 EOF
-return 1 2>/dev/null || exit 1
+if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+    return 1
+fi
+exit 1
