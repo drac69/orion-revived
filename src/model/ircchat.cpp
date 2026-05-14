@@ -712,23 +712,42 @@ QList<QPair<QString, QString>> parseBadges(const QString badgesStr) {
 
 QMap<int, QPair<int, QString>> IrcChat::parseEmotesTag(const QString emotes) {
     QMap<int, QPair<int, QString>> emotePositionsMap;
-    if (emotes != "") {
-        auto emoteList = emotes.split('/');
+    if (!emotes.isEmpty()) {
+        const QStringList emoteList = emotes.split('/', Qt::SkipEmptyParts);
 
-        for (auto emote : emoteList) {
-            auto key = emote.left(emote.indexOf(':'));
-            auto positions = emote.remove(0, emote.indexOf(':') + 1);
+        for (const QString &emote : emoteList) {
+            const int separator = emote.indexOf(':');
+            if (separator <= 0 || separator == emote.length() - 1) {
+                continue;
+            }
+
+            const QString key = emote.left(separator);
+            const QString positions = emote.mid(separator + 1);
             //qDebug() << "key " << key;
 
-            _emoteProvider.makeAvailable(key);
+            bool hasValidPosition = false;
 
-            const QStringList & emotePlcs = positions.split(',');
+            const QStringList emotePlcs = positions.split(',', Qt::SkipEmptyParts);
             for (const auto & emotePlc : emotePlcs) {
-                auto firstAndLast = emotePlc.split('-');
-                int first = firstAndLast[0].toInt();
-                int last = firstAndLast.length() > 1 ? firstAndLast[1].toInt() : first;
+                const QStringList firstAndLast = emotePlc.split('-');
+                if (firstAndLast.isEmpty() || firstAndLast.length() > 2) {
+                    continue;
+                }
+
+                bool firstOk = false;
+                bool lastOk = true;
+                const int first = firstAndLast.at(0).toInt(&firstOk);
+                const int last = firstAndLast.length() > 1 ? firstAndLast.at(1).toInt(&lastOk) : first;
+                if (!firstOk || !lastOk || first < 0 || last < first) {
+                    continue;
+                }
 
                 emotePositionsMap.insert(first, qMakePair(last, key));
+                hasValidPosition = true;
+            }
+
+            if (hasValidPosition) {
+                _emoteProvider.makeAvailable(key);
             }
         }
     }

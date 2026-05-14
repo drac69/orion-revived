@@ -42,3 +42,8 @@ check_absent "legacy Twitch emote CDN URL" 'emoticons/v1' "src/model/ircchat.cpp
 check_present "string Helix emote parser return type" 'QMap<QString, QMap<QString, QString>> JsonParser::parseEmoteSets' "src/util/jsonparser.cpp"
 check_present "string IRC emote tag parser return type" 'QMap<int, QPair<int, QString>> IrcChat::parseEmotesTag' "src/model/ircchat.cpp"
 check_present "current Twitch emote CDN template" 'emoticons/v2/%1/static/dark/1\.0' "src/model/ircchat.cpp"
+check_present "IRC emote tag separator guard" 'separator <= 0' "src/model/ircchat.cpp"
+check_present "IRC emote tag conversion guard" 'toInt\(&firstOk\)' "src/model/ircchat.cpp"
+check_present "IRC emote tag range guard" 'last < first' "src/model/ircchat.cpp"
+check_present "IRC emote tag availability guard" 'hasValidPosition' "src/model/ircchat.cpp"
+check_absent "unguarded IRC emote range conversion" 'firstAndLast\[0\]\.toInt\(\)|firstAndLast\[1\]\.toInt\(\)' "src/model/ircchat.cpp"
