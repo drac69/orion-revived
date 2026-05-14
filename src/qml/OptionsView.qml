@@ -320,12 +320,17 @@ Page {
 
                         property var renderer: app.view.playerView.renderer
 
-                        visible: model.length > 1
+                        model: []
+                        visible: rendererReady() && model.length > 1
                         Component.onCompleted: {
                             initialize()
                         }
 
                         onActivated: {
+                            if (!rendererReady() || currentIndex < 0 || currentIndex >= model.length) {
+                                return
+                            }
+
                             if (Settings.decoder !== model[currentIndex]) {
                                 renderer.setDecoder(currentIndex)
                                 view.playerView.loadAndPlay()
@@ -333,9 +338,26 @@ Page {
                             }
                         }
 
+                        function rendererReady() {
+                            return renderer
+                                    && typeof renderer.getDecoder === "function"
+                                    && typeof renderer.setDecoder === "function"
+                        }
+
                         function initialize() {
+                            if (!rendererReady()) {
+                                model = []
+                                currentIndex = -1
+                                return
+                            }
+
                             var decoder = renderer.getDecoder()
-                            model = decoder
+                            model = decoder || []
+                            if (model.length <= 0) {
+                                currentIndex = -1
+                                return
+                            }
+
                             selectItem(Settings.decoder)
                             renderer.setDecoder(currentIndex)
                         }

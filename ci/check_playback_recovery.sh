@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 player_view="$repo_dir/src/qml/PlayerView.qml"
+options_view="$repo_dir/src/qml/OptionsView.qml"
 status_changed_block=$(sed -n '/onStatusChanged:/,/^        }/p' "$player_view")
 seek_preview="$repo_dir/src/qml/components/SeekPreview.qml"
 multimedia_backend="$repo_dir/src/qml/MultimediaBackend.qml"
@@ -56,6 +57,28 @@ done
 
 if rg -q 'running: renderer\.status|show\(renderer\.status|text: renderer\.status|if \(renderer\.status === "PAUSED" \|\| renderer\.status === "STOPPED"\)' "$player_view"; then
     printf 'PlayerView controls must use guarded rendererStatus() bindings outside renderer Connections.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'visible: rendererReady() && model.length > 1' \
+    'function rendererReady()' \
+    'typeof renderer.getDecoder === "function"' \
+    'typeof renderer.setDecoder === "function"' \
+    'if (!rendererReady() || currentIndex < 0 || currentIndex >= model.length)' \
+    'model = []' \
+    'currentIndex = -1' \
+    'model = decoder || []' \
+    'if (model.length <= 0)'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must guard backend decoder settings when the renderer item is unavailable: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if rg -q -F 'visible: model.length > 1' "$options_view"; then
+    printf 'OptionsView hardware-acceleration control must not depend on model length without checking renderer readiness.\n' >&2
     exit 1
 fi
 
