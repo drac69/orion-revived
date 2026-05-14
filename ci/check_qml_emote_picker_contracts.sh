@@ -39,6 +39,18 @@ do
 done
 
 for required in \
+    'Material.theme: rootWindow.Material.theme' \
+    'Material.background: rootWindow.Material.background' \
+    'Settings.lightTheme ? "#dddddd" : Qt.lighter(Material.background, 1.35)' \
+    'Material.foreground: rootWindow.Material.foreground'
+do
+    if ! rg -q -F "$required" "$emote_picker_qml"; then
+        printf 'EmotePicker must follow the selected application light/dark theme: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
     'if (index < 0 || index >= _emoteButton.setsVisible.count)' \
     'if (!item) {' \
     'addEmoteToChat(item.insertText || item.emoteName);'

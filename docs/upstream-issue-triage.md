@@ -60,7 +60,8 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #270: added a persisted chat blacklist for hiding messages containing
   configured terms; CI now guards setting persistence, options editing, and
   QML message filtering.
-* #263: the emote picker now follows the selected light/dark theme.
+* #263: the emote picker now follows the selected light/dark theme; CI now
+  guards the Material theme/background bindings and light/dark hover contrast.
 * #241: added a highlighted-user list for chat styling of specific chatters; CI
   now guards setting persistence, options editing, user normalization, and row
   highlighting.
