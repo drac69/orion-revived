@@ -21,6 +21,8 @@ get_streams_for_game_id_block=$(sed -n '/void NetworkManager::getStreamsForGameI
 get_channel_playback_block=$(sed -n '/void NetworkManager::getChannelPlaybackStream/,/^}/p' "$network_manager")
 get_broadcasts_block=$(sed -n '/void NetworkManager::getBroadcasts/,/^}/p' "$network_manager")
 get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybackStream/,/^}/p' "$network_manager")
+get_user_block=$(sed -n '/void NetworkManager::getUser/,/^}/p' "$network_manager")
+user_reply_block=$(sed -n '/void NetworkManager::userReply/,/^}/p' "$network_manager")
 get_user_favourites_block=$(sed -n '/void NetworkManager::getUserFavourites/,/^}/p' "$network_manager")
 get_blocked_user_list_block=$(sed -n '/void NetworkManager::getBlockedUserList/,/^}/p' "$network_manager")
 edit_user_block_block=$(sed -n '/void NetworkManager::editUserBlock(/,/^}/p' "$network_manager")
@@ -40,6 +42,7 @@ load_channel_bttv_block=$(sed -n '/bool BadgeContainer::loadChannelBttvEmotes/,/
 load_channel_ffz_block=$(sed -n '/bool BadgeContainer::loadChannelFfzEmotes/,/^}/p' "$badge_container")
 channel_manager_search_channels_block=$(sed -n '/void ChannelManager::searchChannels/,/^}/p' "$channel_manager")
 channel_manager_search_games_block=$(sed -n '/void ChannelManager::searchGames/,/^}/p' "$channel_manager")
+channel_manager_on_user_updated_block=$(sed -n '/void ChannelManager::onUserUpdated/,/^}/p' "$channel_manager")
 add_offline_channels_block=$(sed -n '/void addOfflineChannels/,/^}/p' "$network_manager")
 add_ulong_list_block=$(sed -n '/void addULongLongStringList/,/^}/p' "$network_manager")
 
@@ -328,6 +331,25 @@ if ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'const QString normal
     || ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'if \(!vodOk \|\| vodId == 0\)' \
     || ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'emit m3u8OperationBFinished\(QVariantMap\(\)\)'; then
     printf 'VOD playback-token requests must reject malformed or zero VOD ids before calling Twitch.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_user_block" | rg -q 'requireHelixAccessToken\("User profile loading", HelixAuthMode::UserOnly\)' \
+    || ! printf '%s\n' "$get_user_block" | rg -q 'emit userOperationFinished\(QString\(\), 0\)'; then
+    printf 'User profile loading must require user auth and emit an empty result on missing auth.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$user_reply_block" | rg -q 'emit userOperationFinished\(QString\(\), 0\)' \
+    || ! printf '%s\n' "$user_reply_block" | rg -q 'JsonParser::parseUser'; then
+    printf 'User profile replies must emit an empty result on network/API failure.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$channel_manager_on_user_updated_block" | rg -q 'if \(name\.isEmpty\(\) \|\| userId == 0\)' \
+    || ! printf '%s\n' "$channel_manager_on_user_updated_block" | rg -q 'emit userNameUpdated\(user_name\)' \
+    || ! printf '%s\n' "$channel_manager_on_user_updated_block" | rg -q 'return;'; then
+    printf 'ChannelManager must not start logged-in flows for empty user profile results.\n' >&2
     fail=1
 fi
 

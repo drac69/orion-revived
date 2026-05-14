@@ -534,6 +534,13 @@ void ChannelManager::notifyMultipleChannelsOnline(const QList<Channel*> &channel
 //Login function
 void ChannelManager::onUserUpdated(const QString &name, const quint64 userId)
 {
+    if (name.isEmpty() || userId == 0) {
+        user_name = "";
+        user_id = 0;
+        emit userNameUpdated(user_name);
+        return;
+    }
+
     user_name = name;
     user_id = userId;
     emit userNameUpdated(user_name);

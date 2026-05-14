@@ -707,6 +707,11 @@ void NetworkManager::getBroadcastPlaybackStream(const QString &vod)
 
 void NetworkManager::getUser()
 {
+    if (!requireHelixAccessToken("User profile loading", HelixAuthMode::UserOnly)) {
+        emit userOperationFinished(QString(), 0);
+        return;
+    }
+
     QString url = QString(HELIX_API) + "/users";
 
     QNetworkRequest request;
@@ -1998,6 +2003,7 @@ void NetworkManager::userReply()
     }
 
     if (!handleNetworkError(reply)) {
+        emit userOperationFinished(QString(), 0);
         reply->deleteLater();
         return;
     }
