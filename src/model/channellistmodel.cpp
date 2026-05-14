@@ -334,7 +334,12 @@ bool ChannelListModel::updateStream(Channel *item)
 {
     bool onlineStateChanged = false;
 
-    if (item && item->getId()){
+    if (!item) {
+        qDebug() << "ChannelListModel::updateStream got a null item";
+        return false;
+    }
+
+    if (item->getId()){
 
         if (Channel *channel = find(item->getId())){
 

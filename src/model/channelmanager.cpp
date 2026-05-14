@@ -315,18 +315,28 @@ void ChannelManager::checkStreams(const QList<Channel *> &list)
 
         const int batchSize = 100;
         QList<Channel*> sublist = list.mid(pos, batchSize);
+        pos += sublist.length();
+
+        QList<Channel*> validChannels;
+        validChannels.reserve(sublist.length());
+        for (Channel *channel : sublist) {
+            if (channel && channel->getId()) {
+                validChannels.append(channel);
+            }
+        }
+
+        if (validChannels.isEmpty()) {
+            continue;
+        }
 
         QUrl helixUrl(QString(HELIX_API) + "/streams");
         QUrlQuery query;
-        query.addQueryItem("first", QString::number(sublist.length()));
-        for (Channel *channel : sublist) {
+        query.addQueryItem("first", QString::number(validChannels.length()));
+        for (Channel *channel : validChannels) {
             query.addQueryItem("user_id", QString::number(channel->getId()));
         }
         helixUrl.setQuery(query);
         netman->getStreams(helixUrl.toString(QUrl::FullyEncoded));
-
-        //Shift pos by requested batch length
-        pos += sublist.length();
     }
 }
 
@@ -375,8 +385,16 @@ void ChannelManager::searchChannels(QString q, const quint32 &offset, const quin
 void ChannelManager::addSearchResults(const QList<Channel*> &list, const int total)
 {
     bool needsStreamCheck = false;
+    QList<Channel*> validChannels;
+    validChannels.reserve(list.size());
 
     for (Channel *channel : list) {
+        if (!channel) {
+            continue;
+        }
+
+        validChannels.append(channel);
+
         if (favouritesModel->find(channel->getId()))
             channel->setFavourite(true);
 
@@ -384,10 +402,10 @@ void ChannelManager::addSearchResults(const QList<Channel*> &list, const int tot
             needsStreamCheck = true;
     }
 
-    int numAdded = resultsModel->addAll(list);
+    int numAdded = resultsModel->addAll(validChannels);
 
     if (needsStreamCheck)
-        checkStreams(list);
+        checkStreams(validChannels);
 
     qDeleteAll(list);
 
@@ -507,16 +525,24 @@ void ChannelManager::addFollowedResults(const QList<Channel *> &list, const quin
     //    qDebug() << "Merging channel data for " << list.size()
     //             << " items with " << offset << " offset.";
 
+    QList<Channel*> validChannels;
+    validChannels.reserve(list.size());
+
     for (Channel *c : list) {
+        if (!c) {
+            continue;
+        }
+
+        validChannels.append(c);
         c->setFavourite(true);
     }
 
-    favouritesModel->mergeAll(list);
+    favouritesModel->mergeAll(validChannels);
 
     if (offset < total)
         getFollowedChannels(FOLLOWED_FETCH_LIMIT, offset);
 
-    checkStreams(list);
+    checkStreams(validChannels);
 
     qDeleteAll(list);
 

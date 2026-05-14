@@ -9,6 +9,10 @@ game_add_all_block=$(sed -n '/void GameListModel::addAll/,/^}/p' "$repo_dir/src/
 game_add_game_block=$(sed -n '/void GameListModel::addGame/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
 vod_find_block=$(sed -n '/Vod \*VodListModel::find/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 channel_add_block=$(sed -n '/void ChannelListModel::addChannel/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
+channel_update_stream_block=$(sed -n '/bool ChannelListModel::updateStream/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
+channel_manager_check_streams_block=$(sed -n '/void ChannelManager::checkStreams/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_add_search_results_block=$(sed -n '/void ChannelManager::addSearchResults/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_add_followed_results_block=$(sed -n '/void ChannelManager::addFollowedResults/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 vod_add_all_block=$(sed -n '/void VodListModel::addAll/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 vod_merge_page_block=$(sed -n '/void VodListModel::mergePage/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 
@@ -124,6 +128,32 @@ fi
 
 if ! printf '%s\n' "$channel_add_block" | rg -q 'delete channel;'; then
     printf 'ChannelListModel::addChannel must delete duplicate input channels after updating existing rows.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_update_stream_block" | rg -q 'if \(!item\)'; then
+    printf 'ChannelListModel::updateStream must ignore null stream update items.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_manager_check_streams_block" | rg -q 'validChannels\.append\(channel\)' \
+    || ! printf '%s\n' "$channel_manager_check_streams_block" | rg -q 'validChannels\.isEmpty\(\)' \
+    || ! printf '%s\n' "$channel_manager_check_streams_block" | rg -q 'channel && channel->getId\(\)'; then
+    printf 'ChannelManager::checkStreams must filter null or id-less channels before building Helix requests.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'validChannels\.append\(channel\)' \
+    || ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'resultsModel->addAll\(validChannels\)' \
+    || ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'checkStreams\(validChannels\)'; then
+    printf 'ChannelManager::addSearchResults must filter null channel results before model updates and stream checks.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q 'validChannels\.append\(c\)' \
+    || ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q 'favouritesModel->mergeAll\(validChannels\)' \
+    || ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q 'checkStreams\(validChannels\)'; then
+    printf 'ChannelManager::addFollowedResults must filter null followed-channel results before model updates and stream checks.\n' >&2
     exit 1
 fi
 
