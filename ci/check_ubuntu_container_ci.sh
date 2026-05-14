@@ -54,6 +54,7 @@ static_scripts=(
     ci/check_qml_fonts.sh
     ci/check_qml_image_fallbacks.sh
     ci/check_notification_fallbacks.sh
+    ci/check_logging_contracts.sh
     ci/check_modern_qt_helpers.sh
     ci/check_qml_window_contracts.sh
     ci/check_qml_emote_picker_contracts.sh

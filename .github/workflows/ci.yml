@@ -103,6 +103,9 @@ jobs:
       - name: Validate notification fallbacks
         run: ci/check_notification_fallbacks.sh
 
+      - name: Validate logging contracts
+        run: ci/check_logging_contracts.sh
+
       - name: Validate modern Qt helper code
         run: ci/check_modern_qt_helpers.sh
 
