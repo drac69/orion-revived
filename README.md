@@ -11,7 +11,7 @@ QML/C++-written desktop client for Twitch.tv
 
 This fork starts from the final upstream `master` state and focuses on keeping the desktop build usable on current Linux/Qt5 systems. It includes the unmerged upstream crash fix from PR #303, safer mpv hardware decoding defaults, dynamic search pagination for large windows, VOD resume persistence fixes, modern high-DPI setup, and GitHub Actions CI.
 
-Some old upstream issues are broad feature requests or depend on Twitch API behavior that has changed since the original project was archived. See `docs/upstream-issue-triage.md` for the current issue audit. The current Twitch API surface and fallback policy are documented in `docs/twitch-api-surface.md`, with validation tracked in [issue #1](https://github.com/belagrf/orion-revived/issues/1).
+Some old upstream issues are broad feature requests or depend on Twitch API behavior that has changed since the original project was archived. See `docs/upstream-issue-triage.md` for the current issue audit. The current Twitch API surface and fallback policy are documented in `docs/twitch-api-surface.md`, with validation evidence recorded in [issue #1](https://github.com/belagrf/orion-revived/issues/1).
 
 ## Downloads
 
