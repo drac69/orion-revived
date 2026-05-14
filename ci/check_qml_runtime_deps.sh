@@ -5,6 +5,10 @@ repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 readme="$repo_dir/README.md"
 workflow="$repo_dir/.github/workflows/ci.yml"
 main_cpp="$repo_dir/src/main.cpp"
+chat_qml="$repo_dir/src/qml/irc/Chat.qml"
+chat_view_qml="$repo_dir/src/qml/irc/ChatView.qml"
+irc_chat_header="$repo_dir/src/model/ircchat.h"
+irc_chat_source="$repo_dir/src/model/ircchat.cpp"
 ci_dependency_sources=(
     "$workflow"
     "$repo_dir/ci/install_ubuntu_ci_deps.sh"
@@ -97,6 +101,51 @@ if [[ -z "$warnings_line" || -z "$load_line" || -z "$fatal_line" \
     printf 'QML warning logging must be connected before engine.load(), and the fatal missing-window message must follow the load.\n' >&2
     exit 1
 fi
+
+for required in \
+    'Q_INVOKABLE void initProviders();' \
+    'Q_INVOKABLE void hookupChannelProviders();' \
+    'Q_PROPERTY(QString emoteDirPath MEMBER emoteDirPathImpl)'
+do
+    if ! rg -q -F "$required" "$irc_chat_header"; then
+        printf 'IrcChat must expose provider initialization and emote path state to QML: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'void IrcChat::initProviders()' \
+    'RegisterEngineProviders(*engine);' \
+    'void IrcChat::hookupChannelProviders()' \
+    'BadgeContainer::getInstance()->getBadgeImageProvider()' \
+    'BadgeContainer::getInstance()->getBitsImageProvider()' \
+    'connect(BadgeContainer::getInstance(), &BadgeContainer::channelBttvEmotesLoaded, this, &IrcChat::handleChannelBttvEmotesLoaded);' \
+    'connect(BadgeContainer::getInstance(), &BadgeContainer::channelFfzEmotesLoaded, this, &IrcChat::handleChannelFfzEmotesLoaded);'
+do
+    if ! rg -q -F "$required" "$irc_chat_source"; then
+        printf 'IrcChat must initialize chat/emote providers through the guarded QML startup path: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+hookup_line=$(rg -n 'chat\.hookupChannelProviders\(\)' "$chat_qml" | head -n1 | cut -d: -f1 || true)
+init_line=$(rg -n 'chat\.initProviders\(\)' "$chat_qml" | head -n1 | cut -d: -f1 || true)
+if [[ -z "$hookup_line" || -z "$init_line" || "$hookup_line" -ge "$init_line" ]]; then
+    printf 'Chat.qml must hook channel providers before registering QML image providers.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'signal setEmotePath(string value)' \
+    'root.setEmotePath(emoteDirPath)' \
+    'onSetEmotePath:' \
+    'emoteDirPath = value'
+do
+    if ! rg -q -F "$required" "$chat_qml" "$chat_view_qml"; then
+        printf 'Chat QML must propagate the initialized emote path to message delegates: %s\n' "$required" >&2
+        exit 1
+    fi
+done
 
 require_package_for_import '^import Qt\.labs\.settings\b' 'qml-module-qt-labs-settings'
 require_package_for_import '^import QtGraphicalEffects\b' 'qml-module-qtgraphicaleffects'
