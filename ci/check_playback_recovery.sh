@@ -632,6 +632,68 @@ if ! rg -q 'syncSettings\("remember channel quality"\)' "$settings_manager"; the
 fi
 
 for required in \
+    'Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY qualityChanged)' \
+    'QString mQuality = "source";' \
+    'QString quality() const;' \
+    'void setQuality(const QString &quality);' \
+    'void qualityChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose the default stream-quality preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setQuality(settings.value("quality", mQuality).toString())' \
+    'settings.setValue("quality", quality)' \
+    'syncSettings("stream quality")' \
+    'emit qualityChanged()'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist and sync the default stream-quality preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: "Default stream quality"' \
+    'model: ["source", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "audio_only"]' \
+    'Component.onCompleted: selectItem(Settings.quality)' \
+    'onActivated: Settings.quality = model[currentIndex]' \
+    'currentIndex = 0'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must expose the default stream-quality selector and fallback selection: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'function streamQualityHeight(name)' \
+    'return Number.MAX_VALUE' \
+    'if (name === "audio_only") {' \
+    'return 0' \
+    'function selectStreamQuality(preferred)' \
+    'if (streamMap.hasOwnProperty(preferred))' \
+    'var bestLowerQuality = ""' \
+    'var lowestQuality = ""' \
+    'var firstQuality = ""' \
+    'height <= preferredHeight && height > bestLowerHeight' \
+    'return bestLowerQuality' \
+    'if (preferred !== "source" && lowestQuality)' \
+    'return lowestQuality' \
+    'if (streamMap.hasOwnProperty("source"))' \
+    'return "source"' \
+    'return firstQuality'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must fall back from unavailable preferred quality to lower/source/first playable quality: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
     'static QString streamNameFromResolution' \
     'static QString playlistUrl(const QString &line, const QUrl &baseUrl)' \
     'attributeValue(str, QStringLiteral("RESOLUTION"))' \

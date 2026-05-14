@@ -49,7 +49,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #242: QML startup warnings are now printed before the fatal startup error,
   which exposes missing QML modules directly; CI now guards the warning hook,
   load order, and fatal diagnostic text.
-* #274: added a default stream-quality setting with lower-quality fallback when the exact variant is unavailable.
+* #274: added a default stream-quality setting with lower-quality fallback when
+  the exact variant is unavailable; CI now guards the persisted default,
+  options selector, and lower/source/first-playable fallback logic.
 * #282: added `--channel` and positional `twitch.tv` URL startup handling for opening a specific channel from a launcher.
 * #273: chat lines mentioning the logged-in username are highlighted.
 * #270: added a persisted chat blacklist for hiding messages containing configured terms.
