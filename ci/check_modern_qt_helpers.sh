@@ -4,6 +4,8 @@ set -euo pipefail
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 json_parser="$repo_dir/src/util/jsonparser.cpp"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
+game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
+vod_find_block=$(sed -n '/Vod \*VodListModel::find/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 
 if rg -n '\bforeach\s*\(' "$repo_dir/src"; then
     printf 'src must use range-based loops instead of Qt foreach.\n' >&2
@@ -86,6 +88,16 @@ fi
 
 if ! rg -q 'int total = 0;' "$repo_dir/src/util/jsonparser.h"; then
     printf 'Paged JSON parse results must default total to zero for failed or partial responses.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$game_find_block" | rg -q 'return nullptr;'; then
+    printf 'GameListModel::find must return nullptr for missing games.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$vod_find_block" | rg -q 'return nullptr;'; then
+    printf 'VodListModel::find must return nullptr for missing VODs.\n' >&2
     exit 1
 fi
 

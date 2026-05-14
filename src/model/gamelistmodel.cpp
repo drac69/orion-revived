@@ -129,7 +129,7 @@ Game *GameListModel::find(const uint id)
             return game;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 void GameListModel::clear()

@@ -217,7 +217,7 @@ Vod *VodListModel::find(const QString id)
             return vod;
         }
     }
-    return 0;
+    return nullptr;
 }
 
 void VodListModel::clear()
