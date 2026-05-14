@@ -9,6 +9,7 @@ mpris_manager="$repo_dir/src/model/mprismanager.cpp"
 mpris_manager_header="$repo_dir/src/model/mprismanager.h"
 player_view="$repo_dir/src/qml/PlayerView.qml"
 search_view="$repo_dir/src/qml/SearchView.qml"
+main_cpp="$repo_dir/src/main.cpp"
 file_utils="$repo_dir/src/util/fileutils.cpp"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
 game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
@@ -46,6 +47,26 @@ fi
 
 if rg -n '\b(Q_OS_MAC|Q_OS_OSX|Q_WS_MAC)\b' "$repo_dir/src"; then
     printf 'src must use Q_OS_MACOS for macOS-specific code instead of deprecated Qt platform macros.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'void configureHighDpiScaling()' \
+    '#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)' \
+    'qEnvironmentVariableIsSet("QT_ENABLE_HIGHDPI_SCALING")' \
+    'qEnvironmentVariableIntValue("QT_ENABLE_HIGHDPI_SCALING") != 0' \
+    'QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);' \
+    'QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);' \
+    'configureHighDpiScaling();'
+do
+    if ! rg -q -F "$required" "$main_cpp"; then
+        printf 'main.cpp must configure high-DPI startup through Qt attributes: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if rg -n 'QT_AUTO_SCREEN_SCALE_FACTOR|AA_DisableHighDpiScaling' "$repo_dir/src" "$repo_dir/orion.pro"; then
+    printf 'Desktop high-DPI startup must not reintroduce deprecated auto-screen-scale-factor paths.\n' >&2
     exit 1
 fi
 

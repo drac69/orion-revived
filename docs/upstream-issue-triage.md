@@ -26,7 +26,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
   before syncing settings, so periodic progress updates are persisted without
   rewriting settings on every tick; CI now guards the player threshold and
   VodManager save conditions.
-* #286: high-DPI startup no longer depends on the deprecated `QT_AUTO_SCREEN_SCALE_FACTOR` path.
+* #286: high-DPI startup no longer depends on the deprecated
+  `QT_AUTO_SCREEN_SCALE_FACTOR` path; CI now guards the Qt attribute setup and
+  blocks reintroducing the old environment variable.
 * #265: fullscreen playback no longer toggles the main navigation header on top-edge hover, avoiding the repeated resize loop.
 * #264: added a setting to enable or disable screensaver inhibition during playback.
 * #260: Linux screensaver reset calls now only run while screensaver inhibition is active.
