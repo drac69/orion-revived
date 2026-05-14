@@ -12,7 +12,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #18: added an mpv playback-stats overlay with codec, resolution, FPS,
   bitrate, dropped frame, sync, cache, and hardware-decoder data; CI now guards
   the desktop overlay wiring and mpv stats fields.
-* #26: added Linux MPRIS media-control support for play, pause, stop, seek, volume, metadata, and `Seeked` notifications over D-Bus.
+* #26: added Linux MPRIS media-control support for play, pause, stop, seek,
+  volume, metadata, and `Seeked` notifications over D-Bus; CI now guards the
+  D-Bus adaptor contract and QML media-control wiring.
 * #295: added an optional mpv audio-compressor filter for reducing stream
   volume swings; CI now guards the persisted setting, mpv-only option, and mpv
   audio-filter application.

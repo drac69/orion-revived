@@ -133,6 +133,80 @@ if ! rg -q 'Q_INVOKABLE void notifySeeked\(qint64 position\);' "$mpris_manager_h
     exit 1
 fi
 
+for required in \
+    'Q_PROPERTY(QString playbackStatus READ playbackStatus WRITE setPlaybackStatus NOTIFY playbackStatusChanged)' \
+    'Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)' \
+    'Q_PROPERTY(qint64 position READ position WRITE setPosition NOTIFY positionChanged)' \
+    'Q_PROPERTY(QVariantMap metadata READ metadata NOTIFY metadataChanged)' \
+    'Q_INVOKABLE void setMetadata(const QString &title, const QString &artist, qint64 length, const QString &artUrl)' \
+    'void playRequested()' \
+    'void pauseRequested()' \
+    'void playPauseRequested()' \
+    'void stopRequested()' \
+    'void seekRequested(qint64 offset)' \
+    'void setPositionRequested(qint64 position)' \
+    'void volumeRequested(double volume)' \
+    'void raiseRequested()'
+do
+    if ! rg -q -F "$required" "$mpris_manager_header"; then
+        printf 'MprisManager must expose the media-control property and request contract: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'Q_CLASSINFO("D-Bus Interface", "org.mpris.MediaPlayer2")' \
+    'Q_CLASSINFO("D-Bus Interface", "org.mpris.MediaPlayer2.Player")' \
+    'QStringLiteral("org.mpris.MediaPlayer2.orion")' \
+    'QStringLiteral("/org/mpris/MediaPlayer2")' \
+    'QDBusConnection::ExportAdaptors' \
+    'void Raise() { emit mManager->raiseRequested(); }' \
+    'void Pause() { emit mManager->pauseRequested(); }' \
+    'void PlayPause() { emit mManager->playPauseRequested(); }' \
+    'void Stop() { emit mManager->stopRequested(); }' \
+    'void Play() { emit mManager->playRequested(); }' \
+    'void Seek(qlonglong offset) { emit mManager->seekRequested(offset); }' \
+    'emit mManager->setPositionRequested(position);' \
+    'void setVolume(double volume) { mManager->requestVolume(volume); }' \
+    'notifyPlayerPropertiesChanged({{QStringLiteral("PlaybackStatus"), mPlaybackStatus}});' \
+    'notifyPlayerPropertiesChanged({{QStringLiteral("Volume"), mVolume}});' \
+    'notifyPlayerPropertiesChanged({{QStringLiteral("Metadata"), mMetadata}});' \
+    'message << QStringLiteral("org.mpris.MediaPlayer2.Player") << changedProperties << QStringList();'
+do
+    if ! rg -q -F "$required" "$mpris_manager"; then
+        printf 'MprisManager must keep the Linux MPRIS D-Bus adaptor behavior: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'function updateMprisMetadata()' \
+    'if (!MprisManager.available()) return;' \
+    'MprisManager.setMetadata(titleText, artistText, length, artUrl)' \
+    'function updateMprisPlaybackStatus()' \
+    'MprisManager.setPlaybackStatus("Playing")' \
+    'MprisManager.setPlaybackStatus("Paused")' \
+    'MprisManager.setPlaybackStatus("Stopped")' \
+    'MprisManager.setPosition(Math.round(newPos * 1000000))' \
+    'onStatusChanged: {' \
+    'root.updateMprisPlaybackStatus()' \
+    'target: MprisManager' \
+    'onPlayRequested: if (renderer) resumePlayback()' \
+    'onPauseRequested: if (renderer) renderer.pause()' \
+    'onPlayPauseRequested: if (renderer) togglePlayback()' \
+    'onStopRequested: if (renderer) stopRendererWithoutQueueAdvance()' \
+    'root.seekTo(Math.max(0, renderer.position + offset / 1000000))' \
+    'root.seekTo(Math.max(0, position / 1000000))' \
+    'volumeSlider.value = Math.max(0, Math.min(100, volume * 100))' \
+    'rootWindow.raise()' \
+    'rootWindow.requestActivate()'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must keep MPRIS metadata, status, position, and remote-control wiring: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
 reply_sender_casts=$(rg -c 'qobject_cast<QNetworkReply \*>\(sender\(\)\)' "$network_manager" || true)
 if [ "$reply_sender_casts" -ne 1 ]; then
     unexpected_reply_senders=$(rg -n 'qobject_cast<QNetworkReply \*>\(sender\(\)\)' "$network_manager" || true)
