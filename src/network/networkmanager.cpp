@@ -858,18 +858,75 @@ void NetworkManager::getEmoteSets(const QStringList &emoteSetIDs) {
     }
 }
 
-void NetworkManager::loadChatterList(const QString channel) {
-    qDebug() << "Loading viewer list for" << channel;
-    const QString url = QString(TWITCH_TMI_USER_API) + channel + QString("/chatters");
+void NetworkManager::requestHelixChatterList(const QString &channel, const quint64 broadcasterId, const quint64 moderatorId, const QString &cursor)
+{
+    QUrl url(QString(HELIX_API) + "/chat/chatters");
+    QUrlQuery query;
+    query.addQueryItem("broadcaster_id", QString::number(broadcasterId));
+    query.addQueryItem("moderator_id", QString::number(moderatorId));
+    query.addQueryItem("first", "1000");
+    if (!cursor.isEmpty()) {
+        query.addQueryItem("after", cursor);
+    }
+    url.setQuery(query);
 
     qDebug() << "Request" << url;
 
     QNetworkRequest request;
+    addHelixHeaders(request, HelixAuthMode::UserOnly);
     request.setUrl(url);
+    request.setAttribute(QNetworkRequest::User, true);
+    request.setAttribute(RequestContextAttribute1, channel);
+    request.setAttribute(RequestContextAttribute2, broadcasterId);
+    request.setAttribute(RequestContextAttribute3, moderatorId);
 
     QNetworkReply *reply = operation->get(request);
 
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::chatterListReply);
+}
+
+void NetworkManager::loadLegacyChatterList(const QString &channel)
+{
+    qDebug() << "Loading legacy TMI viewer list for" << channel;
+    const QString url = QString(TWITCH_TMI_USER_API)
+            + QString::fromLatin1(QUrl::toPercentEncoding(channel))
+            + QString("/chatters");
+
+    qDebug() << "Request" << url;
+
+    QNetworkRequest request;
+    request.setUrl(QUrl(url));
+    request.setAttribute(QNetworkRequest::User, false);
+    request.setAttribute(RequestContextAttribute1, channel);
+
+    QNetworkReply *reply = operation->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, &NetworkManager::chatterListReply);
+}
+
+void NetworkManager::loadChatterList(const QString channel, const quint64 broadcasterId, const quint64 moderatorId) {
+    QString normalizedChannel = channel.trimmed();
+    if (normalizedChannel.startsWith("#")) {
+        normalizedChannel.remove(0, 1);
+    }
+
+    if (normalizedChannel.isEmpty()) {
+        QMap<QString, QList<QString>> empty;
+        emit chatterListLoadOperationFinished(empty);
+        return;
+    }
+
+    qDebug() << "Loading viewer list for" << normalizedChannel;
+    if (broadcasterId != 0 && moderatorId != 0 && !access_token.isEmpty()) {
+        pendingHelixChatters.clear();
+        pendingHelixChatterChannel = normalizedChannel;
+        pendingHelixChatterBroadcasterId = broadcasterId;
+        pendingHelixChatterModeratorId = moderatorId;
+        requestHelixChatterList(normalizedChannel, broadcasterId, moderatorId);
+        return;
+    }
+
+    loadLegacyChatterList(normalizedChannel);
 }
 
 void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offset, const quint32 limit) {
@@ -1038,7 +1095,32 @@ void NetworkManager::chatterListReply() {
         return;
     }
 
+    const bool isHelixRequest = reply->request().attribute(QNetworkRequest::User).toBool();
+    const QString channel = reply->request().attribute(RequestContextAttribute1).toString();
+    const quint64 broadcasterId = reply->request().attribute(RequestContextAttribute2).toULongLong();
+    const quint64 moderatorId = reply->request().attribute(RequestContextAttribute3).toULongLong();
+
+    if (isHelixRequest
+            && (channel != pendingHelixChatterChannel
+                || broadcasterId != pendingHelixChatterBroadcasterId
+                || moderatorId != pendingHelixChatterModeratorId)) {
+        qDebug() << "Ignoring stale Helix viewer-list reply for" << channel;
+        reply->deleteLater();
+        return;
+    }
+
     if (!handleNetworkError(reply)) {
+        if (isHelixRequest && !channel.isEmpty()) {
+            qWarning() << "Helix viewer list failed; falling back to legacy TMI viewer list";
+            pendingHelixChatters.clear();
+            pendingHelixChatterChannel.clear();
+            pendingHelixChatterBroadcasterId = 0;
+            pendingHelixChatterModeratorId = 0;
+            reply->deleteLater();
+            loadLegacyChatterList(channel);
+            return;
+        }
+
         QMap<QString, QList<QString>> empty;
         emit chatterListLoadOperationFinished(empty);
         reply->deleteLater();
@@ -1049,8 +1131,30 @@ void NetworkManager::chatterListReply() {
 
     //qDebug() << data;
 
-    QMap<QString, QList<QString>> ret = JsonParser::parseChatterList(data);
+    if (isHelixRequest) {
+        const PagedResult<QString> result = JsonParser::parseHelixChatterListPage(data);
+        pendingHelixChatters.append(result.items);
 
+        if (!result.cursor.isEmpty()) {
+            requestHelixChatterList(channel, broadcasterId, moderatorId, result.cursor);
+            reply->deleteLater();
+            return;
+        }
+
+        QMap<QString, QList<QString>> ret;
+        if (!pendingHelixChatters.isEmpty()) {
+            ret.insert("viewers", pendingHelixChatters);
+        }
+        pendingHelixChatters.clear();
+        pendingHelixChatterChannel.clear();
+        pendingHelixChatterBroadcasterId = 0;
+        pendingHelixChatterModeratorId = 0;
+        emit chatterListLoadOperationFinished(ret);
+        reply->deleteLater();
+        return;
+    }
+
+    QMap<QString, QList<QString>> ret = JsonParser::parseChatterList(data);
     emit chatterListLoadOperationFinished(ret);
 
     reply->deleteLater();

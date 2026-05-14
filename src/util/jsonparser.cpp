@@ -995,6 +995,35 @@ int JsonParser::parseTotal(const QByteArray &data)
     return total;
 }
 
+PagedResult<QString> JsonParser::parseHelixChatterListPage(const QByteArray &data)
+{
+    PagedResult<QString> out;
+
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
+
+    if (error.error == QJsonParseError::NoError) {
+        const QJsonObject json = doc.object();
+        const QJsonArray helixChatters = json["data"].toArray();
+        for (const auto &chatterValue : helixChatters) {
+            const QJsonObject chatter = chatterValue.toObject();
+            const QString login = chatter["user_login"].toString();
+            const QString displayName = chatter["user_name"].toString();
+            if (!login.isEmpty()) {
+                out.items.append(login);
+            } else if (!displayName.isEmpty()) {
+                out.items.append(displayName);
+            }
+        }
+
+        const QJsonObject pagination = json["pagination"].toObject();
+        out.cursor = pagination["cursor"].toString();
+        out.total = json["total"].toInt(out.items.size());
+    }
+
+    return out;
+}
+
 QMap<QString, QList<QString>> JsonParser::parseChatterList(const QByteArray &data)
 {
     QMap<QString, QList<QString>> out;
@@ -1004,6 +1033,14 @@ QMap<QString, QList<QString>> JsonParser::parseChatterList(const QByteArray &dat
 
     if (error.error == QJsonParseError::NoError) {
         QJsonObject json = doc.object();
+
+        if (json.contains("data")) {
+            const PagedResult<QString> helixChatters = parseHelixChatterListPage(data);
+            if (!helixChatters.items.isEmpty()) {
+                out.insert("viewers", helixChatters.items);
+            }
+            return out;
+        }
 
         QJsonObject chatters = json["chatters"].toObject();
         

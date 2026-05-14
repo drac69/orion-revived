@@ -3,18 +3,22 @@ set -euo pipefail
 
 fail=0
 json_parser="src/util/jsonparser.cpp"
+json_parser_header="src/util/jsonparser.h"
 badge_container="src/model/badgecontainer.cpp"
 badge_container_header="src/model/badgecontainer.h"
 badge_image_provider="src/model/badgeimageprovider.cpp"
 channel_manager="src/model/channelmanager.cpp"
+channel_manager_header="src/model/channelmanager.h"
 channel_model="src/model/channel.h"
 channel_list_model="src/model/channellistmodel.h"
 chat_view="src/qml/irc/ChatView.qml"
 chat_qml="src/qml/irc/Chat.qml"
+viewer_list="src/qml/irc/ViewerList.qml"
 game_model="src/model/game.h"
 game_list_model="src/model/gamelistmodel.h"
 irc_chat="src/model/ircchat.h"
 network_manager="src/network/networkmanager.cpp"
+network_manager_header="src/network/networkmanager.h"
 vod_manager="src/model/vodmanager.cpp"
 get_stream_block=$(sed -n '/void NetworkManager::getStream/,/^}/p' "$network_manager")
 search_channels_block=$(sed -n '/void NetworkManager::searchChannels/,/^}/p' "$network_manager")
@@ -27,6 +31,10 @@ get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybac
 get_user_block=$(sed -n '/void NetworkManager::getUser/,/^}/p' "$network_manager")
 user_reply_block=$(sed -n '/void NetworkManager::userReply/,/^}/p' "$network_manager")
 get_user_favourites_block=$(sed -n '/void NetworkManager::getUserFavourites/,/^}/p' "$network_manager")
+load_chatter_block=$(sed -n '/void NetworkManager::loadChatterList/,/^}/p' "$network_manager")
+helix_chatter_block=$(sed -n '/void NetworkManager::requestHelixChatterList/,/^}/p' "$network_manager")
+legacy_chatter_block=$(sed -n '/void NetworkManager::loadLegacyChatterList/,/^}/p' "$network_manager")
+chatter_reply_block=$(sed -n '/void NetworkManager::chatterListReply/,/^}/p' "$network_manager")
 get_blocked_user_list_block=$(sed -n '/void NetworkManager::getBlockedUserList/,/^}/p' "$network_manager")
 edit_user_block_block=$(sed -n '/void NetworkManager::editUserBlock(/,/^}/p' "$network_manager")
 get_channel_badges_block=$(sed -n '/void NetworkManager::getChannelBadgeUrlsBeta/,/^}/p' "$network_manager")
@@ -363,6 +371,53 @@ if ! printf '%s\n' "$get_user_favourites_block" | rg -q 'if \(userId == 0\)' \
     || ! printf '%s\n' "$get_user_favourites_block" | rg -q 'requireHelixAccessToken\("Followed channel loading", HelixAuthMode::UserOnly\)' \
     || ! printf '%s\n' "$get_user_favourites_block" | rg -q '!userFavouritesPageCursors\.contains\(offset\)'; then
     printf 'Followed-channel requests must reject zero users, require user auth, and guard invalid cursors.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'moderator%3Aread%3Achatters' src/qml/OptionsView.qml; then
+    printf 'OAuth login must request moderator:read:chatters for Helix viewer-list support.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'Q_INVOKABLE quint64 getUser_id\(\) const;' "$channel_manager_header"; then
+    printf 'ChannelManager must expose the logged-in user ID to QML for Helix viewer-list requests.\n' >&2
+    fail=1
+fi
+
+if ! rg -qF 'Viewers.loadChatterList(chat.channel, chat.channelId || 0, ChannelManager.getUser_id())' "$viewer_list"; then
+    printf 'ViewerList must pass broadcaster and moderator user IDs to viewer-list loading.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'loadChatterList\(const QString channel, const quint64 broadcasterId = 0, const quint64 moderatorId = 0\)' "$network_manager_header" \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'broadcasterId != 0 && moderatorId != 0 && !access_token\.isEmpty\(\)' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'requestHelixChatterList\(normalizedChannel, broadcasterId, moderatorId\)' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'loadLegacyChatterList\(normalizedChannel\)'; then
+    printf 'Viewer-list loading must prefer Helix when logged-in IDs are available and keep legacy fallback.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$helix_chatter_block" | rg -q '/chat/chatters' \
+    || ! printf '%s\n' "$helix_chatter_block" | rg -q 'query\.addQueryItem\("broadcaster_id", QString::number\(broadcasterId\)\)' \
+    || ! printf '%s\n' "$helix_chatter_block" | rg -q 'query\.addQueryItem\("moderator_id", QString::number\(moderatorId\)\)' \
+    || ! printf '%s\n' "$helix_chatter_block" | rg -q 'query\.addQueryItem\("first", "1000"\)' \
+    || ! printf '%s\n' "$helix_chatter_block" | rg -q 'addHelixHeaders\(request, HelixAuthMode::UserOnly\)'; then
+    printf 'Helix viewer-list requests must use Get Chatters with user auth and the maximum documented page size.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$legacy_chatter_block" | rg -q 'TWITCH_TMI_USER_API' \
+    || ! printf '%s\n' "$legacy_chatter_block" | rg -q 'QUrl::toPercentEncoding\(channel\)'; then
+    printf 'Legacy viewer-list fallback must preserve the old TMI path with encoded channel names.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'parseHelixChatterListPage' "$json_parser_header" "$json_parser" \
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'JsonParser::parseHelixChatterListPage\(data\)' \
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'pendingHelixChatters\.append\(result\.items\)' \
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'requestHelixChatterList\(channel, broadcasterId, moderatorId, result\.cursor\)' \
+    || ! printf '%s\n' "$chatter_reply_block" | rg -q 'loadLegacyChatterList\(channel\)'; then
+    printf 'Viewer-list replies must parse/paginate Helix Get Chatters and fall back when Helix is unavailable.\n' >&2
     fail=1
 fi
 

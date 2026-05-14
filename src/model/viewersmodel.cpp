@@ -24,6 +24,6 @@ void ViewersModel::processChatterList(QMap<QString, QList<QString>> chatters)
     emit chatterListLoaded(out);
 }
 
-void ViewersModel::loadChatterList(const QString channel) {
-    netman->loadChatterList(channel);
+void ViewersModel::loadChatterList(const QString channel, const quint64 broadcasterId, const quint64 moderatorId) {
+    netman->loadChatterList(channel, broadcasterId, moderatorId);
 }

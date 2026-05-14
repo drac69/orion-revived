@@ -77,7 +77,7 @@ public:
     ChannelListModel *getResultsModel() const;
     GameListModel *getGamesModel() const;
 
-    quint64 getUser_id() const;
+    Q_INVOKABLE quint64 getUser_id() const;
 
 signals:
     void pushNotification(const QString &title, const QString &message, const QString &imgUrl);

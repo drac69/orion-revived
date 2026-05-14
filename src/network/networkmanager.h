@@ -115,7 +115,7 @@ public:
     void getChannelFfzEmotes(const QString channel);
     void getGlobalFfzEmotes();
 
-    Q_INVOKABLE void loadChatterList(const QString channel);
+    Q_INVOKABLE void loadChatterList(const QString channel, const quint64 broadcasterId = 0, const quint64 moderatorId = 0);
     void getBlockedUserList(const quint64 userId, const quint32 offset, const quint32 limit);
     void editUserBlock(const quint64 myUserId, const QString & blockUserName, const bool isBlock);
 
@@ -237,8 +237,14 @@ private:
     int pendingEmoteSetReplies = 0;
     QMap<quint32, QString> userFavouritesPageCursors;
     QMap<quint32, QString> blockedUserListPageCursors;
+    QList<QString> pendingHelixChatters;
+    QString pendingHelixChatterChannel;
+    quint64 pendingHelixChatterBroadcasterId = 0;
+    quint64 pendingHelixChatterModeratorId = 0;
 
     void getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language = QString());
+    void requestHelixChatterList(const QString &channel, const quint64 broadcasterId, const quint64 moderatorId, const QString &cursor = QString());
+    void loadLegacyChatterList(const QString &channel);
     void editUserBlockWithId(const quint64 myUserId, const QString & blockUsername, const quint64 blockUserId, const bool isBlock);
 };
 

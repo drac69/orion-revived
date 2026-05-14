@@ -16,7 +16,7 @@ Item {
         if (visible && chat.channel) {
             root.loading = true;
             viewerListModel.clear()
-            Viewers.loadChatterList(chat.channel);
+            Viewers.loadChatterList(chat.channel, chat.channelId || 0, ChannelManager.getUser_id());
         }
     }
     

@@ -22,7 +22,7 @@ signals:
     void chatterListLoaded(QVariantMap chatters);
 
 public slots:
-    void loadChatterList(const QString channel);
+    void loadChatterList(const QString channel, const quint64 broadcasterId = 0, const quint64 moderatorId = 0);
     void processChatterList(QMap<QString, QList<QString>> chatters);
 
 };

@@ -61,6 +61,7 @@ public:
     static int parseTotal(const QByteArray&);
     static QMap<QString, QMap<QString, QString>> parseEmoteSets(const QByteArray&);
     static QMap<QString, QMap<QString, QMap<QString, QString>>> parseBadgeUrlsBetaFormat(const QByteArray &data);
+    static PagedResult<QString> parseHelixChatterListPage(const QByteArray &data);
     static QMap<QString, QList<QString>> parseChatterList(const QByteArray &data);
     static PagedResult<QString> parseBlockList(const QByteArray &data);
     static void parseBitsData(const QByteArray &data, QMap<QString, QMap<QString, QString>> & outUrls, QMap<QString, QMap<QString, QString>> & outColors);
