@@ -8,6 +8,7 @@ network_manager_header="$repo_dir/src/network/networkmanager.h"
 mpris_manager="$repo_dir/src/model/mprismanager.cpp"
 mpris_manager_header="$repo_dir/src/model/mprismanager.h"
 player_view="$repo_dir/src/qml/PlayerView.qml"
+search_view="$repo_dir/src/qml/SearchView.qml"
 file_utils="$repo_dir/src/util/fileutils.cpp"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
 game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
@@ -236,6 +237,38 @@ fi
 
 if rg -Uq 'file\.write\(data\);\s*return true;' "$repo_dir/src/util/fileutils.cpp"; then
     printf 'File write helpers must not report success without checking write results.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'property int lastFetchLimit: 25' \
+    'limit = limit || channels.fetchLimit()' \
+    'lastFetchLimit = limit' \
+    'itemCount = limit' \
+    'ChannelManager.searchChannels(str, offset, limit, clear)' \
+    'function fetchLimit()' \
+    'if (cellWidth <= 0 || cellHeight <= 0)' \
+    'var columns = Math.max(1, Math.floor(width / cellWidth))' \
+    'var visibleRows = Math.max(1, Math.ceil(height / cellHeight))' \
+    'var rowsToFetch = visibleRows + 2' \
+    'return Math.max(25, Math.min(100, columns * rowsToFetch))' \
+    'function shouldFetchMore()' \
+    'return contentY + height >= contentHeight - (cellHeight * 2)' \
+    'var limit = fetchLimit()' \
+    'search(query, itemCount, limit, false);' \
+    'itemCount += limit' \
+    'function adjustItemCount(numAdded)' \
+    'if (numAdded !== root.lastFetchLimit)' \
+    'itemCount = model.count()'
+do
+    if ! rg -q -F "$required" "$search_view"; then
+        printf 'SearchView must size channel search pages from the visible grid capacity: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if rg -q 'search\(query, itemCount, 25|ChannelManager\.searchChannels\(str, offset, 25' "$search_view"; then
+    printf 'SearchView must not hard-code follow-up channel search requests to 25 items.\n' >&2
     exit 1
 fi
 

@@ -19,7 +19,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
   volume swings; CI now guards the persisted setting, mpv-only option, and mpv
   audio-filter application.
 * #306: changed the mpv default hardware decoder from `auto` to `auto-copy` to avoid unsafe native-surface handling in the embedded renderer, and removed the deprecated `mpv_opengl_cb` rendering fallback so maintained builds use libmpv's render API.
-* #305: search result pages now size their initial and follow-up fetches from the visible grid capacity, with a small row buffer instead of a hard-coded 25 items.
+* #305: search result pages now size their initial and follow-up fetches from
+  the visible grid capacity, with a small row buffer instead of a hard-coded 25
+  items; CI now guards the adaptive fetch limit and follow-up paging path.
 * #301: VOD resume positions now compare against the previous saved value before overwriting it, so periodic progress updates are persisted.
 * #286: high-DPI startup no longer depends on the deprecated `QT_AUTO_SCREEN_SCALE_FACTOR` path.
 * #265: fullscreen playback no longer toggles the main navigation header on top-edge hover, avoiding the repeated resize loop.
