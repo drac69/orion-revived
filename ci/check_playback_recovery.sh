@@ -128,6 +128,18 @@ if ! rg -q 'Open VOD on Twitch' "$player_view" || ! rg -q 'Open channel on Twitc
     exit 1
 fi
 
+for required in \
+    'function twitchVodTimestamp(position)' \
+    'return "?t=" + timestamp' \
+    'function currentVodFallbackPosition()' \
+    'twitchVodTimestamp(currentVodFallbackPosition())'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'VOD Twitch fallback links must preserve the current playback timestamp: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
 if ! rg -q 'onBackendError' "$player_view" || ! rg -q 'backend_error' "$player_view"; then
     printf 'PlayerView must surface backend playback errors through the common playback error UI.\n' >&2
     exit 1
