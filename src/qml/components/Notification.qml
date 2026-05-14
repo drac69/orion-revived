@@ -97,7 +97,8 @@ Window {
         Image {
             id: img
             property string fallbackSource: "qrc:/icon/orion.ico"
-            property string requestedSource: Util.withImageReloadToken(imgSrc, Network.imageReloadToken)
+            property string remoteSource: Util.withImageReloadToken(imgSrc, Network.imageReloadToken)
+            property string requestedSource: Util.imageSourceWithFailureFallback(remoteSource, fallbackSource)
             source: requestedSource
             fillMode: Image.PreserveAspectFit
             width: 80
@@ -107,6 +108,7 @@ Window {
                 if (status === Image.Error && requestedSource
                         && String(source) === requestedSource
                         && String(source) !== fallbackSource) {
+                    Util.rememberFailedImageSource(requestedSource)
                     source = fallbackSource
                 }
             }

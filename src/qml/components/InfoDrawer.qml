@@ -52,13 +52,15 @@ SidePanel {
     Image {
         z: -1
         id: bgImage
-        property string requestedSource: Util.withImageReloadToken(root.previewSource, Network.imageReloadToken)
+        property string remoteSource: Util.withImageReloadToken(root.previewSource, Network.imageReloadToken)
+        property string requestedSource: Util.imageSourceWithFailureFallback(remoteSource, "")
         source: requestedSource
         fillMode: Image.PreserveAspectCrop
         anchors.fill: parent
         onRequestedSourceChanged: source = requestedSource
         onStatusChanged: {
             if (status === Image.Error && requestedSource && String(source) === requestedSource) {
+                Util.rememberFailedImageSource(requestedSource)
                 source = ""
             }
         }

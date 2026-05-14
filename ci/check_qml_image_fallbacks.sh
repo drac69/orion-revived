@@ -13,6 +13,7 @@ info_drawer="$repo_dir/src/qml/components/InfoDrawer.qml"
 round_image="$repo_dir/src/qml/components/RoundImage.qml"
 notification="$repo_dir/src/qml/components/Notification.qml"
 image_provider="$repo_dir/src/model/imageprovider.cpp"
+util_js="$repo_dir/src/qml/util.js"
 
 if ! rg -q 'setPreviewurl\(other\.previewuri\)' "$channel_cpp"; then
     printf 'Channel::updateWith must refresh non-empty preview URLs.\n' >&2
@@ -34,6 +35,27 @@ fi
 for fallback_image in "$channel_card" "$grid_tooltip" "$round_image" "$notification"; do
     if ! rg -q 'Image\.Error' "$fallback_image" || ! rg -q 'qrc:/icon/orion\.ico' "$fallback_image"; then
         printf '%s must fall back to the bundled icon on image load errors.\n' "$fallback_image" >&2
+        exit 1
+    fi
+done
+
+for remote_image in "$channel_card" "$grid_tooltip" "$info_drawer" "$round_image" "$notification"; do
+    if ! rg -q 'imageSourceWithFailureFallback' "$remote_image" \
+        || ! rg -q 'rememberFailedImageSource\(requestedSource\)' "$remote_image"; then
+        printf '%s must share failed remote image URLs through the QML fallback cache.\n' "$remote_image" >&2
+        exit 1
+    fi
+done
+
+for required_util_token in \
+    'var failedImageSources = {}' \
+    'function imageFailureKey(source)' \
+    'orionReload=' \
+    'function rememberFailedImageSource(source)' \
+    'function imageSourceWithFailureFallback(source, fallbackSource)'
+do
+    if ! rg -qF "$required_util_token" "$util_js"; then
+        printf 'util.js must keep failed remote image source cache token: %s\n' "$required_util_token" >&2
         exit 1
     fi
 done

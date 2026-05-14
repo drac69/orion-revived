@@ -338,6 +338,45 @@ function formatTime(seconds) {
     return hours + ":" + minutes + ":" + seconds
 }
 
+var failedImageSources = {}
+
+function imageFailureKey(source) {
+    if (!source) {
+        return ""
+    }
+
+    source = String(source)
+    var fragmentIndex = source.indexOf("#")
+    var fragment = fragmentIndex >= 0 ? source.substring(fragmentIndex) : ""
+    var base = fragmentIndex >= 0 ? source.substring(0, fragmentIndex) : source
+    var queryIndex = base.indexOf("?")
+    if (queryIndex < 0) {
+        return source
+    }
+
+    var path = base.substring(0, queryIndex)
+    var query = base.substring(queryIndex + 1).split("&").filter(function(part) {
+        return part.indexOf("orionReload=") !== 0
+    }).join("&")
+
+    return path + (query ? "?" + query : "") + fragment
+}
+
+function rememberFailedImageSource(source) {
+    var key = imageFailureKey(source)
+    if (key) {
+        failedImageSources[key] = true
+    }
+}
+
+function imageSourceWithFailureFallback(source, fallbackSource) {
+    if (!source) {
+        return source
+    }
+
+    return failedImageSources[imageFailureKey(source)] ? fallbackSource : source
+}
+
 function withImageReloadToken(source, token) {
     if (!source || token <= 0)
         return source

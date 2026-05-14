@@ -75,7 +75,8 @@ Item {
             Image {
                 id: image
                 property string fallbackSource: "qrc:/icon/orion.ico"
-                property string requestedSource: Util.withImageReloadToken(root.logo, Network.imageReloadToken)
+                property string remoteSource: Util.withImageReloadToken(root.logo, Network.imageReloadToken)
+                property string requestedSource: Util.imageSourceWithFailureFallback(remoteSource, fallbackSource)
                 property bool isLandscape: sourceSize.width >= sourceSize.height
                 source: requestedSource
 
@@ -88,6 +89,7 @@ Item {
                     if (status === Image.Error && requestedSource
                             && String(source) === requestedSource
                             && String(source) !== fallbackSource) {
+                        Util.rememberFailedImageSource(requestedSource)
                         source = fallbackSource
                     }
                 }

@@ -1,5 +1,6 @@
 import QtQuick 2.5
 import QtGraphicalEffects 1.0
+import "../util.js" as Util
 
 // Reusable round image component
 
@@ -12,7 +13,7 @@ Rectangle {
     
     Image {
         id: img
-        property string requestedSource: root.source
+        property string requestedSource: Util.imageSourceWithFailureFallback(root.source, root.fallbackSource)
         source: requestedSource
         anchors.fill: parent
         fillMode: Image.PreserveAspectCrop
@@ -23,6 +24,7 @@ Rectangle {
             if (status === Image.Error && requestedSource
                     && String(source) === requestedSource
                     && String(source) !== root.fallbackSource) {
+                Util.rememberFailedImageSource(requestedSource)
                 source = root.fallbackSource
             }
         }
