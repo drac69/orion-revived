@@ -9,6 +9,7 @@ cat > "$tmpdir/m3u8_parser_smoke.cpp" <<'CPP'
 #include <QByteArray>
 #include <QDebug>
 #include <QString>
+#include <QUrl>
 #include <QVariantMap>
 
 #include "src/util/m3u8parser.h"
@@ -36,9 +37,11 @@ int main()
         "#EXT-X-STREAM-INF:BANDWIDTH=1200000,NAME=\"480p30\"\n"
         "https://example.test/480.m3u8\n"
         "#EXT-X-STREAM-INF:BANDWIDTH=6000000,RESOLUTION=1920x1080,FRAME-RATE=59.940\n"
-        "https://example.test/resolution-1080.m3u8\n";
+        "https://example.test/resolution-1080.m3u8\n"
+        "#EXT-X-STREAM-INF:BANDWIDTH=800000,NAME=\"360p\"\n"
+        "relative/360.m3u8\n";
 
-    const QVariantMap streams = m3u8::getUrls(playlist);
+    const QVariantMap streams = m3u8::getUrls(playlist, QUrl(QStringLiteral("https://example.test/master/index.m3u8")));
 
     bool ok = true;
     ok = requireUrl(streams, QStringLiteral("source"), QStringLiteral("https://example.test/source.m3u8")) && ok;
@@ -46,6 +49,7 @@ int main()
     ok = requireUrl(streams, QStringLiteral("audio_only"), QStringLiteral("https://example.test/audio.m3u8")) && ok;
     ok = requireUrl(streams, QStringLiteral("480p30"), QStringLiteral("https://example.test/480.m3u8")) && ok;
     ok = requireUrl(streams, QStringLiteral("1080p60"), QStringLiteral("https://example.test/resolution-1080.m3u8")) && ok;
+    ok = requireUrl(streams, QStringLiteral("360p"), QStringLiteral("https://example.test/master/relative/360.m3u8")) && ok;
 
     if (streams.contains(QStringLiteral("chunked"))) {
         qWarning() << "chunked quality was not normalized to source";

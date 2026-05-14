@@ -2163,11 +2163,11 @@ void NetworkManager::m3u8Reply()
 
     switch (static_cast<M3U8TYPE>(reply->request().attribute(QNetworkRequest::User).toInt())) {
     case LIVE:
-        emit m3u8OperationFinished(m3u8::getUrls(data));
+        emit m3u8OperationFinished(m3u8::getUrls(data, reply->url()));
         break;
 
     case VOD:
-        emit m3u8OperationBFinished(m3u8::getUrls(data));
+        emit m3u8OperationBFinished(m3u8::getUrls(data, reply->url()));
         break;
     }
     //qDebug() << data;

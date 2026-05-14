@@ -250,15 +250,22 @@ fi
 
 for required in \
     'static QString streamNameFromResolution' \
+    'static QString playlistUrl(const QString &line, const QUrl &baseUrl)' \
     'attributeValue(str, QStringLiteral("RESOLUTION"))' \
     'attributeValue(str, QStringLiteral("FRAME-RATE"))' \
-    'streamName += QString::number(roundedFrameRate)'
+    'streamName += QString::number(roundedFrameRate)' \
+    'baseUrl.resolved(url).toString()'
 do
     if ! rg -q -F "$required" "$m3u8_parser"; then
         printf 'M3U8 parser must derive quality names from RESOLUTION/FRAME-RATE when VIDEO/NAME are absent: %s\n' "$required" >&2
         exit 1
     fi
 done
+
+if ! rg -q 'm3u8::getUrls\(data, reply->url\(\)\)' "$network_manager"; then
+    printf 'NetworkManager must pass the playlist URL to the M3U8 parser so relative variants can be resolved.\n' >&2
+    exit 1
+fi
 
 if ! printf '%s\n' "$test_connection_reply_block" | rg -q 'if \(!reply\)'; then
     printf 'Network connection test replies must guard missing reply senders.\n' >&2

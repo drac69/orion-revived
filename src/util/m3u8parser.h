@@ -19,6 +19,7 @@
 #include <QMap>
 #include <QByteArray>
 #include <QString>
+#include <QUrl>
 
 namespace m3u8 {
 
@@ -118,7 +119,19 @@ namespace m3u8 {
         return streamName;
     }
 
-    static QVariantMap getUrls(const QByteArray &data)
+    static QString playlistUrl(const QString &line, const QUrl &baseUrl)
+    {
+        const QUrl url(line);
+        if (!url.isRelative()) {
+            return url.toString();
+        }
+        if (!baseUrl.isEmpty()) {
+            return baseUrl.resolved(url).toString();
+        }
+        return line;
+    }
+
+    static QVariantMap getUrls(const QByteArray &data, const QUrl &baseUrl = QUrl())
     {
         QVariantMap streams;
 
@@ -137,9 +150,10 @@ namespace m3u8 {
                 }
             }
             else if (!streamName.isEmpty()
-                     && (str.startsWith("http://") || str.startsWith("https://"))){
+                     && !str.isEmpty()
+                     && !str.startsWith("#")){
 
-                streams.insert(streamName, str);
+                streams.insert(streamName, playlistUrl(str, baseUrl));
 
                 streamName.clear();
             }
