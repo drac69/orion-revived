@@ -39,8 +39,12 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #260: Linux screensaver reset calls now only run while screensaver inhibition
   is active; CI now guards that the timer returns before invoking
   `xdg-screensaver reset` when inhibition is inactive.
-* #89 / #205: multiple-stream use is supported through the persisted multiple-instance setting; second instances are blocked unless that setting is enabled.
-* #134: added a Ctrl+Q application shortcut.
+* #89 / #205: multiple-stream use is supported through the persisted
+  multiple-instance setting; second instances are blocked unless that setting is
+  enabled. CI now guards the lockfile gate, persisted setting, and options
+  toggle.
+* #134: added a Ctrl+Q application shortcut; CI now guards the application-level
+  quit shortcut.
 * #44: the existing version checker now checks this fork's releases instead of the archived upstream repository, and falls back to this fork's semantic version tags when no GitHub Release has been published.
 * #242: QML startup warnings are now printed before the fatal startup error, which exposes missing QML modules directly.
 * #274: added a default stream-quality setting with lower-quality fallback when the exact variant is unavailable.

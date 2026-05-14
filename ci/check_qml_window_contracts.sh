@@ -3,7 +3,11 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 main_qml="$repo_dir/src/qml/main.qml"
+options_view="$repo_dir/src/qml/OptionsView.qml"
 common_grid_qml="$repo_dir/src/qml/components/CommonGrid.qml"
+main_cpp="$repo_dir/src/main.cpp"
+settings_manager="$repo_dir/src/model/settingsmanager.cpp"
+settings_manager_header="$repo_dir/src/model/settingsmanager.h"
 add_favourites_block=$(sed -n '/function addToFavourites/,/^    }/p' "$main_qml")
 remove_favourites_block=$(sed -n '/function removeFromFavourites/,/^    }/p' "$main_qml")
 
@@ -17,6 +21,71 @@ for required in \
 do
     if ! rg -q -F "$required" "$main_qml"; then
         printf 'main.qml must keep the startup popup/screen association workaround token: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    '#include <QLockFile>' \
+    'const QString lockPath = singleInstanceLockPath();' \
+    'QLockFile lockfile(lockPath);' \
+    'const bool primaryInstance = lockfile.tryLock(100);' \
+    'if (!primaryInstance && !SettingsManager::getInstance()->multipleInstances()) {' \
+    'enable multiple instances in settings to allow this.' \
+    'Lock file:' \
+    'rootContext->setContextProperty("g_instance", primaryInstance ? "main" : "child");'
+do
+    if ! rg -q -F "$required" "$main_cpp"; then
+        printf 'main.cpp must keep the single-instance lock gated by the multiple-instance setting: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'Q_PROPERTY(bool multipleInstances READ multipleInstances WRITE setMultipleInstances NOTIFY multipleInstancesChanged)' \
+    'bool mMultipleInstances = false;' \
+    'bool multipleInstances() const;' \
+    'void setMultipleInstances(bool multipleInstances);' \
+    'void multipleInstancesChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose the multiple-instance preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setMultipleInstances(settings.value("multipleInstances", mMultipleInstances).toBool())' \
+    'settings.setValue("multipleInstances", multipleInstances)' \
+    'emit multipleInstancesChanged()'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist the multiple-instance preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: "Allow multiple instances"' \
+    'checked: Settings.multipleInstances' \
+    'onClicked: Settings.multipleInstances = checked'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must expose the multiple-instance toggle: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'onClosing: {' \
+    'Qt.quit()' \
+    'Shortcut {' \
+    'sequence: "Ctrl+Q"' \
+    'context: Qt.ApplicationShortcut' \
+    'onActivated: Qt.quit()'
+do
+    if ! rg -q -F "$required" "$main_qml"; then
+        printf 'main.qml must keep the Ctrl+Q application quit shortcut: %s\n' "$required" >&2
         exit 1
     fi
 done
