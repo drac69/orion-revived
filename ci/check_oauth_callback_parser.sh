@@ -37,7 +37,10 @@ done
 
 for required in \
     '&state=' \
-    'encodeURIComponent(LoginService.state())'
+    'encodeURIComponent(LoginService.state())' \
+    'function twitchLoginScopes()' \
+    'function twitchLoginUrl()' \
+    'encodeURIComponent(twitchLoginScopes().join(" "))'
 do
     if ! rg -qF "$required" "$options_view"; then
         printf 'OAuth login URL is missing required state token: %s\n' "$required" >&2

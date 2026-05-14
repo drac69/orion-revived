@@ -379,8 +379,9 @@ if ! printf '%s\n' "$get_user_favourites_block" | rg -q 'if \(userId == 0\)' \
     fail=1
 fi
 
-if ! rg -q 'moderator%3Aread%3Achatters' src/qml/OptionsView.qml; then
-    printf 'OAuth login must request moderator:read:chatters for Helix viewer-list support.\n' >&2
+if ! rg -q '"moderator:read:chatters"' src/qml/OptionsView.qml \
+    || ! rg -q 'encodeURIComponent\(twitchLoginScopes\(\).join\(" "\)\)' src/qml/OptionsView.qml; then
+    printf 'OAuth login must request moderator:read:chatters through the structured scope list for Helix viewer-list support.\n' >&2
     fail=1
 fi
 
