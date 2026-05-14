@@ -40,6 +40,20 @@ if ! rg -q 'Playback startup stalled; retrying' "$player_view"; then
     exit 1
 fi
 
+for required in \
+    'if (startupRetryAttempts >= maxStartupRetryAttempts)' \
+    'startupRetryAttempts += 1' \
+    'loadAndPlay()' \
+    'showPlaybackError("quality_error", "No playable stream quality: " + getWatchingTitle())' \
+    'showPlaybackError("quality_error", "Missing playback URL: " + getWatchingTitle())' \
+    'startupRetryTimer.restart()'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must keep playback startup retry and empty-quality/URL error handling: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
 if ! rg -q 'unexpectedStopRecoveryTimer' "$player_view"; then
     printf 'PlayerView must retain unexpected STOPPED-state recovery.\n' >&2
     exit 1

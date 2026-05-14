@@ -117,7 +117,15 @@ The upstream repository is archived and had 79 open issues at the time this fork
   live raids in the player; CI now guards raid tag parsing, raid signal
   propagation, system-notice link rendering, the persisted auto-redirect
   setting, and the live-only player redirect path.
-* #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable; playback startup now retries short-lived stalls and shows a header error instead of leaving only the spinner when no playable quality or URL is available, and network/API failures include HTTP status plus structured response messages in logs and the UI error footer when Twitch provides them.
+* #292: kept the upstream fix that avoids trying to play an empty stream URL
+  and falls back to `source` quality when the stored quality is unavailable;
+  playback startup now retries short-lived stalls and shows a header error
+  instead of leaving only the spinner when no playable quality or URL is
+  available, and network/API failures include HTTP status plus structured
+  response messages in logs and the UI error footer when Twitch provides them;
+  CI now guards startup retry bounds, quality/URL error surfacing, fallback
+  quality selection, backend error forwarding, and structured network error
+  details.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
 * #284: kept the upstream localhost OAuth response fix from #272.
 * #108: hidden live chat sends desktop notifications for incoming whispers and `@username` mentions, outgoing `/w` whispers are flagged as whispers, and chat now has a dedicated Whispers tab with unread state. Native notification delivery now sends text-only notifications directly, loads bundled qrc notification images without a network fetch, and still shows the notification when a remote notification image fails.
