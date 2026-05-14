@@ -50,7 +50,9 @@ if ! rg -q 'semanticVersionFromString' "$settings_manager" \
     exit 1
 fi
 
-if ! rg -q "#44:.*falls back to this fork's semantic version tags" "$triage"; then
+if ! rg -q '#44:' "$triage" \
+    || ! rg -q "falls back to this fork's semantic" "$triage" \
+    || ! rg -q 'fork release/tag endpoints' "$triage"; then
     printf 'Upstream issue triage must document the release/tag version-check behavior.\n' >&2
     exit 1
 fi

@@ -8,7 +8,16 @@ The upstream repository is archived and had 79 open issues at the time this fork
 
 ## Addressed in this fork
 
-* #302 / #303: merged the unmerged QObject lifetime crash fix from upstream PR #303, converted the remaining app-parented QML singleton objects and QML image providers away from stack storage, filtered stale/null model objects before list updates, routed `NetworkManager` reply slots through a checked sender helper so unexpected non-reply invocations cannot dereference a null `QNetworkReply`, and disabled the InfoDrawer text style when channel title/description text contains non-ASCII characters to avoid the old Qt 5 styled-emoji render crash while preserving the text.
+* #302 / #303: merged the unmerged QObject lifetime crash fix from upstream
+  PR #303, converted the remaining app-parented QML singleton objects and QML
+  image providers away from stack storage, filtered stale/null model objects
+  before list updates, routed `NetworkManager` reply slots through a checked
+  sender helper so unexpected non-reply invocations cannot dereference a null
+  `QNetworkReply`, and disabled the InfoDrawer text style when channel
+  title/description text contains non-ASCII characters to avoid the old Qt 5
+  styled-emoji render crash while preserving the text; CI now guards
+  heap-backed singleton/provider ownership, checked reply senders, null/stale
+  model filtering, and the InfoDrawer plain-text fallback path.
 * #18: added an mpv playback-stats overlay with codec, resolution, FPS,
   bitrate, dropped frame, sync, cache, and hardware-decoder data; CI now guards
   the desktop overlay wiring and mpv stats fields.
@@ -18,7 +27,12 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #295: added an optional mpv audio-compressor filter for reducing stream
   volume swings; CI now guards the persisted setting, mpv-only option, and mpv
   audio-filter application.
-* #306: changed the mpv default hardware decoder from `auto` to `auto-copy` to avoid unsafe native-surface handling in the embedded renderer, and removed the deprecated `mpv_opengl_cb` rendering fallback so maintained builds use libmpv's render API.
+* #306: changed the mpv default hardware decoder from `auto` to `auto-copy` to
+  avoid unsafe native-surface handling in the embedded renderer, and removed
+  the deprecated `mpv_opengl_cb` rendering fallback so maintained builds use
+  libmpv's render API; CI now guards the safe hwdec default before
+  `mpv_initialize()`, saved decoder migration, and absence of deprecated
+  OpenGL-callback API usage.
 * #305: search result pages now size their initial and follow-up fetches from
   the visible grid capacity, with a small row buffer instead of a hard-coded 25
   items; CI now guards the adaptive fetch limit and follow-up paging path.
@@ -45,7 +59,11 @@ The upstream repository is archived and had 79 open issues at the time this fork
   toggle.
 * #134: added a Ctrl+Q application shortcut; CI now guards the application-level
   quit shortcut.
-* #44: the existing version checker now checks this fork's releases instead of the archived upstream repository, and falls back to this fork's semantic version tags when no GitHub Release has been published.
+* #44: the existing version checker now checks this fork's releases instead of
+  the archived upstream repository, and falls back to this fork's semantic
+  version tags when no GitHub Release has been published; CI now guards the
+  fork release/tag endpoints, release-object and tag-array parsing, semantic
+  version comparison, and the workflow hook.
 * #242: QML startup warnings are now printed before the fatal startup error,
   which exposes missing QML modules directly; CI now guards the warning hook,
   load order, and fatal diagnostic text.
