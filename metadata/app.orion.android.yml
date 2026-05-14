@@ -20,13 +20,13 @@ AntiFeatures:
 RepoType: git
 Repo: https://github.com/belagrf/orion-revived.git
 Builds:
-  - versionName: 1.6.8
-    versionCode: 168
-    commit: 98d70139c9459ec7977b33a1c69a57740d78a3d9
+  - versionName: 1.6.9
+    versionCode: 169
+    commit: v1.6.9
     disable: Qt Android release builds are not reproducibly validated yet.
 Disabled: Qt Android release builds are not reproducibly validated yet.
 ArchivePolicy: 1 versions
 UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: android/AndroidManifest.xml|android:versionCode="([0-9]+)"|.|android:versionName="([^"]+)"
-CurrentVersion: 1.6.8
-CurrentVersionCode: 168
+CurrentVersion: 1.6.9
+CurrentVersionCode: 169

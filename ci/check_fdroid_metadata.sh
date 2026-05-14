@@ -60,21 +60,22 @@ if scalar("CurrentVersion") != version_name:
 if scalar("CurrentVersionCode") != version_code:
     errors.append("CurrentVersionCode must match android:versionCode")
 
-commit_match = re.search(r"(?m)^\s+commit:\s*([0-9a-f]{40})\s*$", metadata)
+commit_match = re.search(r"(?m)^\s+commit:\s*(\S+)\s*$", metadata)
 if not commit_match:
-    errors.append("F-Droid build entry must pin a full 40-character commit")
+    errors.append("F-Droid build entry must pin a release tag")
 else:
-    expected_ref = f"v{version_name}^{{}}"
+    expected_tag = f"v{version_name}"
+    build_ref = commit_match.group(1)
+    if build_ref != expected_tag:
+        errors.append(f"F-Droid build commit must be the release tag {expected_tag}")
+
     try:
-        expected_commit = subprocess.check_output(
-            ["git", "-C", str(repo), "rev-parse", expected_ref],
+        subprocess.check_output(
+            ["git", "-C", str(repo), "rev-parse", f"{expected_tag}^{{}}"],
             text=True,
         ).strip()
     except subprocess.CalledProcessError:
         errors.append(f"Missing release tag v{version_name} for F-Droid build pin")
-    else:
-        if commit_match.group(1) != expected_commit:
-            errors.append(f"F-Droid build commit must match release tag v{version_name}")
 
 triage = triage_path.read_text(encoding="utf-8")
 if "disabled F-Droid metadata scaffold" not in triage or "reproducible Android build recipe" not in triage:

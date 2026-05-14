@@ -18,7 +18,7 @@ isEmpty(PREFIX){
     freebsd: PREFIX = /usr/local
 }
 
-VERSION = 1.6.8
+VERSION = 1.6.9
 DEFINES += APP_VERSION=\\\"v$$VERSION\\\"
 DEFINES += APP_NAME=\\\"Orion\\\"
 
