@@ -32,11 +32,11 @@ public class MainActivity extends QtActivity
 	}
 
 	/**Screen-on methods called by the C++ power manager*/
-	public static void acquireWakeLock() {
+	public static void setPlaybackScreenOn() {
 		setKeepScreenOn(true);
 	}
 
-	public static void releaseWakeLock() {
+	public static void clearPlaybackScreenOn() {
 		setKeepScreenOn(false);
 	}
 

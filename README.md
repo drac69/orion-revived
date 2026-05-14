@@ -159,7 +159,9 @@ orion --libmpv-config ~/.config/orion/mpv.conf
 
 ## Building on MacOS
 
-macOS packaging has not been revalidated in this fork.
+macOS packaging has not been revalidated in this fork. The bundle metadata is
+kept current for local source builds, but no signed or notarized `.app` package
+is published yet.
 
 #### Install needed libraries and software
 

@@ -76,6 +76,9 @@ jobs:
       - name: Validate Android metadata
         run: ci/check_android_metadata.sh
 
+      - name: Validate Apple metadata
+        run: ci/check_apple_metadata.sh
+
       - name: Validate QML resources
         run: ci/check_qml_resources.sh
 

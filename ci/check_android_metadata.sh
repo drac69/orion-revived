@@ -95,6 +95,13 @@ if "FLAG_KEEP_SCREEN_ON" not in main_activity:
 if re.search(r"\bWakeLock\b", main_activity):
     errors.append("MainActivity must not use deprecated WakeLock APIs")
 
+for stale_method in ("acquireWakeLock", "releaseWakeLock"):
+    if stale_method in main_activity or stale_method in (repo / "src" / "power" / "power.cpp").read_text(encoding="utf-8"):
+        errors.append(f"Android screen inhibition must not use stale {stale_method} bridge names")
+
+if "setPlaybackScreenOn" not in main_activity or "clearPlaybackScreenOn" not in main_activity:
+    errors.append("MainActivity must expose playback screen-on bridge methods")
+
 player_view_qml = (repo / "src" / "qml" / "PlayerView.qml").read_text(encoding="utf-8")
 if "Settings.clickTogglePause && !isMobile()" not in player_view_qml:
     errors.append("Mobile player taps must only reveal controls; they must not toggle pause")

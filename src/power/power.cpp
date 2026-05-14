@@ -104,9 +104,9 @@ void Power::setScreensaver(bool enabled)
 
 #ifdef Q_OS_ANDROID
     if (!enabled) {
-        QAndroidJniObject::callStaticMethod<void>("com/orion/MainActivity", "acquireWakeLock");
+        QAndroidJniObject::callStaticMethod<void>("com/orion/MainActivity", "setPlaybackScreenOn");
     } else {
-        QAndroidJniObject::callStaticMethod<void>("com/orion/MainActivity", "releaseWakeLock");
+        QAndroidJniObject::callStaticMethod<void>("com/orion/MainActivity", "clearPlaybackScreenOn");
     }
 #endif
 }
