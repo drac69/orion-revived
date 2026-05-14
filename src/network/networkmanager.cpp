@@ -346,6 +346,13 @@ void NetworkManager::getGames(const quint32 &offset, const quint32 &limit)
 
 void NetworkManager::searchChannels(const QString &query, const quint32 &offset, const quint32 &limit)
 {
+    const QString normalizedQuery = query.trimmed();
+    if (normalizedQuery.isEmpty()) {
+        QList<Channel *> empty;
+        emit searchChannelsOperationFinished(empty, 0);
+        return;
+    }
+
     if (!requireHelixAccessToken("Channel search")) {
         QList<Channel *> empty;
         emit searchChannelsOperationFinished(empty, 0);
@@ -359,14 +366,14 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(RequestContextAttribute1, pageSize);
 
-    if (offset == 0 || query != lastSearchChannelsQuery) {
+    if (offset == 0 || normalizedQuery != lastSearchChannelsQuery) {
         searchChannelsPageCursors.clear();
-        lastSearchChannelsQuery = query;
+        lastSearchChannelsQuery = normalizedQuery;
     }
 
     QUrl url(QString(HELIX_API) + "/search/channels");
     QUrlQuery urlQuery;
-    urlQuery.addQueryItem("query", query);
+    urlQuery.addQueryItem("query", normalizedQuery);
     urlQuery.addQueryItem("first", QString::number(pageSize));
 
     const QString cursor = searchChannelsPageCursors.value(offset);
@@ -385,6 +392,13 @@ void NetworkManager::searchChannels(const QString &query, const quint32 &offset,
 
 void NetworkManager::searchGames(const QString &query)
 {
+    const QString normalizedQuery = query.trimmed();
+    if (normalizedQuery.isEmpty()) {
+        QList<Game *> empty;
+        emit searchGamesOperationFinished(empty);
+        return;
+    }
+
     if (!requireHelixAccessToken("Category search")) {
         QList<Game *> empty;
         emit searchGamesOperationFinished(empty);
@@ -396,7 +410,7 @@ void NetworkManager::searchGames(const QString &query)
 
     QUrl url(QString(HELIX_API) + "/search/categories");
     QUrlQuery urlQuery;
-    urlQuery.addQueryItem("query", query);
+    urlQuery.addQueryItem("query", normalizedQuery);
     url.setQuery(urlQuery);
 
     request.setUrl(url);

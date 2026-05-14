@@ -3,9 +3,12 @@ set -euo pipefail
 
 fail=0
 json_parser="src/util/jsonparser.cpp"
+channel_manager="src/model/channelmanager.cpp"
 network_manager="src/network/networkmanager.cpp"
 vod_manager="src/model/vodmanager.cpp"
 get_stream_block=$(sed -n '/void NetworkManager::getStream/,/^}/p' "$network_manager")
+search_channels_block=$(sed -n '/void NetworkManager::searchChannels/,/^}/p' "$network_manager")
+search_games_block=$(sed -n '/void NetworkManager::searchGames/,/^}/p' "$network_manager")
 get_streams_for_game_block=$(sed -n '/void NetworkManager::getStreamsForGame(/,/^}/p' "$network_manager")
 get_streams_for_game_id_block=$(sed -n '/void NetworkManager::getStreamsForGameId/,/^}/p' "$network_manager")
 get_channel_playback_block=$(sed -n '/void NetworkManager::getChannelPlaybackStream/,/^}/p' "$network_manager")
@@ -13,6 +16,8 @@ get_broadcasts_block=$(sed -n '/void NetworkManager::getBroadcasts/,/^}/p' "$net
 get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybackStream/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
 vod_get_broadcasts_block=$(sed -n '/void VodManager::getBroadcasts/,/^}/p' "$vod_manager")
+channel_manager_search_channels_block=$(sed -n '/void ChannelManager::searchChannels/,/^}/p' "$channel_manager")
+channel_manager_search_games_block=$(sed -n '/void ChannelManager::searchGames/,/^}/p' "$channel_manager")
 add_offline_channels_block=$(sed -n '/void addOfflineChannels/,/^}/p' "$network_manager")
 add_ulong_list_block=$(sed -n '/void addULongLongStringList/,/^}/p' "$network_manager")
 
@@ -177,6 +182,36 @@ fi
 if ! printf '%s\n' "$get_stream_block" | rg -q 'if \(channelId == 0\)' \
     || ! printf '%s\n' "$get_stream_block" | rg -q 'emit streamGetOperationFinished\(channelId, false\)'; then
     printf 'Single stream-status requests must reject zero channel ids before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$search_channels_block" | rg -q 'const QString normalizedQuery = query\.trimmed\(\)' \
+    || ! printf '%s\n' "$search_channels_block" | rg -q 'if \(normalizedQuery\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$search_channels_block" | rg -q 'emit searchChannelsOperationFinished\(empty, 0\)' \
+    || ! printf '%s\n' "$search_channels_block" | rg -q 'urlQuery\.addQueryItem\("query", normalizedQuery\)'; then
+    printf 'Channel searches must trim and reject empty queries before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$search_games_block" | rg -q 'const QString normalizedQuery = query\.trimmed\(\)' \
+    || ! printf '%s\n' "$search_games_block" | rg -q 'if \(normalizedQuery\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$search_games_block" | rg -q 'emit searchGamesOperationFinished\(empty\)' \
+    || ! printf '%s\n' "$search_games_block" | rg -q 'urlQuery\.addQueryItem\("query", normalizedQuery\)'; then
+    printf 'Category searches must trim and reject empty queries before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$channel_manager_search_channels_block" | rg -q 'const QString query = q\.trimmed\(\)' \
+    || ! printf '%s\n' "$channel_manager_search_channels_block" | rg -q 'if \(query\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$channel_manager_search_channels_block" | rg -q 'netman->searchChannels\(query, offset, limit\)'; then
+    printf 'ChannelManager search dispatch must normalize channel search text before routing it.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$channel_manager_search_games_block" | rg -q 'const QString query = q\.trimmed\(\)' \
+    || ! printf '%s\n' "$channel_manager_search_games_block" | rg -q 'if \(query\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$channel_manager_search_games_block" | rg -q 'netman->searchGames\(query\)'; then
+    printf 'ChannelManager game search dispatch must normalize category search text before routing it.\n' >&2
     fail=1
 fi
 

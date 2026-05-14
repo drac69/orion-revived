@@ -122,11 +122,13 @@ void ChannelManager::addToFavourites(const quint32 &id, const QString &serviceNa
 
 void ChannelManager::searchGames(QString q, const quint32 &offset, const quint32 &limit)
 {
-    if (offset == 0 || !q.isEmpty())
+    const QString query = q.trimmed();
+
+    if (offset == 0 || !query.isEmpty())
         gamesModel->clear();
 
     //If query is empty, search games by viewercount
-    if (q.isEmpty()) {
+    if (query.isEmpty()) {
         emit gamesSearchStarted();
         netman->getGames(offset, limit);
     }
@@ -134,7 +136,7 @@ void ChannelManager::searchGames(QString q, const quint32 &offset, const quint32
     //Else by queryword
     else if (offset == 0) {
         emit gamesSearchStarted();
-        netman->searchGames(q);
+        netman->searchGames(query);
     }
 }
 
@@ -364,16 +366,18 @@ void ChannelManager::checkFavourites()
 
 void ChannelManager::searchChannels(QString q, const quint32 &offset, const quint32 &limit, bool clear)
 {
+    const QString query = q.trimmed();
+
     if (clear)
         resultsModel->clear();
 
     emit searchingStarted();
 
-    if (q.isEmpty()) {
+    if (query.isEmpty()) {
         netman->getFeaturedStreams();
     }
-    else if (q.startsWith("/game ")){
-        QString game = q.mid(QString("/game ").length()).trimmed();
+    else if (query.startsWith("/game ")){
+        QString game = query.mid(QString("/game ").length()).trimmed();
         QString language;
         int languageIndex = game.lastIndexOf(" /language ", -1, Qt::CaseInsensitive);
         int languagePrefixLength = QString(" /language ").length();
@@ -390,12 +394,12 @@ void ChannelManager::searchChannels(QString q, const quint32 &offset, const quin
 
         netman->getStreamsForGame(game, offset, limit, language);
 
-    } else if (q.startsWith("/language ") || q.startsWith("/lang ")) {
-        const QString language = q.section(' ', 1).trimmed();
+    } else if (query.startsWith("/language ") || query.startsWith("/lang ")) {
+        const QString language = query.section(' ', 1).trimmed();
         netman->getStreamsForLanguage(language, offset, limit);
 
     } else {
-        netman->searchChannels(q, offset, limit);
+        netman->searchChannels(query, offset, limit);
     }
 }
 
