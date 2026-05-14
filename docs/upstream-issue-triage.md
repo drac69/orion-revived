@@ -22,7 +22,10 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #305: search result pages now size their initial and follow-up fetches from
   the visible grid capacity, with a small row buffer instead of a hard-coded 25
   items; CI now guards the adaptive fetch limit and follow-up paging path.
-* #301: VOD resume positions now compare against the previous saved value before overwriting it, so periodic progress updates are persisted.
+* #301: VOD resume positions now compare against the previous saved value
+  before syncing settings, so periodic progress updates are persisted without
+  rewriting settings on every tick; CI now guards the player threshold and
+  VodManager save conditions.
 * #286: high-DPI startup no longer depends on the deprecated `QT_AUTO_SCREEN_SCALE_FACTOR` path.
 * #265: fullscreen playback no longer toggles the main navigation header on top-edge hover, avoiding the repeated resize loop.
 * #264: added a setting to enable or disable screensaver inhibition during playback.

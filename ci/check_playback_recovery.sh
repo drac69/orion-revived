@@ -256,7 +256,12 @@ for required in \
     'return currentChannel && currentChannel.seekPreviews ? currentChannel.seekPreviews : ""' \
     'onCurrentChannelChanged: preview.source = currentSeekPreviewSource()' \
     'onCurrentChannelChanged: seekPreview.source = currentSeekPreviewSource()' \
-    'root.currentChannel && root.curVodId && Math.abs'
+    'root.lastSetPosition = startPos' \
+    'root.currentChannel && root.curVodId && Math.abs' \
+    'Math.abs(newPos - root.lastSetPosition) > 10' \
+    'root.lastSetPosition = newPos;' \
+    'VodManager.setVodLastPlaybackPosition(root.currentChannel.name, root.curVodId, newPos);' \
+    'seekBar.value = startPos'
 do
     if ! rg -q -F "$required" "$player_view"; then
         printf 'PlayerView must guard VOD seek-preview and position-save state: %s\n' "$required" >&2
@@ -427,6 +432,49 @@ fi
 
 if ! rg -q 'warnSettingsSyncFailure\(settings, "VOD position settings"\)' "$vod_manager"; then
     printf 'VodManager must warn when VOD position settings fail to sync.\n' >&2
+    exit 1
+fi
+
+for required in \
+    '#include <cmath>' \
+    'void VodManager::setVodLastPlaybackPosition' \
+    'const auto previousPosition = vodEntry.value().lastPosition;' \
+    'vodEntry.value().lastPosition = position;' \
+    'vodEntry.value().modified = true;' \
+    'std::fabs(static_cast<double>(previousPosition) - static_cast<double>(position)) >= 10' \
+    'vodMap.insert(vod, {position, true, -1});' \
+    'emit vodLastPositionUpdated(channel, vod, position);'
+do
+    if ! rg -q -F "$required" "$vod_manager"; then
+        printf 'VodManager must compare VOD playback-position changes before syncing settings: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if ! awk '
+    /if \(std::fabs\(static_cast<double>\(previousPosition\) - static_cast<double>\(position\)\) >= 10\) \{/ {
+        in_threshold_block = 1
+    }
+    in_threshold_block && /saveSettings\(\);/ {
+        found_threshold_save = 1
+    }
+    in_threshold_block && /^[[:space:]]*\}/ {
+        in_threshold_block = 0
+    }
+    /vodMap\.insert\(vod, \{position, true, -1\}\);/ {
+        in_new_position_block = 1
+    }
+    in_new_position_block && /saveSettings\(\);/ {
+        found_new_position_save = 1
+    }
+    in_new_position_block && /^[[:space:]]*\}/ {
+        in_new_position_block = 0
+    }
+    END {
+        exit(found_threshold_save && found_new_position_save ? 0 : 1)
+    }
+' "$vod_manager"; then
+    printf 'VodManager must sync existing VOD positions only after a meaningful change and sync new positions immediately.\n' >&2
     exit 1
 fi
 
