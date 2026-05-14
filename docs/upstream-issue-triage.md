@@ -76,7 +76,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
   preference is now applied when the backend loads; CI now guards the
   command-line handoff, config load order, README example, and saved decoder
   preference wiring.
-* #254: added an optional per-channel stream quality memory on top of the global default quality preset.
+* #254: added an optional per-channel stream quality memory on top of the
+  global default quality preset; CI now guards the persisted toggle,
+  per-channel storage, options control, and PlayerView read/write path.
 * #178: stopped VOD playback now preserves the last position when replaying/reloading, including the Qt Multimedia stopped-state reset path.
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.

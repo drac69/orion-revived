@@ -719,6 +719,36 @@ if ! rg -q 'syncSettings\("remember channel quality"\)' "$settings_manager"; the
 fi
 
 for required in \
+    'Q_PROPERTY(bool rememberChannelQuality READ rememberChannelQuality WRITE setRememberChannelQuality NOTIFY rememberChannelQualityChanged)' \
+    'bool mRememberChannelQuality = false;' \
+    'bool rememberChannelQuality() const;' \
+    'void setRememberChannelQuality(bool rememberChannelQuality);' \
+    'Q_INVOKABLE QString channelQuality(const QString &channel);' \
+    'Q_INVOKABLE void setChannelQuality(const QString &channel, const QString &quality);' \
+    'void rememberChannelQualityChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose per-channel stream-quality memory: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'return channel.trimmed().toLower();' \
+    'setRememberChannelQuality(settings.value("rememberChannelQuality", mRememberChannelQuality).toBool())' \
+    'settings.setValue("rememberChannelQuality", rememberChannelQuality)' \
+    'emit rememberChannelQualityChanged()' \
+    'settings.beginGroup("channelQualities")' \
+    'const QString quality = settings.value(key).toString();' \
+    'settings.setValue(key, quality);'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist per-channel stream-quality memory: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
     'Q_PROPERTY(QString quality READ quality WRITE setQuality NOTIFY qualityChanged)' \
     'QString mQuality = "source";' \
     'QString quality() const;' \
@@ -744,6 +774,9 @@ do
 done
 
 for required in \
+    'text: "Remember quality per channel"' \
+    'checked: Settings.rememberChannelQuality' \
+    'onClicked: Settings.rememberChannelQuality = checked' \
     'text: "Default stream quality"' \
     'model: ["source", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "audio_only"]' \
     'Component.onCompleted: selectItem(Settings.quality)' \
@@ -757,6 +790,18 @@ do
 done
 
 for required in \
+    'function channelQualityKey()' \
+    'return currentChannel && currentChannel.name ? currentChannel.name : ""' \
+    'function preferredStreamQuality()' \
+    'if (Settings.rememberChannelQuality && channel)' \
+    'var channelQuality = Settings.channelQuality(channel)' \
+    'return channelQuality' \
+    'return Settings.quality' \
+    'function setPreferredStreamQuality(quality)' \
+    'Settings.setChannelQuality(channel, quality)' \
+    'Settings.quality = quality' \
+    'var quality = selectStreamQuality(preferredStreamQuality());' \
+    'setPreferredStreamQuality(quality)' \
     'function streamQualityHeight(name)' \
     'return Number.MAX_VALUE' \
     'if (name === "audio_only") {' \
