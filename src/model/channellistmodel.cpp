@@ -128,8 +128,13 @@ void ChannelListModel::addChannelInternal(Channel *channel) {
 
 void ChannelListModel::addChannel(Channel *channel)
 {
+    if (!channel) {
+        return;
+    }
+
     if (updateChannelIfExisting(channel)) {
         qDebug() << "ChannelListModel::addChannel got existing channel" << channel->getId() << channel->getName();
+        delete channel;
     }
     else {
         beginInsertRows(QModelIndex(), channels.size(), channels.size());
@@ -139,6 +144,10 @@ void ChannelListModel::addChannel(Channel *channel)
 }
 
 bool ChannelListModel::updateChannelIfExisting(const Channel * channel) {
+    if (!channel) {
+        return false;
+    }
+
     const auto id = channel->getId();
 
     const auto existingChannelEntry = channelIdIndex.find(id);
@@ -169,6 +178,10 @@ int ChannelListModel::addAll(const QList<Channel *> &list)
     filteredList.reserve(list.size());
 
     for (Channel * channel : list) {
+        if (!channel) {
+            continue;
+        }
+
         if (updateChannelIfExisting(channel)) {
             qDebug() << "ChannelListModel::addAll got existing channel" << channel->getId() << channel->getName();
         }
@@ -195,6 +208,10 @@ void ChannelListModel::mergeAll(const QList<Channel *> &list)
 {
     if (!list.isEmpty()){
         for (Channel *channel : list) {
+            if (!channel) {
+                continue;
+            }
+
             Channel *c = find(channel->getId());
             if (c) {
                 c->updateWith(*channel);

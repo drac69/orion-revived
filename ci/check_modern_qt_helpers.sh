@@ -6,6 +6,7 @@ json_parser="$repo_dir/src/util/jsonparser.cpp"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
 game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
 vod_find_block=$(sed -n '/Vod \*VodListModel::find/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
+channel_add_block=$(sed -n '/void ChannelListModel::addChannel/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
 
 if rg -n '\bforeach\s*\(' "$repo_dir/src"; then
     printf 'src must use range-based loops instead of Qt foreach.\n' >&2
@@ -101,6 +102,11 @@ if ! printf '%s\n' "$vod_find_block" | rg -q 'return nullptr;'; then
     exit 1
 fi
 
+if ! printf '%s\n' "$channel_add_block" | rg -q 'delete channel;'; then
+    printf 'ChannelListModel::addChannel must delete duplicate input channels after updating existing rows.\n' >&2
+    exit 1
+fi
+
 required_override_lines=(
     "$repo_dir/src/model/channellistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
     "$repo_dir/src/model/gamelistmodel.h|Qt::ItemFlags flags(const QModelIndex &index) const override;"
@@ -131,6 +137,7 @@ model_data_sources=(
     "$repo_dir/src/model/channellistmodel.cpp|if (parent.isValid())"
     "$repo_dir/src/model/gamelistmodel.cpp|if (parent.isValid())"
     "$repo_dir/src/model/vodlistmodel.cpp|if (parent.isValid())"
+    "$repo_dir/src/model/channellistmodel.cpp|if (!channel)"
 )
 
 for entry in "${model_data_sources[@]}"; do
