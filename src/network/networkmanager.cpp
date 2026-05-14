@@ -1003,6 +1003,12 @@ const QString NetworkManager::CHANNEL_BADGES_BETA_URL_SUFFIX = "/display?languag
 const QString NetworkManager::GLOBAL_BADGES_BETA_URL = "https://badges.twitch.tv/v1/badges/global/display?language=en";
 
 void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
+    if (channelID <= 0) {
+        QMap<QString, QMap<QString, QMap<QString, QString>>> empty;
+        emit getChannelBadgeBetaUrlsOperationFinished(channelID, empty);
+        return;
+    }
+
     QUrl url;
     const bool useHelix = !helixAccessToken().isEmpty();
     if (useHelix) {
@@ -1061,6 +1067,13 @@ void NetworkManager::getGlobalBadgesUrlsBeta() {
 }
 
 void NetworkManager::getChannelBitsUrls(const int channelID) {
+    if (channelID <= 0) {
+        BitsQStringsMap emptyUrls;
+        BitsQStringsMap emptyColors;
+        emit getChannelBitsUrlsOperationFinished(channelID, emptyUrls, emptyColors);
+        return;
+    }
+
     if (!requireHelixAccessToken("Channel Cheermote metadata")) {
         BitsQStringsMap emptyUrls;
         BitsQStringsMap emptyColors;
@@ -1171,7 +1184,14 @@ void NetworkManager::globalBitsUrlsReply() {
 }
 
 void NetworkManager::getChannelBttvEmotes(const QString channel) {
-    QString url = QString(BTTV_API) + QString("/channels/") + QUrl::toPercentEncoding(channel);
+    const QString normalizedChannel = channel.trimmed();
+    if (normalizedChannel.isEmpty()) {
+        QMap<QString, QString> empty;
+        emit getChannelBttvEmotesOperationFinished(QString(), empty);
+        return;
+    }
+
+    QString url = QString(BTTV_API) + QString("/channels/") + QUrl::toPercentEncoding(normalizedChannel);
 
     qDebug() << "Requesting" << url;
 
@@ -1240,7 +1260,14 @@ void NetworkManager::globalBttvEmotesReply() {
 }
 
 void NetworkManager::getChannelFfzEmotes(const QString channel) {
-    QString url = QString(FFZ_API) + QString("/room/") + QUrl::toPercentEncoding(channel);
+    const QString normalizedChannel = channel.trimmed();
+    if (normalizedChannel.isEmpty()) {
+        QMap<QString, QString> empty;
+        emit getChannelFfzEmotesOperationFinished(QString(), empty);
+        return;
+    }
+
+    QString url = QString(FFZ_API) + QString("/room/") + QUrl::toPercentEncoding(normalizedChannel);
 
     qDebug() << "Requesting" << url;
 

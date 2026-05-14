@@ -130,19 +130,21 @@ QVariantMap convertBetaBadges(const QMap<QString, QMap<QString, QMap<QString, QS
 bool BadgeContainer::loadChannelBetaBadgeUrls(int channel) {
     bool out = false;
 
-    const QString channelKey = QString::number(channel);
-    auto result = channelBadgeBetaUrls.constFind(channelKey);
-    if (result != channelBadgeBetaUrls.constEnd()) {
-        // deliver cached channel beta badge URLS
-        emit channelBadgeBetaUrlsLoaded(channelKey, convertBetaBadges(result.value()));
-    }
-    else {
-        netman->getChannelBadgeUrlsBeta(channel);
-        out = true;
+    if (channel > 0) {
+        const QString channelKey = QString::number(channel);
+        auto result = channelBadgeBetaUrls.constFind(channelKey);
+        if (result != channelBadgeBetaUrls.constEnd()) {
+            // deliver cached channel beta badge URLS
+            emit channelBadgeBetaUrlsLoaded(channelKey, convertBetaBadges(result.value()));
+        }
+        else {
+            netman->getChannelBadgeUrlsBeta(channel);
+            out = true;
+        }
     }
 
     const QString GLOBAL_BADGES_IDENTIFIER = "GLOBAL";
-    result = channelBadgeBetaUrls.find(GLOBAL_BADGES_IDENTIFIER);
+    auto result = channelBadgeBetaUrls.find(GLOBAL_BADGES_IDENTIFIER);
     if (result != channelBadgeBetaUrls.end()) {
         // deliver cached channel beta badge URLS
         emit channelBadgeBetaUrlsLoaded(GLOBAL_BADGES_IDENTIFIER, convertBetaBadges(result.value()));
@@ -157,19 +159,22 @@ bool BadgeContainer::loadChannelBetaBadgeUrls(int channel) {
 
 bool BadgeContainer::loadChannelBttvEmotes(const QString channel) {
     bool out = false;
+    const QString normalizedChannel = channel.trimmed();
 
-    auto result = channelBttvEmotes.constFind(channel);
-    if (result != channelBttvEmotes.constEnd()) {
-        // deliver cached channel bttv emotes
-        emit channelBttvEmotesLoaded(channel, result.value());
-    }
-    else {
-        netman->getChannelBttvEmotes(channel);
-        out = true;
+    if (!normalizedChannel.isEmpty()) {
+        auto result = channelBttvEmotes.constFind(normalizedChannel);
+        if (result != channelBttvEmotes.constEnd()) {
+            // deliver cached channel bttv emotes
+            emit channelBttvEmotesLoaded(normalizedChannel, result.value());
+        }
+        else {
+            netman->getChannelBttvEmotes(normalizedChannel);
+            out = true;
+        }
     }
 
     const QString GLOBAL_EMOTES_IDENTIFIER = "GLOBAL";
-    result = channelBttvEmotes.constFind(GLOBAL_EMOTES_IDENTIFIER);
+    auto result = channelBttvEmotes.constFind(GLOBAL_EMOTES_IDENTIFIER);
     if (result != channelBttvEmotes.constEnd()) {
         emit channelBttvEmotesLoaded(GLOBAL_EMOTES_IDENTIFIER, result.value());
     }
@@ -183,18 +188,21 @@ bool BadgeContainer::loadChannelBttvEmotes(const QString channel) {
 
 bool BadgeContainer::loadChannelFfzEmotes(const QString channel) {
     bool out = false;
+    const QString normalizedChannel = channel.trimmed();
 
-    auto result = channelFfzEmotes.constFind(channel);
-    if (result != channelFfzEmotes.constEnd()) {
-        emit channelFfzEmotesLoaded(channel, result.value());
-    }
-    else {
-        netman->getChannelFfzEmotes(channel);
-        out = true;
+    if (!normalizedChannel.isEmpty()) {
+        auto result = channelFfzEmotes.constFind(normalizedChannel);
+        if (result != channelFfzEmotes.constEnd()) {
+            emit channelFfzEmotesLoaded(normalizedChannel, result.value());
+        }
+        else {
+            netman->getChannelFfzEmotes(normalizedChannel);
+            out = true;
+        }
     }
 
     const QString GLOBAL_EMOTES_IDENTIFIER = "GLOBAL";
-    result = channelFfzEmotes.constFind(GLOBAL_EMOTES_IDENTIFIER);
+    auto result = channelFfzEmotes.constFind(GLOBAL_EMOTES_IDENTIFIER);
     if (result != channelFfzEmotes.constEnd()) {
         emit channelFfzEmotesLoaded(GLOBAL_EMOTES_IDENTIFIER, result.value());
     }
@@ -229,19 +237,21 @@ bool BadgeContainer::loadChannelBitsUrls(int channel) {
 
     const int GLOBAL_BITS_IDENTIFIER = -1;
 
-    auto result = channelBitsUrls.find(channel);
-    if (result != channelBitsUrls.end()) {
-        // deliver cached channel bits URLS
-        auto colors = channelBitsColors.find(channel);
+    if (channel > 0) {
+        auto result = channelBitsUrls.find(channel);
+        if (result != channelBitsUrls.end()) {
+            // deliver cached channel bits URLS
+            auto colors = channelBitsColors.find(channel);
 
-        emit channelBitsUrlsLoaded(channel, result.value(), colors.value());
-    }
-    else {
-        netman->getChannelBitsUrls(channel);
-        out = true;
+            emit channelBitsUrlsLoaded(channel, result.value(), colors.value());
+        }
+        else {
+            netman->getChannelBitsUrls(channel);
+            out = true;
+        }
     }
 
-    result = channelBitsUrls.find(GLOBAL_BITS_IDENTIFIER);
+    auto result = channelBitsUrls.find(GLOBAL_BITS_IDENTIFIER);
     if (result != channelBitsUrls.end()) {
         // deliver cached channel bits URLS
         auto colors = channelBitsColors.find(GLOBAL_BITS_IDENTIFIER);

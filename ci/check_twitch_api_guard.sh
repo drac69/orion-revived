@@ -3,6 +3,7 @@ set -euo pipefail
 
 fail=0
 json_parser="src/util/jsonparser.cpp"
+badge_container="src/model/badgecontainer.cpp"
 channel_manager="src/model/channelmanager.cpp"
 network_manager="src/network/networkmanager.cpp"
 vod_manager="src/model/vodmanager.cpp"
@@ -17,8 +18,16 @@ get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybac
 get_user_favourites_block=$(sed -n '/void NetworkManager::getUserFavourites/,/^}/p' "$network_manager")
 get_blocked_user_list_block=$(sed -n '/void NetworkManager::getBlockedUserList/,/^}/p' "$network_manager")
 edit_user_block_block=$(sed -n '/void NetworkManager::editUserBlock(/,/^}/p' "$network_manager")
+get_channel_badges_block=$(sed -n '/void NetworkManager::getChannelBadgeUrlsBeta/,/^}/p' "$network_manager")
+get_channel_bits_block=$(sed -n '/void NetworkManager::getChannelBitsUrls/,/^}/p' "$network_manager")
+get_channel_bttv_block=$(sed -n '/void NetworkManager::getChannelBttvEmotes/,/^}/p' "$network_manager")
+get_channel_ffz_block=$(sed -n '/void NetworkManager::getChannelFfzEmotes/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
 vod_get_broadcasts_block=$(sed -n '/void VodManager::getBroadcasts/,/^}/p' "$vod_manager")
+load_channel_badges_block=$(sed -n '/bool BadgeContainer::loadChannelBetaBadgeUrls/,/^}/p' "$badge_container")
+load_channel_bits_block=$(sed -n '/bool BadgeContainer::loadChannelBitsUrls/,/^}/p' "$badge_container")
+load_channel_bttv_block=$(sed -n '/bool BadgeContainer::loadChannelBttvEmotes/,/^}/p' "$badge_container")
+load_channel_ffz_block=$(sed -n '/bool BadgeContainer::loadChannelFfzEmotes/,/^}/p' "$badge_container")
 channel_manager_search_channels_block=$(sed -n '/void ChannelManager::searchChannels/,/^}/p' "$channel_manager")
 channel_manager_search_games_block=$(sed -n '/void ChannelManager::searchGames/,/^}/p' "$channel_manager")
 add_offline_channels_block=$(sed -n '/void addOfflineChannels/,/^}/p' "$network_manager")
@@ -291,6 +300,62 @@ if ! printf '%s\n' "$edit_user_block_block" | rg -q 'const QString normalizedBlo
     || ! printf '%s\n' "$edit_user_block_block" | rg -q 'query\.addQueryItem\("login", normalizedBlockUsername\)' \
     || ! printf '%s\n' "$edit_user_block_block" | rg -q 'setAttribute\(RequestContextAttribute1, normalizedBlockUsername\)'; then
     printf 'Blocked-user edits must reject missing users/names and use normalized login names.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_channel_badges_block" | rg -q 'if \(channelID <= 0\)' \
+    || ! printf '%s\n' "$get_channel_badges_block" | rg -q 'emit getChannelBadgeBetaUrlsOperationFinished\(channelID, empty\)'; then
+    printf 'Channel badge metadata requests must reject non-positive channel IDs.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_channel_bits_block" | rg -q 'if \(channelID <= 0\)' \
+    || ! printf '%s\n' "$get_channel_bits_block" | rg -q 'emit getChannelBitsUrlsOperationFinished\(channelID, emptyUrls, emptyColors\)'; then
+    printf 'Channel Cheermote metadata requests must reject non-positive channel IDs.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'const QString normalizedChannel = channel\.trimmed\(\)' \
+    || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'if \(normalizedChannel\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'emit getChannelBttvEmotesOperationFinished\(QString\(\), empty\)' \
+    || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'QUrl::toPercentEncoding\(normalizedChannel\)'; then
+    printf 'BTTV channel emote requests must normalize and reject empty channel names.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'const QString normalizedChannel = channel\.trimmed\(\)' \
+    || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'if \(normalizedChannel\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'emit getChannelFfzEmotesOperationFinished\(QString\(\), empty\)' \
+    || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'QUrl::toPercentEncoding\(normalizedChannel\)'; then
+    printf 'FFZ channel emote requests must normalize and reject empty channel names.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$load_channel_badges_block" | rg -q 'if \(channel > 0\)' \
+    || ! printf '%s\n' "$load_channel_badges_block" | rg -q 'netman->getGlobalBadgesUrlsBeta\(\)'; then
+    printf 'BadgeContainer must skip invalid channel badge requests while still loading global badges.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$load_channel_bits_block" | rg -q 'if \(channel > 0\)' \
+    || ! printf '%s\n' "$load_channel_bits_block" | rg -q 'netman->getGlobalBitsUrls\(\)'; then
+    printf 'BadgeContainer must skip invalid channel Bits requests while still loading global Bits metadata.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$load_channel_bttv_block" | rg -q 'const QString normalizedChannel = channel\.trimmed\(\)' \
+    || ! printf '%s\n' "$load_channel_bttv_block" | rg -q 'if \(!normalizedChannel\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$load_channel_bttv_block" | rg -q 'netman->getChannelBttvEmotes\(normalizedChannel\)' \
+    || ! printf '%s\n' "$load_channel_bttv_block" | rg -q 'netman->getGlobalBttvEmotes\(\)'; then
+    printf 'BadgeContainer must normalize BTTV channel emote requests and still load global BTTV emotes.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$load_channel_ffz_block" | rg -q 'const QString normalizedChannel = channel\.trimmed\(\)' \
+    || ! printf '%s\n' "$load_channel_ffz_block" | rg -q 'if \(!normalizedChannel\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$load_channel_ffz_block" | rg -q 'netman->getChannelFfzEmotes\(normalizedChannel\)' \
+    || ! printf '%s\n' "$load_channel_ffz_block" | rg -q 'netman->getGlobalFfzEmotes\(\)'; then
+    printf 'BadgeContainer must normalize FFZ channel emote requests and still load global FFZ emotes.\n' >&2
     fail=1
 fi
 
