@@ -91,7 +91,7 @@ public:
     Q_INVOKABLE void reopenSocket();
     Q_INVOKABLE void initProviders();
     Q_INVOKABLE void hookupChannelProviders();
-    Q_INVOKABLE QString getBadgeLocalUrl(QString key);
+    Q_INVOKABLE QString getBadgeLocalUrl(QString badgeName, QString version);
 
     //# User
     QString username, userpass;

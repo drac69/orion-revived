@@ -1,9 +1,32 @@
 #include "badgeimageprovider.h"
 #include "badgecontainer.h"
 #include "settingsmanager.h"
+#include <QUrl>
+
+namespace {
+QString badgeKeyPart(const QString &value)
+{
+    return QString::fromLatin1(QUrl::toPercentEncoding(value, QByteArray(), "-"));
+}
+
+QString badgeKeyPartValue(const QString &value)
+{
+    return QUrl::fromPercentEncoding(value.toLatin1());
+}
+
+QString badgeCacheKey(const QString &channel, const QString &badge, const QString &version, const QString &imageFormat)
+{
+    return QList<QString>({ channel, badgeKeyPart(badge), badgeKeyPart(version), imageFormat }).join("-");
+}
+}
 
 BadgeImageProvider::BadgeImageProvider() : ImageProvider("badge", ".png") {
 
+}
+
+QString BadgeImageProvider::badgeKey(const QString &badgeName, const QString &version)
+{
+    return QList<QString>({ badgeKeyPart(badgeName), badgeKeyPart(version) }).join("-");
 }
 
 QString BadgeImageProvider::getCanonicalKey(QString key) {
@@ -12,17 +35,17 @@ QString BadgeImageProvider::getCanonicalKey(QString key) {
 
     const QString betaImageFormat = SettingsManager::getInstance()->hiDpi() ? "image_url_2x" : "image_url_1x";
 
-    int splitPos = key.indexOf("-");
-    if (splitPos != -1) {
-        const QString badge = key.left(splitPos);
-        const QString version = key.mid(splitPos + 1);
+    const QStringList keyParts = key.split("-");
+    if (keyParts.length() == 2) {
+        const QString badge = badgeKeyPartValue(keyParts.at(0));
+        const QString version = badgeKeyPartValue(keyParts.at(1));
         //qDebug() << "badge hunt: channel name" << _channelName << "channel id" << _channelId << "badge" << badge << "version" << version;
 
         if (BadgeContainer::getInstance()->getChannelBadgeBetaUrl(_channelId, badge, version, betaImageFormat, url)) {
-            return QList<QString>({ _channelId, badge, version, betaImageFormat }).join("-");
+            return badgeCacheKey(_channelId, badge, version, betaImageFormat);
         }
         if (BadgeContainer::getInstance()->getChannelBadgeBetaUrl("GLOBAL", badge, version, betaImageFormat, url)) {
-            return QList<QString>({ "GLOBAL", badge, version, betaImageFormat }).join("-");
+            return badgeCacheKey("GLOBAL", badge, version, betaImageFormat);
         }
     }
 
@@ -35,7 +58,9 @@ const QUrl BadgeImageProvider::getUrlForKey(QString & key) {
 
     QList<QString> parts = key.split("-");
     if (parts.length() == 4) {
-        if (BadgeContainer::getInstance()->getChannelBadgeBetaUrl(parts[0], parts[1], parts[2], parts[3], url)) {
+        const QString badge = badgeKeyPartValue(parts.at(1));
+        const QString version = badgeKeyPartValue(parts.at(2));
+        if (BadgeContainer::getInstance()->getChannelBadgeBetaUrl(parts.at(0), badge, version, parts.at(3), url)) {
             return url;
         }
     }

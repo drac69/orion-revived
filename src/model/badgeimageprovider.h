@@ -10,6 +10,7 @@ public:
     BadgeImageProvider();
     void setChannelName(QString channelName) { _channelName = channelName; }
     void setChannelId(QString channelId) { _channelId = channelId; }
+    static QString badgeKey(const QString &badgeName, const QString &version);
     QString getCanonicalKey(QString key) override;
 protected:
     const QUrl getUrlForKey(QString & key) override;

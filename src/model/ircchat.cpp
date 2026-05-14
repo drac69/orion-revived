@@ -392,15 +392,16 @@ void removeVariantListPairByFirstValue(QVariantList list, const QVariant value) 
 
 void IrcChat::makeBadgeAvailable(const QString badgeName, const QString version) {
     if (_badgeProvider) {
-        _badgeProvider->makeAvailable(badgeName + "-" + version);
+        _badgeProvider->makeAvailable(BadgeImageProvider::badgeKey(badgeName, version));
     }
     else {
         qDebug() << "can't make badge" << badgeName << version << "available because there is no _badgeProvider";
     }
 }
 
-QString IrcChat::getBadgeLocalUrl(QString key) {
+QString IrcChat::getBadgeLocalUrl(QString badgeName, QString version) {
     if (_badgeProvider) {
+        const QString key = BadgeImageProvider::badgeKey(badgeName, version);
         return _badgeProvider->getBaseUrl() + "/" + _badgeProvider->getCanonicalKey(key);
     }
     else {

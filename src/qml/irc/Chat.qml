@@ -141,8 +141,8 @@ Item {
         chat.reopenSocket()
     }
 
-    function getBadgeLocalUrl(key) {
-        return chat.getBadgeLocalUrl(key);
+    function getBadgeLocalUrl(badgeName, version) {
+        return chat.getBadgeLocalUrl(badgeName, version);
     }
 
     IrcChat {

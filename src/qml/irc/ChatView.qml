@@ -501,7 +501,7 @@ Page {
 
                     var curBadgeAdded = false;
 
-                    var badgeLocalUrl = chat.getBadgeLocalUrl(badgeName + "-" + versionStr);
+                    var badgeLocalUrl = chat.getBadgeLocalUrl(badgeName, versionStr);
 
                     var badgeSetData = lastBetaBadgeSetData[badgeName];
                     if (badgeSetData != null) {

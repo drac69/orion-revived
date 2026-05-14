@@ -5,9 +5,12 @@ fail=0
 json_parser="src/util/jsonparser.cpp"
 badge_container="src/model/badgecontainer.cpp"
 badge_container_header="src/model/badgecontainer.h"
+badge_image_provider="src/model/badgeimageprovider.cpp"
 channel_manager="src/model/channelmanager.cpp"
 channel_model="src/model/channel.h"
 channel_list_model="src/model/channellistmodel.h"
+chat_view="src/qml/irc/ChatView.qml"
+chat_qml="src/qml/irc/Chat.qml"
 game_model="src/model/game.h"
 game_list_model="src/model/gamelistmodel.h"
 irc_chat="src/model/ircchat.h"
@@ -40,6 +43,8 @@ load_channel_badges_block=$(sed -n '/bool BadgeContainer::loadChannelBetaBadgeUr
 load_channel_bits_block=$(sed -n '/bool BadgeContainer::loadChannelBitsUrls/,/^}/p' "$badge_container")
 load_channel_bttv_block=$(sed -n '/bool BadgeContainer::loadChannelBttvEmotes/,/^}/p' "$badge_container")
 load_channel_ffz_block=$(sed -n '/bool BadgeContainer::loadChannelFfzEmotes/,/^}/p' "$badge_container")
+badge_canonical_block=$(sed -n '/QString BadgeImageProvider::getCanonicalKey/,/^}/p' "$badge_image_provider")
+badge_url_block=$(sed -n '/const QUrl BadgeImageProvider::getUrlForKey/,/^}/p' "$badge_image_provider")
 channel_manager_search_channels_block=$(sed -n '/void ChannelManager::searchChannels/,/^}/p' "$channel_manager")
 channel_manager_search_games_block=$(sed -n '/void ChannelManager::searchGames/,/^}/p' "$channel_manager")
 channel_manager_on_user_updated_block=$(sed -n '/void ChannelManager::onUserUpdated/,/^}/p' "$channel_manager")
@@ -394,6 +399,25 @@ fi
 if ! printf '%s\n' "$channel_badges_reply_block" | rg -q 'request\(\)\.attribute\(QNetworkRequest::User\)\.toULongLong\(\)' \
     || printf '%s\n' "$channel_badges_reply_block" | rg -q 'lastIndexOf|startsWith\(CHANNEL_BADGES_BETA_URL_PREFIX\)'; then
     printf 'Channel badge metadata replies must use request context instead of reparsing URLs.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'static QString badgeKey\(const QString &badgeName, const QString &version\);' src/model/badgeimageprovider.h \
+    || ! rg -q 'QUrl::toPercentEncoding\(value, QByteArray\(\), "-"\)' "$badge_image_provider" \
+    || ! rg -q 'QUrl::fromPercentEncoding\(value\.toLatin1\(\)\)' "$badge_image_provider" \
+    || ! rg -q 'BadgeImageProvider::badgeKey\(badgeName, version\)' src/model/ircchat.cpp \
+    || ! rg -q 'function getBadgeLocalUrl\(badgeName, version\)' "$chat_qml" \
+    || ! rg -q 'chat\.getBadgeLocalUrl\(badgeName, version\)' "$chat_qml" \
+    || ! rg -q 'chat\.getBadgeLocalUrl\(badgeName, versionStr\)' "$chat_view"; then
+    printf 'Badge image keys must percent-encode badge/version components before joining them.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$badge_canonical_block" | rg -q 'key\.split\("-"\)' \
+    || printf '%s\n' "$badge_canonical_block" | rg -q 'key\.indexOf\("-"\)' \
+    || ! printf '%s\n' "$badge_url_block" | rg -q 'badgeKeyPartValue\(parts\.at\(1\)\)' \
+    || ! printf '%s\n' "$badge_url_block" | rg -q 'badgeKeyPartValue\(parts\.at\(2\)\)'; then
+    printf 'Badge image providers must preserve hyphenated Twitch badge set IDs.\n' >&2
     fail=1
 fi
 
