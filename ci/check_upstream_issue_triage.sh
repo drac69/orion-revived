@@ -34,3 +34,92 @@ if (( ${#missing[@]} > 0 )); then
     printf 'Upstream issue triage is missing audited issues: %s\n' "${missing[*]}" >&2
     exit 1
 fi
+
+python3 - "$triage_doc" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+triage_doc = Path(sys.argv[1])
+text = triage_doc.read_text(encoding="utf-8")
+
+required_sections = {
+    "Addressed in this fork",
+    "Partially addressed",
+    "Already covered by the final upstream code",
+    "Needs Twitch API or product support",
+    "Platform, packaging, and distribution follow-up",
+    "Administrative",
+}
+
+sections = {}
+current = None
+for line in text.splitlines():
+    match = re.match(r"^## (.+)$", line)
+    if match:
+        current = match.group(1)
+        sections[current] = []
+    elif current:
+        sections[current].append(line)
+
+errors = []
+missing_sections = sorted(required_sections - sections.keys())
+if missing_sections:
+    errors.append("Upstream issue triage is missing sections: " + ", ".join(missing_sections))
+
+def require_issues(section_name, expected_issues):
+    body = "\n".join(sections.get(section_name, []))
+    for issue in expected_issues:
+        if not re.search(rf"(^|[^0-9])#{issue}([^0-9]|$)", body):
+            errors.append(f"{section_name} must classify #{issue}")
+
+require_issues(
+    "Partially addressed",
+    {
+        74, 90, 119, 167, 202, 210, 212, 243, 271, 283, 285, 288, 300,
+    },
+)
+require_issues(
+    "Already covered by the final upstream code",
+    {
+        47, 207, 215, 217, 220, 223, 275,
+    },
+)
+require_issues(
+    "Needs Twitch API or product support",
+    {
+        224, 226, 257, 283,
+    },
+)
+require_issues(
+    "Platform, packaging, and distribution follow-up",
+    {
+        34, 42, 216, 219, 235, 239, 261, 267, 276, 277,
+    },
+)
+require_issues("Administrative", {307})
+
+api_body = "\n".join(sections.get("Needs Twitch API or product support", []))
+for required_text in (
+    "not a supported native HLS playback-token API",
+    "does not expose a supported replacement for a native viewer heartbeat",
+    "VOD replay-chat export API",
+):
+    if required_text not in api_body:
+        errors.append(f"Needs Twitch API or product support must keep blocker text: {required_text}")
+
+for required_url in (
+    "https://dev.twitch.tv/docs/api/videos",
+    "https://dev.twitch.tv/docs/api/markers/",
+    "https://dev.twitch.tv/docs/drops/",
+    "https://dev.twitch.tv/docs/embed/video-and-clips/",
+    "https://mpv.io/manual/stable/#low-latency-playback",
+):
+    if required_url not in text:
+        errors.append(f"Upstream issue triage must cite {required_url}")
+
+if errors:
+    for error in errors:
+        print(error, file=sys.stderr)
+    sys.exit(1)
+PY

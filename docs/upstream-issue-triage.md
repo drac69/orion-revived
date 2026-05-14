@@ -255,6 +255,7 @@ References:
 * <https://dev.twitch.tv/docs/api/markers/>
 * <https://dev.twitch.tv/docs/drops/>
 * <https://dev.twitch.tv/docs/drops/technical-guide/>
+* <https://dev.twitch.tv/docs/embed/video-and-clips/>
 * <https://dev.twitch.tv/docs/extensions/frontend-api-usage/>
 * <https://mpv.io/manual/stable/#low-latency-playback>
 
