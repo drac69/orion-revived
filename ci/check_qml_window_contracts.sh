@@ -21,11 +21,13 @@ do
     fi
 done
 
-menu_files=$(rg -l '\bMenu\s*\{' "$repo_dir/src/qml")
-missing_workaround=$(rg --files-without-match 'preparePopupMenu' $menu_files || true)
-if [ -n "$missing_workaround" ]; then
-    printf 'QML menu files must call rootWindow.preparePopupMenu before showing menus:\n%s\n' "$missing_workaround" >&2
-    exit 1
+mapfile -t menu_files < <(rg -l '\bMenu\s*\{' "$repo_dir/src/qml")
+if (( ${#menu_files[@]} > 0 )); then
+    missing_workaround=$(rg --files-without-match 'preparePopupMenu' "${menu_files[@]}" || true)
+    if [ -n "$missing_workaround" ]; then
+        printf 'QML menu files must call rootWindow.preparePopupMenu before showing menus:\n%s\n' "$missing_workaround" >&2
+        exit 1
+    fi
 fi
 
 if rg -q 'onContent[XY]Changed: g_tooltip\.hide\(\)' "$common_grid_qml"; then

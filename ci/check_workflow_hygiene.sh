@@ -27,6 +27,16 @@ if ! rg -q 'ci/check_patch_whitespace\.sh' "$workflow"; then
     exit 1
 fi
 
+if ! rg -q 'ci/check_shell_scripts\.sh' "$workflow"; then
+    printf 'CI workflow must run ShellCheck for maintained shell scripts.\n' >&2
+    exit 1
+fi
+
+if ! ORION_CI_APT_DRY_RUN=1 "$repo_dir/ci/install_ubuntu_ci_deps.sh" | rg -q '^shellcheck$'; then
+    printf 'CI dependency installer must include shellcheck for shell-script linting.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'ci/check_build_docs\.sh' "$workflow"; then
     printf 'CI workflow must validate source-build documentation.\n' >&2
     exit 1

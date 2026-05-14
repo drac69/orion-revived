@@ -49,6 +49,9 @@ jobs:
       - name: Validate legacy CI guard
         run: ci/check_legacy_ci_guard.sh
 
+      - name: Validate shell scripts
+        run: ci/check_shell_scripts.sh
+
       - name: Validate build documentation
         run: ci/check_build_docs.sh
 

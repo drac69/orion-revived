@@ -16,6 +16,7 @@ common_packages=(
     libsystemd-dev
     pkg-config
     ripgrep
+    shellcheck
     qt5-qmake
     qtbase5-dev
     qtdeclarative5-dev

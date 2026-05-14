@@ -11,7 +11,7 @@ check_guard_reference() {
     local lines=$3
 
     if ! head -n "$lines" "$file" | rg -q "$pattern"; then
-        printf '%s must call the legacy CI guard before doing work\n' "${file#$repo_dir/}" >&2
+        printf '%s must call the legacy CI guard before doing work\n' "${file#"$repo_dir"/}" >&2
         fail=1
     fi
 }
