@@ -100,7 +100,11 @@ The upstream repository is archived and had 79 open issues at the time this fork
   configuration; CI now guards the lock-path helper, startup warning, and
   bounded network-probe abort path.
 * #236: Ubuntu/Linux Mint build instructions include `libmpv-dev` for the `mpv/client.h` header and `qml-module-qt-labs-settings` for Orion's Qt Labs Settings imports; CI guards the documented Ubuntu QML runtime dependency list and the README points users to `orion --debug` when a build starts without showing a window.
-* #45: Windows desktop notifications are wired through the in-app QML notification surface again, with settings for notification corner and target screen so multi-monitor users can choose where alerts appear.
+* #45: Windows desktop notifications are wired through the in-app QML
+  notification surface again, with settings for notification corner and target
+  screen so multi-monitor users can choose where alerts appear; CI now guards
+  the QML notification surface, selected-screen geometry, corner positioning,
+  and persisted options controls.
 * #240: Helix stream and channel language fields are parsed and shown in stream details, authenticated searches support `/language <code>` using Helix `Get Streams`, `/game <name> /language <code>` combines game and language filtering, and the Games view includes a stream-language selector.
 * #268: Twitch `USERNOTICE` raid messages append a channel URL from the raid `msg-param-login` tag, chat system notices render URLs as selectable/clickable links, and an opt-in setting can automatically follow live raids in the player.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable; playback startup now retries short-lived stalls and shows a header error instead of leaving only the spinner when no playable quality or URL is available, and network/API failures include HTTP status plus structured response messages in logs and the UI error footer when Twitch provides them.
