@@ -14,6 +14,7 @@ manifest_path = repo / "android" / "AndroidManifest.xml"
 project_path = repo / "orion.pro"
 main_activity_path = repo / "android" / "src" / "com" / "orion" / "MainActivity.java"
 views_path = repo / "src" / "qml" / "Views.qml"
+prepare_android_path = repo / "ci" / "prepare_android.sh"
 
 errors = []
 
@@ -87,6 +88,15 @@ if root is not None:
 
 if "ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android" not in project:
     errors.append("orion.pro must keep ANDROID_PACKAGE_SOURCE_DIR pointed at $$PWD/android")
+
+prepare_android = prepare_android_path.read_text(encoding="utf-8")
+if "ORION_ANDROID_OPENSSL_LIBS_DIR" not in prepare_android:
+    errors.append("prepare_android.sh must accept caller-supplied Android OpenSSL libraries")
+if re.search(r"https?://.*lib(?:crypto|ssl)\\.so", prepare_android):
+    errors.append("prepare_android.sh must not download prebuilt Android OpenSSL shared libraries")
+for openssl_lib in ("libcrypto.so", "libssl.so"):
+    if openssl_lib not in prepare_android:
+        errors.append(f"prepare_android.sh must still document optional {openssl_lib} staging")
 
 main_activity = main_activity_path.read_text(encoding="utf-8")
 if "FLAG_KEEP_SCREEN_ON" not in main_activity:

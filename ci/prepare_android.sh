@@ -25,8 +25,16 @@ echo "install android sdk, ndk."
 ./install-android-sdk $PACKAGES > /dev/null
 
 mkdir -p $TRAVIS_BUILD_DIR/libs
-wget -nv -c https://github.com/ph4r05/android-openssl/blob/master/jni/openssl/arch-armeabi-v7a/lib/libcrypto.so?raw=true -O $TRAVIS_BUILD_DIR/libs/libcrypto.so
-wget -nv -c https://github.com/ph4r05/android-openssl/blob/master/jni/openssl/arch-armeabi-v7a/lib/libssl.so?raw=true -O $TRAVIS_BUILD_DIR/libs/libssl.so
+if [[ -n "${ORION_ANDROID_OPENSSL_LIBS_DIR:-}" ]]; then
+    if [[ ! -f "$ORION_ANDROID_OPENSSL_LIBS_DIR/libcrypto.so" || ! -f "$ORION_ANDROID_OPENSSL_LIBS_DIR/libssl.so" ]]; then
+        printf 'ORION_ANDROID_OPENSSL_LIBS_DIR must contain libcrypto.so and libssl.so.\n' >&2
+        exit 1
+    fi
+    cp "$ORION_ANDROID_OPENSSL_LIBS_DIR/libcrypto.so" "$TRAVIS_BUILD_DIR/libs/libcrypto.so"
+    cp "$ORION_ANDROID_OPENSSL_LIBS_DIR/libssl.so" "$TRAVIS_BUILD_DIR/libs/libssl.so"
+else
+    printf 'No Android OpenSSL libraries were supplied; Qt Android deployment must provide HTTPS support.\n'
+fi
 
 cat << EOM > $BASE_DIR/ci/android.env
 export QTDIR=$HOME/Qt/5.10.1/android_armv7
