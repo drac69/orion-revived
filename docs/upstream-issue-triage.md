@@ -1,6 +1,6 @@
 # Upstream Issue Triage
 
-Audit date: 2026-05-13
+Audit date: 2026-05-14
 
 Upstream repository: <https://github.com/alamminsalo/orion>
 
