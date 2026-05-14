@@ -33,24 +33,48 @@ Item {
         property var images: []
 
         function updateImage() {
-            index = Math.min(count - 1, Math.round((value - root.from) / (root.to - root.from) * count))
+            if (count <= 0 || isNaN(root.from) || isNaN(root.to) || root.to <= root.from) {
+                index = 0
+                return
+            }
+
+            index = Math.max(0, Math.min(count - 1, Math.round((value - root.from) / (root.to - root.from) * count)))
         }
 
-        function updateInfo() {
+        function resetInfo() {
+            baseUrl = ""
+            index = 0
             duration = 0
             width = 0
             height = 0
+            rows = 0
+            cols = 0
             count = 0
             images = []
-            if (!source) return
-            baseUrl = source.substring(0, source.lastIndexOf("/"))
-            Util.requestJSON(Util.withImageReloadToken(root.source, Network.imageReloadToken), function(resp) {
+        }
+
+        function updateInfo() {
+            resetInfo()
+            if (!root.source) return
+            var requestedSource = root.source
+            var requestedBaseUrl = requestedSource.substring(0, requestedSource.lastIndexOf("/"))
+            Util.requestJSON(Util.withImageReloadToken(requestedSource, Network.imageReloadToken), function(resp) {
+                if (requestedSource !== root.source || !resp || resp.length <= 0) {
+                    return
+                }
+
                 var info = resp[0]
                 for(var i = 1; i < resp.length; i++) {
                     if (resp[i].width > info.width) {
                         info = resp[i]
                     }
                 }
+                if (!info || !info.count || !info.interval || !info.width || !info.height
+                        || !info.rows || !info.cols || !info.images || info.images.length <= 0) {
+                    return
+                }
+
+                baseUrl = requestedBaseUrl
                 duration = info.count * info.interval
                 width = info.width
                 height = info.height

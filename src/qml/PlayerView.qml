@@ -557,6 +557,10 @@ Page {
         return description;
     }
 
+    function currentSeekPreviewSource() {
+        return currentChannel && currentChannel.seekPreviews ? currentChannel.seekPreviews : ""
+    }
+
     function setWatchingTitle() {
         setHeaderText(getWatchingTitle());
         updateMprisMetadata();
@@ -673,7 +677,7 @@ Page {
             }
             chatdrawer.chat.playerPositionUpdate(newPos);
             if (root.isVod) {
-                if (Math.abs(newPos - root.lastSetPosition) > 10) {
+                if (root.currentChannel && root.curVodId && Math.abs(newPos - root.lastSetPosition) > 10) {
                     root.lastSetPosition = newPos;
                     VodManager.setVodLastPlaybackPosition(root.currentChannel.name, root.curVodId, newPos);
                 }
@@ -922,7 +926,7 @@ Page {
             }
             Connections {
                 target: root
-                onCurrentChannelChanged: preview.source = currentChannel.seekPreviews
+                onCurrentChannelChanged: preview.source = currentSeekPreviewSource()
                 onDurationChanged: preview.to = duration
             }
         }
@@ -1362,7 +1366,7 @@ Page {
                         }
                         Connections {
                             target: root
-                            onCurrentChannelChanged: seekPreview.source = currentChannel.seekPreviews
+                            onCurrentChannelChanged: seekPreview.source = currentSeekPreviewSource()
                             onDurationChanged: seekPreview.to = duration
                         }
 

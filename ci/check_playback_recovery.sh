@@ -4,6 +4,7 @@ set -euo pipefail
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 player_view="$repo_dir/src/qml/PlayerView.qml"
 status_changed_block=$(sed -n '/onStatusChanged:/,/^        }/p' "$player_view")
+seek_preview="$repo_dir/src/qml/components/SeekPreview.qml"
 multimedia_backend="$repo_dir/src/qml/MultimediaBackend.qml"
 qtav_backend="$repo_dir/src/qml/QtAVBackend.qml"
 mpv_backend="$repo_dir/src/qml/MpvBackend.qml"
@@ -34,6 +35,37 @@ if ! rg -q 'unexpectedStopRecoveryTimer' "$player_view"; then
     printf 'PlayerView must retain unexpected STOPPED-state recovery.\n' >&2
     exit 1
 fi
+
+for required in \
+    'function currentSeekPreviewSource()' \
+    'return currentChannel && currentChannel.seekPreviews ? currentChannel.seekPreviews : ""' \
+    'onCurrentChannelChanged: preview.source = currentSeekPreviewSource()' \
+    'onCurrentChannelChanged: seekPreview.source = currentSeekPreviewSource()' \
+    'root.currentChannel && root.curVodId && Math.abs'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must guard VOD seek-preview and position-save state: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if rg -q 'onCurrentChannelChanged: .*currentChannel\.seekPreviews' "$player_view"; then
+    printf 'PlayerView must not dereference currentChannel.seekPreviews directly from seek-preview handlers.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'function resetInfo()' \
+    'if (count <= 0 || isNaN(root.from) || isNaN(root.to) || root.to <= root.from)' \
+    'var requestedSource = root.source' \
+    'if (requestedSource !== root.source || !resp || resp.length <= 0)' \
+    'if (!info || !info.count || !info.interval || !info.width || !info.height'
+do
+    if ! rg -q -F "$required" "$seek_preview"; then
+        printf 'SeekPreview must ignore stale or malformed preview metadata: %s\n' "$required" >&2
+        exit 1
+    fi
+done
 
 if ! rg -q 'function showPlaybackError' "$player_view"; then
     printf 'PlayerView must centralize playback error handling.\n' >&2
