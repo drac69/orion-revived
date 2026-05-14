@@ -1411,12 +1411,16 @@ void addOfflineChannels(QList<Channel *> & channels, const QList<quint64> & expe
 
         const QList<Channel *> &knownChannels = channels;
         for (const Channel *channel : knownChannels) {
-            unseenChannelIds.remove(channel->getId());
+            if (channel && channel->getId() != 0) {
+                unseenChannelIds.remove(channel->getId());
+            }
         }
 
         const QSet<quint64> &missingChannelIds = unseenChannelIds;
         for (const quint64 id : missingChannelIds) {
-            channels.append(new Channel(id));
+            if (id != 0) {
+                channels.append(new Channel(id));
+            }
         }
     }
 }
@@ -1425,7 +1429,11 @@ template <class U>
 void addULongLongStringList(U & modify, const QStringList & newItems) {
     modify.reserve(modify.length() + newItems.length());
     for (const QString & s : newItems) {
-        modify.append(s.toULongLong());
+        bool ok = false;
+        const quint64 value = s.toULongLong(&ok);
+        if (ok && value != 0) {
+            modify.append(value);
+        }
     }
 }
 

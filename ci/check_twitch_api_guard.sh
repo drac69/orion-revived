@@ -3,6 +3,9 @@ set -euo pipefail
 
 fail=0
 json_parser="src/util/jsonparser.cpp"
+network_manager="src/network/networkmanager.cpp"
+add_offline_channels_block=$(sed -n '/void addOfflineChannels/,/^}/p' "$network_manager")
+add_ulong_list_block=$(sed -n '/void addULongLongStringList/,/^}/p' "$network_manager")
 
 check_absent() {
     local label="$1"
@@ -148,5 +151,18 @@ for required_mpv_low_latency_token in 'profile-restore' 'apply-profile' 'low-lat
         fail=1
     fi
 done
+
+if ! printf '%s\n' "$add_offline_channels_block" | rg -q 'channel && channel->getId\(\) != 0' \
+    || ! printf '%s\n' "$add_offline_channels_block" | rg -q 'if \(id != 0\)'; then
+    printf 'Offline stream reconciliation must ignore null channels and zero channel ids.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$add_ulong_list_block" | rg -q 'bool ok = false' \
+    || ! printf '%s\n' "$add_ulong_list_block" | rg -q 's\.toULongLong\(&ok\)' \
+    || ! printf '%s\n' "$add_ulong_list_block" | rg -q 'ok && value != 0'; then
+    printf 'Stream query id extraction must reject malformed or zero channel ids.\n' >&2
+    fail=1
+fi
 
 exit "$fail"

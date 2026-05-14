@@ -391,7 +391,7 @@ void ChannelManager::addSearchResults(const QList<Channel*> &list, const int tot
     validChannels.reserve(list.size());
 
     for (Channel *channel : list) {
-        if (!channel) {
+        if (!channel || !channel->getId()) {
             continue;
         }
 
@@ -425,7 +425,7 @@ void ChannelManager::updateFavourites(const QList<Channel*> &list)
     validChannels.reserve(list.size());
 
     for (Channel *c : list) {
-        if (!c) {
+        if (!c || !c->getId()) {
             continue;
         }
 
@@ -544,7 +544,7 @@ void ChannelManager::addFollowedResults(const QList<Channel *> &list, const quin
     validChannels.reserve(list.size());
 
     for (Channel *c : list) {
-        if (!c) {
+        if (!c || !c->getId()) {
             continue;
         }
 

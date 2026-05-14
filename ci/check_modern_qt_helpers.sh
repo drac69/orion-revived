@@ -146,10 +146,11 @@ if ! printf '%s\n' "$channel_manager_check_streams_block" | rg -q 'validChannels
     exit 1
 fi
 
-if ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'validChannels\.append\(channel\)' \
+if ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q '!channel \|\| !channel->getId\(\)' \
+    || ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'validChannels\.append\(channel\)' \
     || ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'resultsModel->addAll\(validChannels\)' \
     || ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'checkStreams\(validChannels\)'; then
-    printf 'ChannelManager::addSearchResults must filter null channel results before model updates and stream checks.\n' >&2
+    printf 'ChannelManager::addSearchResults must filter null or id-less channel results before model updates and stream checks.\n' >&2
     exit 1
 fi
 
@@ -158,9 +159,10 @@ if ! printf '%s\n' "$channel_manager_channel_ids_block" | rg -q 'if \(channel\)'
     exit 1
 fi
 
-if ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q 'validChannels\.append\(c\)' \
+if ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q '!c \|\| !c->getId\(\)' \
+    || ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q 'validChannels\.append\(c\)' \
     || ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q 'favouritesModel->updateChannels\(validChannels\)'; then
-    printf 'ChannelManager::updateFavourites must filter null channel pointers before updating favourites.\n' >&2
+    printf 'ChannelManager::updateFavourites must filter null or id-less channel pointers before updating favourites.\n' >&2
     exit 1
 fi
 
@@ -170,10 +172,11 @@ if ! printf '%s\n' "$channel_manager_notify_multiple_block" | rg -q 'if \(!c\)' 
     exit 1
 fi
 
-if ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q 'validChannels\.append\(c\)' \
+if ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q '!c \|\| !c->getId\(\)' \
+    || ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q 'validChannels\.append\(c\)' \
     || ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q 'favouritesModel->mergeAll\(validChannels\)' \
     || ! printf '%s\n' "$channel_manager_add_followed_results_block" | rg -q 'checkStreams\(validChannels\)'; then
-    printf 'ChannelManager::addFollowedResults must filter null followed-channel results before model updates and stream checks.\n' >&2
+    printf 'ChannelManager::addFollowedResults must filter null or id-less followed-channel results before model updates and stream checks.\n' >&2
     exit 1
 fi
 
