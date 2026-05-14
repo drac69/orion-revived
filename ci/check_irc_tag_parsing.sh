@@ -85,6 +85,17 @@ if ! rg -q 'tag\.key == "ban-reason"' "$irc_chat" \
     exit 1
 fi
 
+if ! rg -Fq 'badgesStr.split(",", Qt::SkipEmptyParts)' "$irc_chat" \
+    || ! rg -q 'splitPos <= 0 \|\| splitPos == badgeStr\.length\(\) - 1' "$irc_chat"; then
+    printf 'IRC badge parsing must skip empty and malformed badge/version entries.\n' >&2
+    exit 1
+fi
+
+if rg -q 'getParamValue' "$irc_chat" "$repo_dir/src/model/ircchat.h"; then
+    printf 'Obsolete IRC parameter substring parsing helper must not remain.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'ci/check_irc_tag_parsing\.sh' "$workflow"; then
     printf 'CI workflow must run the IRC tag parsing guard.\n' >&2
     exit 1

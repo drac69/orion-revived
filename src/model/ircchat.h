@@ -207,7 +207,6 @@ private:
     QMap<int, QPair<int, QString>> parseEmotesTag(const QString emotes);
     void createMessageList(const QMap<int, QPair<int, QString>> & emotePositionsMap, QString bitsNumber, QVariantList & messageList, const QString message);
     void addWordSplit(const QString & s, const QChar & sep, QVariantList & l);
-    QString getParamValue(QString params, QString param);
     QSslSocket *sock;
     QString room;
     QString roomChannelId;

@@ -703,9 +703,11 @@ public:
 
 QList<QPair<QString, QString>> parseBadges(const QString badgesStr) {
     QList<QPair<QString, QString>> badges;
-    for (const QString &badgeStr : badgesStr.split(",")) {
+    for (const QString &badgeStr : badgesStr.split(",", Qt::SkipEmptyParts)) {
         int splitPos = badgeStr.indexOf('/');
-        if (splitPos == -1) continue;
+        if (splitPos <= 0 || splitPos == badgeStr.length() - 1) {
+            continue;
+        }
         badges.append(QPair<QString, QString>(badgeStr.left(splitPos), badgeStr.mid(splitPos + 1)));
     }
     return badges;
@@ -1390,12 +1392,6 @@ void IrcChat::parseCommand(QString cmd) {
     }
 
     qDebug() << "Unrecognized chat command:" << cmd;
-}
-
-QString IrcChat::getParamValue(QString params, QString param) {
-    QString paramValue = params.remove(0, params.indexOf(param + "="));
-    paramValue = paramValue.left(paramValue.indexOf(';')).remove(0, paramValue.indexOf('=') + 1);
-    return paramValue;
 }
 
 QStringList IrcChat::emoteSetIDs() {
