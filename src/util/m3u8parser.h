@@ -91,6 +91,33 @@ namespace m3u8 {
         return streamName;
     }
 
+    static QString streamNameFromResolution(const QString &resolution, const QString &frameRate)
+    {
+        const int separator = resolution.indexOf('x');
+        if (separator <= 0 || separator == resolution.length() - 1) {
+            return QString();
+        }
+
+        bool heightOk = false;
+        const int height = resolution.mid(separator + 1).toInt(&heightOk);
+        if (!heightOk || height <= 0) {
+            return QString();
+        }
+
+        QString streamName = QStringLiteral("%1p").arg(height);
+
+        bool frameRateOk = false;
+        const double frameRateValue = frameRate.toDouble(&frameRateOk);
+        if (frameRateOk) {
+            const int roundedFrameRate = static_cast<int>(frameRateValue + 0.5);
+            if (roundedFrameRate > 30) {
+                streamName += QString::number(roundedFrameRate);
+            }
+        }
+
+        return streamName;
+    }
+
     static QVariantMap getUrls(const QByteArray &data)
     {
         QVariantMap streams;
@@ -103,6 +130,10 @@ namespace m3u8 {
                 streamName = normalizeStreamName(attributeValue(str, QStringLiteral("VIDEO")));
                 if (streamName.isEmpty()) {
                     streamName = normalizeStreamName(attributeValue(str, QStringLiteral("NAME")));
+                }
+                if (streamName.isEmpty()) {
+                    streamName = streamNameFromResolution(attributeValue(str, QStringLiteral("RESOLUTION")),
+                                                          attributeValue(str, QStringLiteral("FRAME-RATE")));
                 }
             }
             else if (!streamName.isEmpty()

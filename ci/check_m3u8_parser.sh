@@ -34,7 +34,9 @@ int main()
         "#EXT-X-STREAM-INF:BANDWIDTH=160000,NAME=\"Audio Only\"\n"
         "https://example.test/audio.m3u8\n"
         "#EXT-X-STREAM-INF:BANDWIDTH=1200000,NAME=\"480p30\"\n"
-        "https://example.test/480.m3u8\n";
+        "https://example.test/480.m3u8\n"
+        "#EXT-X-STREAM-INF:BANDWIDTH=6000000,RESOLUTION=1920x1080,FRAME-RATE=59.940\n"
+        "https://example.test/resolution-1080.m3u8\n";
 
     const QVariantMap streams = m3u8::getUrls(playlist);
 
@@ -43,6 +45,7 @@ int main()
     ok = requireUrl(streams, QStringLiteral("720p60"), QStringLiteral("https://example.test/720.m3u8")) && ok;
     ok = requireUrl(streams, QStringLiteral("audio_only"), QStringLiteral("https://example.test/audio.m3u8")) && ok;
     ok = requireUrl(streams, QStringLiteral("480p30"), QStringLiteral("https://example.test/480.m3u8")) && ok;
+    ok = requireUrl(streams, QStringLiteral("1080p60"), QStringLiteral("https://example.test/resolution-1080.m3u8")) && ok;
 
     if (streams.contains(QStringLiteral("chunked"))) {
         qWarning() << "chunked quality was not normalized to source";

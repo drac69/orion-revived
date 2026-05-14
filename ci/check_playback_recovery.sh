@@ -12,6 +12,7 @@ mpv_backend="$repo_dir/src/qml/MpvBackend.qml"
 mpv_object_header="$repo_dir/src/player/mpvobject.h"
 mpv_object_source="$repo_dir/src/player/mpvobject.cpp"
 mpv_qt_helper="$repo_dir/src/player/qthelper.hpp"
+m3u8_parser="$repo_dir/src/util/m3u8parser.h"
 vod_manager="$repo_dir/src/model/vodmanager.cpp"
 settings_manager="$repo_dir/src/model/settingsmanager.cpp"
 network_manager="$repo_dir/src/network/networkmanager.cpp"
@@ -246,6 +247,18 @@ if ! rg -q 'syncSettings\("remember channel quality"\)' "$settings_manager"; the
     printf 'SettingsManager must immediately sync the per-channel quality memory toggle.\n' >&2
     exit 1
 fi
+
+for required in \
+    'static QString streamNameFromResolution' \
+    'attributeValue(str, QStringLiteral("RESOLUTION"))' \
+    'attributeValue(str, QStringLiteral("FRAME-RATE"))' \
+    'streamName += QString::number(roundedFrameRate)'
+do
+    if ! rg -q -F "$required" "$m3u8_parser"; then
+        printf 'M3U8 parser must derive quality names from RESOLUTION/FRAME-RATE when VIDEO/NAME are absent: %s\n' "$required" >&2
+        exit 1
+    fi
+done
 
 if ! printf '%s\n' "$test_connection_reply_block" | rg -q 'if \(!reply\)'; then
     printf 'Network connection test replies must guard missing reply senders.\n' >&2
