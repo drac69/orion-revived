@@ -150,6 +150,54 @@ if ! printf '%s\n' "$click_timer_block" | rg -q -F 'onTriggered: {' \
 fi
 
 for required in \
+    'Q_PROPERTY(bool audioCompressor READ audioCompressor WRITE setAudioCompressor NOTIFY audioCompressorChanged)' \
+    'bool mAudioCompressor = false;' \
+    'void setAudioCompressor(bool audioCompressor)' \
+    'void audioCompressorChanged()'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose the mpv audio-compressor preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setAudioCompressor(settings.value("audioCompressor", mAudioCompressor).toBool())' \
+    'settings.setValue("audioCompressor", audioCompressor)' \
+    'emit audioCompressorChanged()'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist the mpv audio-compressor preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: "Audio compressor"' \
+    'visible: Settings.backend === "mpv"' \
+    'checked: Settings.audioCompressor' \
+    'onClicked: Settings.audioCompressor = checked'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must expose the audio-compressor toggle only for mpv builds: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'function audioCompressorFilter()' \
+    'acompressor=threshold=0.125:ratio=4:attack=5:release=80:makeup=2' \
+    'renderer.setProperty("af", Settings.audioCompressor ? audioCompressorFilter() : "")' \
+    'updateAudioFilters()' \
+    'onAudioCompressorChanged: updateAudioFilters()'
+do
+    if ! rg -q -F "$required" "$mpv_backend"; then
+        printf 'MpvBackend must apply or clear the configured audio-compressor filter: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
     'function currentSeekPreviewSource()' \
     'return currentChannel && currentChannel.seekPreviews ? currentChannel.seekPreviews : ""' \
     'onCurrentChannelChanged: preview.source = currentSeekPreviewSource()' \
