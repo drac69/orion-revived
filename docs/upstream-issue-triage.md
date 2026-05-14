@@ -73,9 +73,13 @@ These issues remained open upstream but the final `master` code already contains
 
 * #207: setting to disable click-video-to-pause; CI now guards the persisted
   setting, options toggle, desktop-only click handler, and playback timer link.
-* #223: UI/text scaling and font selection settings.
+* #223: UI/text scaling and font selection settings; CI now guards persisted
+  text scaling, chat input/message/emote scaling, installed-font selection, and
+  reset-to-bundled-default behavior.
 * #220: VOD timestamp/position display is present in the player controls.
-* #217: chat background opacity is configurable in the chat settings.
+* #217: chat background opacity is configurable in the chat settings; CI now
+  guards the persisted opacity range, options slider, and ChatView background
+  binding.
 * #215: VOD seek/open paths no longer emit duplicate online notifications in the current channel model update flow.
 * #275: Linux `make install` target in `orion.pro`; CI now stages and validates the installed binary, AppStream metadata, desktop entry, and icon paths.
 * #47: later upstream Windows builds resolved the reported no-content/SSL packaging failure path according to the reporter's 1.6.0-beta retest; this fork does not publish revalidated Windows installers yet, but the README now documents the empty-tabs/connection-error symptom and SSL DLL architecture check for older or local Windows packages, the qmake Windows packaging now stages discovered modern `libssl*.dll` / `libcrypto*.dll` files while preserving old OpenSSL 1.0 DLL-name compatibility, and the guarded legacy Windows OpenSSL helper no longer downloads obsolete OpenSSL 1.0.x or NASM installers.
