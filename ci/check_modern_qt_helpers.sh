@@ -11,7 +11,10 @@ vod_find_block=$(sed -n '/Vod \*VodListModel::find/,/^}/p' "$repo_dir/src/model/
 channel_add_block=$(sed -n '/void ChannelListModel::addChannel/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
 channel_update_stream_block=$(sed -n '/bool ChannelListModel::updateStream/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
 channel_manager_check_streams_block=$(sed -n '/void ChannelManager::checkStreams/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_channel_ids_block=$(sed -n '/QString commaSeparatedChannelIds/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 channel_manager_add_search_results_block=$(sed -n '/void ChannelManager::addSearchResults/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_update_favourites_block=$(sed -n '/void ChannelManager::updateFavourites/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_notify_multiple_block=$(sed -n '/void ChannelManager::notifyMultipleChannelsOnline/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 channel_manager_add_followed_results_block=$(sed -n '/void ChannelManager::addFollowedResults/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 vod_add_all_block=$(sed -n '/void VodListModel::addAll/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
 vod_merge_page_block=$(sed -n '/void VodListModel::mergePage/,/^}/p' "$repo_dir/src/model/vodlistmodel.cpp")
@@ -147,6 +150,23 @@ if ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'validCha
     || ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'resultsModel->addAll\(validChannels\)' \
     || ! printf '%s\n' "$channel_manager_add_search_results_block" | rg -q 'checkStreams\(validChannels\)'; then
     printf 'ChannelManager::addSearchResults must filter null channel results before model updates and stream checks.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_manager_channel_ids_block" | rg -q 'if \(channel\)'; then
+    printf 'Channel ID formatting must skip null channel pointers.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q 'validChannels\.append\(c\)' \
+    || ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q 'favouritesModel->updateChannels\(validChannels\)'; then
+    printf 'ChannelManager::updateFavourites must filter null channel pointers before updating favourites.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$channel_manager_notify_multiple_block" | rg -q 'if \(!c\)' \
+    || ! printf '%s\n' "$channel_manager_notify_multiple_block" | rg -q '!str\.isEmpty\(\)'; then
+    printf 'ChannelManager::notifyMultipleChannelsOnline must skip null channels and avoid empty notifications.\n' >&2
     exit 1
 fi
 

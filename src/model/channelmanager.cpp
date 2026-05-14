@@ -296,7 +296,9 @@ void ChannelManager::removeFromFavourites(const quint32 &id){
 QString commaSeparatedChannelIds(const QList<Channel *> & channels) {
     QStringList channelIdStrs;
     for (Channel *channel : channels) {
-        channelIdStrs.append(QString::number(channel->getId()));
+        if (channel) {
+            channelIdStrs.append(QString::number(channel->getId()));
+        }
     }
     return channelIdStrs.join(',');
 }
@@ -419,11 +421,19 @@ void ChannelManager::findPlaybackStream(const QString &serviceName)
 
 void ChannelManager::updateFavourites(const QList<Channel*> &list)
 {
+    QList<Channel*> validChannels;
+    validChannels.reserve(list.size());
+
     for (Channel *c : list) {
+        if (!c) {
+            continue;
+        }
+
+        validChannels.append(c);
         c->setFavourite(true);
     }
 
-    favouritesModel->updateChannels(list);
+    favouritesModel->updateChannels(validChannels);
     qDeleteAll(list);
 }
 
@@ -482,6 +492,9 @@ void ChannelManager::notifyMultipleChannelsOnline(const QList<Channel*> &channel
         QString str;
 
         for (Channel *c : channels) {
+            if (!c) {
+                continue;
+            }
 
             //Omit channels after enough characters in message body
             if (str.size() > 80) {
@@ -493,7 +506,9 @@ void ChannelManager::notifyMultipleChannelsOnline(const QList<Channel*> &channel
             str.append(c->getName());
         }
 
-        emit pushNotification("Channels are streaming", str, DEFAULT_LOGO_URL);
+        if (!str.isEmpty()) {
+            emit pushNotification("Channels are streaming", str, DEFAULT_LOGO_URL);
+        }
     }
 }
 
