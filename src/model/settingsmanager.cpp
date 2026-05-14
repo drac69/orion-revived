@@ -9,6 +9,7 @@
 #include <QProcess>
 #include <QScreen>
 #include <QStandardPaths>
+#include <QVersionNumber>
 
 #ifdef Q_OS_WIN
 #ifndef NOMINMAX
@@ -60,6 +61,15 @@ QString windowsTouchKeyboardPath()
     return QStandardPaths::findExecutable(QStringLiteral("osk.exe"));
 }
 #endif
+
+QVersionNumber semanticVersionFromString(QString version)
+{
+    version = version.trimmed();
+    if (version.startsWith(QLatin1Char('v'), Qt::CaseInsensitive)) {
+        version = version.mid(1);
+    }
+    return QVersionNumber::fromString(version);
+}
 }
 
 SettingsManager::SettingsManager(QObject *parent) :
@@ -702,10 +712,11 @@ QStringList SettingsManager::screenNames() const
     return names;
 }
 
-#include <QVersionNumber>
 bool SettingsManager::isNewerVersion(QString version) const
 {
-    return QVersionNumber::fromString(version.replace('v',"")) > QVersionNumber::fromString(QString(APP_VERSION).replace('v', ""));
+    const QVersionNumber candidate = semanticVersionFromString(version);
+    const QVersionNumber current = semanticVersionFromString(QStringLiteral(APP_VERSION));
+    return !candidate.isNull() && !current.isNull() && candidate > current;
 }
 
 QString SettingsManager::font() const

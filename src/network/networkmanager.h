@@ -67,6 +67,7 @@ class NetworkManager: public QObject
     void addHelixHeaders(QNetworkRequest &request, HelixAuthMode mode = HelixAuthMode::UserOrApp) const;
     void requestAppAccessToken();
     void validateAccessToken();
+    void checkVersionTags();
 
     static NetworkManager *singleton;
 

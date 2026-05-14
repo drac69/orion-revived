@@ -18,6 +18,7 @@
 #include <QRandomGenerator>
 #include <QStringList>
 #include <QUrlQuery>
+#include <QVersionNumber>
 
 namespace {
 QString playlistNonce()
@@ -82,6 +83,45 @@ QString stringIdFromJson(const QJsonValue &value)
     }
 
     return QString();
+}
+
+QString normalizedVersionNumberText(QString value)
+{
+    value = value.trimmed();
+    if (value.startsWith(QLatin1Char('v'), Qt::CaseInsensitive)) {
+        value = value.mid(1);
+    }
+
+    if (value.isEmpty() || value.startsWith(QLatin1Char('.'))
+            || value.endsWith(QLatin1Char('.')) || value.contains(QStringLiteral(".."))) {
+        return QString();
+    }
+
+    for (const QChar &character : value) {
+        if (!character.isDigit() && character != QLatin1Char('.')) {
+            return QString();
+        }
+    }
+
+    return value;
+}
+
+void updateVersionCandidate(const QString &tag, QString &version, QVersionNumber &latest)
+{
+    const QString normalized = normalizedVersionNumberText(tag);
+    if (normalized.isEmpty()) {
+        return;
+    }
+
+    const QVersionNumber candidate = QVersionNumber::fromString(normalized);
+    if (candidate.isNull()) {
+        return;
+    }
+
+    if (version.isEmpty() || candidate > latest) {
+        version = tag;
+        latest = candidate;
+    }
 }
 }
 
@@ -1091,9 +1131,20 @@ QPair<QString,QString> JsonParser::parseVersion(const QByteArray &data)
     QString url;
 
     if (error.error == QJsonParseError::NoError) {
-        QJsonObject json = doc.object();
-        version = json["name"].toString();
-        url = json["html_url"].toString();
+        if (doc.isObject()) {
+            const QJsonObject json = doc.object();
+            version = json["tag_name"].toString().trimmed();
+            if (version.isEmpty()) {
+                version = json["name"].toString().trimmed();
+            }
+            url = json["html_url"].toString().trimmed();
+        } else if (doc.isArray()) {
+            QVersionNumber latest;
+            const QJsonArray tags = doc.array();
+            for (const QJsonValue &tagValue : tags) {
+                updateVersionCandidate(tagValue.toObject()["name"].toString().trimmed(), version, latest);
+            }
+        }
     }
 
     return qMakePair<QString,QString>(version, url);

@@ -30,6 +30,21 @@ constexpr auto RequestContextAttribute1 = static_cast<QNetworkRequest::Attribute
 constexpr auto RequestContextAttribute2 = static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 2);
 constexpr auto RequestContextAttribute3 = static_cast<QNetworkRequest::Attribute>(QNetworkRequest::User + 3);
 
+QNetworkRequest githubVersionRequest(const QUrl &url)
+{
+    QNetworkRequest req;
+    req.setRawHeader("User-Agent", "Orion");
+    req.setRawHeader("Accept", "application/vnd.github.v3+json");
+    req.setUrl(url);
+    return req;
+}
+
+QString githubTagUrl(const QString &tag)
+{
+    return QStringLiteral("https://github.com/belagrf/orion/tree/%1")
+            .arg(QString::fromLatin1(QUrl::toPercentEncoding(tag)));
+}
+
 }
 
 NetworkManager *NetworkManager::singleton = nullptr;
@@ -256,14 +271,52 @@ void NetworkManager::testConnectionReply()
 
 void NetworkManager::checkVersion()
 {
-    QNetworkRequest req;
-    req.setRawHeader("User-Agent", "Orion");
-    req.setRawHeader("Accept", "application/vnd.github.v3+json");
-    req.setUrl(QUrl("https://api.github.com/repos/belagrf/orion/releases/latest"));
+    QNetworkRequest req = githubVersionRequest(
+                QUrl(QStringLiteral("https://api.github.com/repos/belagrf/orion/releases/latest")));
 
     QNetworkReply *reply = operation->get(req);
     connect(reply, &QNetworkReply::finished, this, [reply, this](){
+        if (reply->error() != QNetworkReply::NoError) {
+            const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            const QString error = reply->errorString();
+            reply->deleteLater();
+
+            if (status == 404) {
+                checkVersionTags();
+                return;
+            }
+
+            qDebug() << "Version check failed:" << error;
+            emit versionCheckEnded(QString(), QString());
+            return;
+        }
+
         QPair<QString, QString> info = JsonParser::parseVersion(reply->readAll());
+        emit versionCheckEnded(info.first, info.second);
+        reply->deleteLater();
+    });
+}
+
+void NetworkManager::checkVersionTags()
+{
+    QNetworkRequest req = githubVersionRequest(
+                QUrl(QStringLiteral("https://api.github.com/repos/belagrf/orion/tags?per_page=100")));
+
+    QNetworkReply *reply = operation->get(req);
+    connect(reply, &QNetworkReply::finished, this, [reply, this](){
+        if (reply->error() != QNetworkReply::NoError) {
+            const QString error = reply->errorString();
+            qDebug() << "Version tag check failed:" << error;
+            emit versionCheckEnded(QString(), QString());
+            reply->deleteLater();
+            return;
+        }
+
+        QPair<QString, QString> info = JsonParser::parseVersion(reply->readAll());
+        if (!info.first.isEmpty() && info.second.isEmpty()) {
+            info.second = githubTagUrl(info.first);
+        }
+
         emit versionCheckEnded(info.first, info.second);
         reply->deleteLater();
     });

@@ -55,6 +55,9 @@ jobs:
       - name: Validate workflow hygiene
         run: ci/check_workflow_hygiene.sh
 
+      - name: Validate version checker
+        run: ci/check_version_checker.sh
+
       - name: Validate patch whitespace
         run: ci/check_patch_whitespace.sh
 
