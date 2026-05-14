@@ -31,7 +31,7 @@ class Channel: public QObject{
     Q_OBJECT
 
 	private:
-    quint32 id;
+    quint64 id;
     QString name;
     QString serviceName;
     QString info;
@@ -83,8 +83,8 @@ class Channel: public QObject{
 
         static bool greaterThan(Channel*, Channel*);
 
-        quint32 getId() const;
-        void setId(const quint32 &value);
+        quint64 getId() const;
+        void setId(const quint64 &value);
 
         bool isFavourite() const;
         void setFavourite(bool value);

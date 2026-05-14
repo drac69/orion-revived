@@ -57,6 +57,20 @@ QString vodIdFromJson(const QJsonValue &value)
 
     return QString();
 }
+
+quint64 unsignedIdFromJson(const QJsonValue &value)
+{
+    if (value.isString()) {
+        bool ok = false;
+        const quint64 id = value.toString().trimmed().toULongLong(&ok);
+        return ok ? id : 0;
+    }
+    if (value.isDouble()) {
+        return static_cast<quint64>(value.toDouble());
+    }
+
+    return 0;
+}
 }
 
 PagedResult<Channel*> JsonParser::parseStreams(const QByteArray &data)
@@ -129,8 +143,7 @@ Channel* JsonParser::parseStreamJson(const QJsonObject &json, const bool expectC
     }
 
     if (jsonObj.contains("user_id")) {
-        const quint64 channelId = jsonObj["user_id"].toString().toULongLong();
-        channel->setId(static_cast<quint32>(channelId));
+        channel->setId(unsignedIdFromJson(jsonObj["user_id"]));
         channel->setServiceName(jsonObj["user_login"].toString());
         channel->setName(jsonObj["user_name"].toString());
         channel->setInfo(jsonObj["title"].toString());
@@ -297,8 +310,7 @@ Channel* JsonParser::parseChannelJson(const QJsonObject &json)
     Channel* channel = new Channel();
 
     if (json.contains("broadcaster_login")) {
-        const quint64 channelId = json["id"].toString().toULongLong();
-        channel->setId(static_cast<quint32>(channelId));
+        channel->setId(unsignedIdFromJson(json["id"]));
         channel->setServiceName(json["broadcaster_login"].toString());
         channel->setName(json["display_name"].toString());
         channel->setInfo(json["title"].toString());
@@ -343,7 +355,7 @@ Channel* JsonParser::parseChannelJson(const QJsonObject &json)
 
         if (!json["_id"].isNull()){
             const QJsonValue & _id = json["_id"];
-            channel->setId(_id.isString() ? _id.toString().toInt() : static_cast<quint32>(_id.toDouble()));
+            channel->setId(unsignedIdFromJson(_id));
         }
     }
 
@@ -513,14 +525,14 @@ PagedResult<Channel *> JsonParser::parseFavourites(const QByteArray &data)
                 const QJsonObject follow = item.toObject();
                 const QString login = follow["broadcaster_login"].toString();
                 const QString displayName = follow["broadcaster_name"].toString();
-                const quint64 channelId = follow["broadcaster_id"].toString().toULongLong();
+                const quint64 channelId = unsignedIdFromJson(follow["broadcaster_id"]);
 
                 if (channelId == 0 && login.isEmpty() && displayName.isEmpty()) {
                     continue;
                 }
 
                 Channel *channel = new Channel();
-                channel->setId(static_cast<quint32>(channelId));
+                channel->setId(channelId);
                 channel->setServiceName(login);
                 channel->setName(displayName.isEmpty() ? login : displayName);
                 out.items.append(channel);

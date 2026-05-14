@@ -238,7 +238,7 @@ void ChannelListModel::removeChannel(Channel *channel)
     }
 }
 
-Channel *ChannelListModel::find(const quint32 &id)
+Channel *ChannelListModel::find(const quint64 &id)
 {
     auto indexEntry = channelIdIndex.find(id);
     if (indexEntry != channelIdIndex.end()) {

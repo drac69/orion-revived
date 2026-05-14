@@ -147,7 +147,7 @@ private slots:
     void processError(QAbstractSocket::SocketError socketError);
     void processSslErrors(const QList<QSslError> &errors);
     void handleDownloadComplete();
-    void handleChannelBitsUrlsLoaded(const int channelID, BitsQStringsMap bitsUrls);
+    void handleChannelBitsUrlsLoaded(const qint64 channelID, BitsQStringsMap bitsUrls);
 
     void blockedUsersLoaded(const QSet<QString> &);
     void userBlockedSlot(quint64 myUserId, const QString & blockedUsername);

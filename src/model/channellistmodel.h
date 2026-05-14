@@ -46,7 +46,7 @@ public:
     void mergeAll(const QList<Channel*> &);
 
     void removeChannel(Channel*);
-    Channel* find(const quint32&);
+    Channel* find(const quint64&);
     void clearView();
     void clear();
 
@@ -77,7 +77,7 @@ signals:
 private:
     Q_DISABLE_COPY(ChannelListModel)
     QList<Channel*> channels;
-    QHash<quint32, Channel *> channelIdIndex;
+    QHash<quint64, Channel *> channelIdIndex;
     void addChannelInternal(Channel *);
     bool updateChannelIfExisting(const Channel *);
 };

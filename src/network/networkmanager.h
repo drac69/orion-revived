@@ -103,9 +103,9 @@ public:
     void getUser();
     void getUserFavourites(const quint64 userId, quint32 offset, quint32 limit);
     void getEmoteSets(const QStringList &emoteSetIDs);
-    void getChannelBadgeUrlsBeta(const int channelID);
+    void getChannelBadgeUrlsBeta(const quint64 channelID);
     void getGlobalBadgesUrlsBeta();
-    void getChannelBitsUrls(const int channelID);
+    void getChannelBitsUrls(const qint64 channelID);
     void getGlobalBitsUrls();
     void getChannelBttvEmotes(const QString channel);
     void getGlobalBttvEmotes();
@@ -145,13 +145,13 @@ signals:
     //oauth
     void userOperationFinished(const QString&, const quint64);
     void getEmoteSetsOperationFinished(const QMap<QString, QMap<QString, QString>>);
-    void getChannelBadgeBetaUrlsOperationFinished(const int, const QMap<QString, QMap<QString, QMap<QString, QString>>>);
+    void getChannelBadgeBetaUrlsOperationFinished(const quint64, const QMap<QString, QMap<QString, QMap<QString, QString>>>);
     void getGlobalBadgeBetaUrlsOperationFinished(const QMap<QString, QMap<QString, QMap<QString, QString>>>);
 
     void chatterListLoadOperationFinished(QMap<QString, QList<QString>>);
     void blockedUserListLoadOperationFinished(QList<QString>, const quint32 nextOffset, const quint32 total);
 
-    void getChannelBitsUrlsOperationFinished(int channelID, BitsQStringsMap channelBitsUrls, BitsQStringsMap channelBitsColors);
+    void getChannelBitsUrlsOperationFinished(qint64 channelID, BitsQStringsMap channelBitsUrls, BitsQStringsMap channelBitsColors);
     void getGlobalBitsUrlsOperationFinished(BitsQStringsMap globalBitsUrls, BitsQStringsMap globalBitsColors);
 
     void getChannelBttvEmotesOperationFinished(const QString channel, QMap<QString, QString> & emotesByCode);

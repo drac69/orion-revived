@@ -79,7 +79,7 @@ ChannelManager::~ChannelManager(){
     delete favouritesProxy;
 }
 
-void ChannelManager::addToFavourites(const quint32 &id, const QString &serviceName, const QString &title,
+void ChannelManager::addToFavourites(const quint64 &id, const QString &serviceName, const QString &title,
                                      const QString &info, const QString &logo, const QString &preview,
                                      const QString &game, const qint32 &viewers, bool online)
 {
@@ -253,7 +253,7 @@ void ChannelManager::save()
 }
 
 
-void ChannelManager::addToFavourites(const quint32 &id){
+void ChannelManager::addToFavourites(const quint64 &id){
     if (isAccessTokenAvailable()) {
         qWarning() << "Twitch follow API is no longer available; not editing remote followed channels";
         return;
@@ -278,7 +278,7 @@ void ChannelManager::addToFavourites(const quint32 &id){
     }
 }
 
-void ChannelManager::removeFromFavourites(const quint32 &id){
+void ChannelManager::removeFromFavourites(const quint64 &id){
     if (isAccessTokenAvailable()) {
         qWarning() << "Twitch unfollow API is no longer available; not editing remote followed channels";
         return;
@@ -456,7 +456,7 @@ void ChannelManager::updateFavourites(const QList<Channel*> &list)
     qDeleteAll(list);
 }
 
-bool ChannelManager::containsFavourite(const quint32 &q)
+bool ChannelManager::containsFavourite(const quint64 &q)
 {
     return favouritesModel->find(q) != nullptr;
 }

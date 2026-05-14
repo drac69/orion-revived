@@ -40,7 +40,7 @@ bool BadgeContainer::getChannelBadgeBetaUrl(const QString channel, const QString
     return false;
 }
 
-bool BadgeContainer::getChannelBitsUrl(const int channelId, const QString &prefix, const QString &minBits, QString &outUrl) const {
+bool BadgeContainer::getChannelBitsUrl(const qint64 channelId, const QString &prefix, const QString &minBits, QString &outUrl) const {
     auto channelEntry = channelBitsUrls.find(channelId);
     if (channelEntry != channelBitsUrls.end()) {
         auto actionEntry = channelEntry.value().find(prefix);
@@ -55,7 +55,7 @@ bool BadgeContainer::getChannelBitsUrl(const int channelId, const QString &prefi
     return false;
 }
 
-bool BadgeContainer::getChannelBitsColor(const int channelId, const QString &prefix, const QString &minBits, QString &outColor) {
+bool BadgeContainer::getChannelBitsColor(const qint64 channelId, const QString &prefix, const QString &minBits, QString &outColor) {
     auto channelEntry = channelBitsColors.find(channelId);
     if (channelEntry != channelBitsColors.end()) {
         auto actionEntry = channelEntry.value().find(prefix);
@@ -127,10 +127,10 @@ QVariantMap convertBetaBadges(const QMap<QString, QMap<QString, QMap<QString, QS
     return out;
 }
 
-bool BadgeContainer::loadChannelBetaBadgeUrls(int channel) {
+bool BadgeContainer::loadChannelBetaBadgeUrls(quint64 channel) {
     bool out = false;
 
-    if (channel > 0) {
+    if (channel != 0) {
         const QString channelKey = QString::number(channel);
         auto result = channelBadgeBetaUrls.constFind(channelKey);
         if (result != channelBadgeBetaUrls.constEnd()) {
@@ -222,7 +222,12 @@ const QUrl BadgeContainer::getBitsUrlForKey(const QString & key) const {
         const QString & channelIdStr = parts[0];
         const QString & prefix = parts[4];
         const QString & minBits = parts[5];
-        const int channelId = channelIdStr == "GLOBAL" ? -1 : channelIdStr.toInt();
+        bool ok = false;
+        const qint64 channelId = channelIdStr == "GLOBAL" ? -1 : channelIdStr.toLongLong(&ok);
+        if (channelIdStr != "GLOBAL" && !ok) {
+            qDebug() << "Invalid bits cache channel id" << channelIdStr;
+            return QUrl();
+        }
 
         if (BadgeContainer::getInstance()->getChannelBitsUrl(channelId, prefix, minBits, url)) {
             return url;
@@ -232,10 +237,10 @@ const QUrl BadgeContainer::getBitsUrlForKey(const QString & key) const {
     return QUrl();
 }
 
-bool BadgeContainer::loadChannelBitsUrls(int channel) {
+bool BadgeContainer::loadChannelBitsUrls(qint64 channel) {
     bool out = false;
 
-    const int GLOBAL_BITS_IDENTIFIER = -1;
+    const qint64 GLOBAL_BITS_IDENTIFIER = -1;
 
     if (channel > 0) {
         auto result = channelBitsUrls.find(channel);
@@ -276,7 +281,7 @@ void BadgeContainer::onEmoteSetsUpdated(const QMap<QString, QMap<QString, QStrin
     emit emoteSetsLoaded(convertEmoteSets(updatedEmoteSets));
 }
 
-void BadgeContainer::innerChannelBadgeBetaUrlsLoaded(const int channelId, const QMap<QString, QMap<QString, QMap<QString, QString>>> badgeData)
+void BadgeContainer::innerChannelBadgeBetaUrlsLoaded(const quint64 channelId, const QMap<QString, QMap<QString, QMap<QString, QString>>> badgeData)
 {
     QString channelKey = QString::number(channelId);
     channelBadgeBetaUrls.remove(channelKey);
@@ -294,7 +299,7 @@ void BadgeContainer::innerGlobalBadgeBetaUrlsLoaded(const QMap<QString, QMap<QSt
     emit channelBadgeBetaUrlsLoaded(GLOBAL_BADGES_KEY, convertBetaBadges(badgeData));
 }
 
-void BadgeContainer::innerChannelBitsDataLoaded(int channelID, QMap<QString, QMap<QString, QString>> curChannelBitsUrls, QMap<QString, QMap<QString, QString>> curChannelBitsColors) {
+void BadgeContainer::innerChannelBitsDataLoaded(qint64 channelID, QMap<QString, QMap<QString, QString>> curChannelBitsUrls, QMap<QString, QMap<QString, QString>> curChannelBitsColors) {
     channelBitsUrls.remove(channelID);
     channelBitsUrls.insert(channelID, curChannelBitsUrls);
 
@@ -305,7 +310,7 @@ void BadgeContainer::innerChannelBitsDataLoaded(int channelID, QMap<QString, QMa
 }
 
 void BadgeContainer::innerGlobalBitsDataLoaded(QMap<QString, QMap<QString, QString>> globalBitsUrls, QMap<QString, QMap<QString, QString>> globalBitsColors) {
-    const int GLOBAL_BITS_KEY = -1;
+    const qint64 GLOBAL_BITS_KEY = -1;
     channelBitsUrls.remove(GLOBAL_BITS_KEY);
     channelBitsUrls.insert(GLOBAL_BITS_KEY, globalBitsUrls);
 

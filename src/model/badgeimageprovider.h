@@ -23,10 +23,10 @@ class BitsImageProvider : public ImageProvider {
 
 public:
     BitsImageProvider();
-    void setChannelId(int channelId) { _channelId = channelId; }
+    void setChannelId(qint64 channelId) { _channelId = channelId; }
     QString getCanonicalKey(QString key) override;
 protected:
     const QUrl getUrlForKey(QString & key) override;
 private:
-    int _channelId;
+    qint64 _channelId;
 };

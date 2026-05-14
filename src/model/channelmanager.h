@@ -66,7 +66,7 @@ public:
     void load();
     void save();
 
-    Q_INVOKABLE bool containsFavourite(const quint32&);
+    Q_INVOKABLE bool containsFavourite(const quint64&);
 
     void checkStreams(const QList<Channel*>&);
 
@@ -84,8 +84,8 @@ signals:
     void resultsUpdated(int numAdded, int total);
     void searchingStarted();
     void foundPlaybackStream(const QVariantMap &streams);
-    void deletedChannel(const quint32 &chanid);
-    void addedChannel(const quint32 &chanid);
+    void deletedChannel(const quint64 &chanid);
+    void addedChannel(const quint64 &chanid);
     void gamesSearchStarted();
     void gamesUpdated();
     void followedUpdated();
@@ -97,14 +97,14 @@ signals:
 
 public slots:
     void checkFavourites();
-    void addToFavourites(const quint32&);
-    void removeFromFavourites(const quint32&);
+    void addToFavourites(const quint64&);
+    void removeFromFavourites(const quint64&);
     void searchChannels(QString, const quint32&, const quint32&, bool);
     void notify(Channel*);
     void notifyChatMessage(const QString &title, const QString &message, const QString &imgUrl);
     void notifyMultipleChannelsOnline(const QList<Channel*> &);
     void findPlaybackStream(const QString&);
-    void addToFavourites(const quint32 &id, const QString &serviceName, const QString &title,
+    void addToFavourites(const quint64 &id, const QString &serviceName, const QString &title,
                                      const  QString &info, const QString &logo, const QString &preview,
                                      const QString& game, const qint32 &viewers, bool online);
     void getFollowedChannels(const quint32 &limit = FOLLOWED_FETCH_LIMIT, const quint32 &offset = 0);

@@ -175,7 +175,7 @@ void IrcChat::roomInitCommon(const QString channel, const QString channelId) {
 
     lastCurChannelBitsRegexes.clear();
     if (_bitsProvider) {
-        _bitsProvider->setChannelId(channelId.toInt());
+        _bitsProvider->setChannelId(channelId.toLongLong());
     }
 
     lastCurChannelBttvEmoteFixedStrings.clear();
@@ -748,7 +748,7 @@ void IrcChat::checkBitsRegex(const QRegularExpression & regex, const QString & p
             info.kind = ImageEntryKind::bits;
             info.key = _bitsProvider->getCanonicalKey(key);
             info.textSuffix = bitsCount;
-            BadgeContainer::getInstance()->getChannelBitsColor(roomChannelId.toInt(), prefix, minBits, info.textSuffixColor);
+            BadgeContainer::getInstance()->getChannelBitsColor(roomChannelId.toLongLong(), prefix, minBits, info.textSuffixColor);
             mapToUpdate.insert(prefixStart, qMakePair(bitsCountEnd, info));
             _bitsProvider->makeAvailable(key);
         }
@@ -784,7 +784,7 @@ void updateBitsRegexes(const BitsQStringsMap & bitsUrls, QMap<QString, QRegularE
     }
 }
 
-void IrcChat::handleChannelBitsUrlsLoaded(const int channelID, BitsQStringsMap bitsUrls) {
+void IrcChat::handleChannelBitsUrlsLoaded(const qint64 channelID, BitsQStringsMap bitsUrls) {
     if (channelID == -1) {
         updateBitsRegexes(bitsUrls, lastGlobalBitsRegexes);
     }

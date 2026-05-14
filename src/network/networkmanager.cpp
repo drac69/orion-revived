@@ -1002,8 +1002,8 @@ const QString NetworkManager::CHANNEL_BADGES_BETA_URL_PREFIX = "https://badges.t
 const QString NetworkManager::CHANNEL_BADGES_BETA_URL_SUFFIX = "/display?language=en";
 const QString NetworkManager::GLOBAL_BADGES_BETA_URL = "https://badges.twitch.tv/v1/badges/global/display?language=en";
 
-void NetworkManager::getChannelBadgeUrlsBeta(const int channelID) {
-    if (channelID <= 0) {
+void NetworkManager::getChannelBadgeUrlsBeta(const quint64 channelID) {
+    if (channelID == 0) {
         QMap<QString, QMap<QString, QMap<QString, QString>>> empty;
         emit getChannelBadgeBetaUrlsOperationFinished(channelID, empty);
         return;
@@ -1066,7 +1066,7 @@ void NetworkManager::getGlobalBadgesUrlsBeta() {
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::globalBadgeUrlsBetaReply);
 }
 
-void NetworkManager::getChannelBitsUrls(const int channelID) {
+void NetworkManager::getChannelBitsUrls(const qint64 channelID) {
     if (channelID <= 0) {
         BitsQStringsMap emptyUrls;
         BitsQStringsMap emptyColors;
@@ -1104,14 +1104,14 @@ void NetworkManager::channelBitsUrlsReply() {
     if (!handleNetworkError(reply)) {
         BitsQStringsMap emptyUrls;
         BitsQStringsMap emptyColors;
-        const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+        const qint64 channelID = reply->request().attribute(QNetworkRequest::User).toLongLong();
         emit getChannelBitsUrlsOperationFinished(channelID, emptyUrls, emptyColors);
         reply->deleteLater();
         return;
     }
     QByteArray data = reply->readAll();
 
-    const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+    const qint64 channelID = reply->request().attribute(QNetworkRequest::User).toLongLong();
     if (channelID > 0) {
         qDebug() << "bits urls for channel" << channelID << "loaded";
         BitsQStringsMap urls;
@@ -1947,7 +1947,7 @@ void NetworkManager::channelBadgeUrlsBetaReply()
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
-        const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+        const quint64 channelID = reply->request().attribute(QNetworkRequest::User).toULongLong();
         QMap<QString, QMap<QString, QMap<QString, QString>>> empty;
         emit getChannelBadgeBetaUrlsOperationFinished(channelID, empty);
         reply->deleteLater();
@@ -1955,7 +1955,7 @@ void NetworkManager::channelBadgeUrlsBetaReply()
     }
     QByteArray data = reply->readAll();
 
-    const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+    const quint64 channelID = reply->request().attribute(QNetworkRequest::User).toULongLong();
     if (channelID > 0) {
         qDebug() << "beta badges for channel" << channelID << "loaded";
         auto badges = JsonParser::parseBadgeUrlsBetaFormat(data);

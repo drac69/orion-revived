@@ -37,12 +37,12 @@ void Channel::updateWith(const Channel &other)
     }
 }
 
-quint32 Channel::getId() const
+quint64 Channel::getId() const
 {
     return id;
 }
 
-void Channel::setId(const quint32 &value)
+void Channel::setId(const quint64 &value)
 {
     id = value;
 }
@@ -133,7 +133,7 @@ Channel::Channel(const QSettings &settings)
     previewuri = settings.value("previewuri").toString();
     alert = settings.value("alert").toBool();
     timestamp = settings.value("timestamp").toLongLong();
-    id = settings.value("id").toInt();
+    id = settings.value("id").toULongLong();
 }
 
 void Channel::setName(const QString &newName){

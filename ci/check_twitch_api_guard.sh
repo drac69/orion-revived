@@ -4,7 +4,10 @@ set -euo pipefail
 fail=0
 json_parser="src/util/jsonparser.cpp"
 badge_container="src/model/badgecontainer.cpp"
+badge_container_header="src/model/badgecontainer.h"
 channel_manager="src/model/channelmanager.cpp"
+channel_model="src/model/channel.h"
+channel_list_model="src/model/channellistmodel.h"
 irc_chat="src/model/ircchat.h"
 network_manager="src/network/networkmanager.cpp"
 vod_manager="src/model/vodmanager.cpp"
@@ -93,6 +96,25 @@ fi
 
 if ! rg -q 'quint64 user_id;' "$irc_chat"; then
     printf 'Twitch chat user IDs must be stored as quint64 before Helix block-list/edit calls.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'quint64 id;' "$channel_model" \
+    || ! rg -q 'quint64 getId\(\) const;' "$channel_model" \
+    || ! rg -q 'void setId\(const quint64 &value\);' "$channel_model" \
+    || ! rg -q 'QHash<quint64, Channel \*> channelIdIndex;' "$channel_list_model"; then
+    printf 'Twitch channel IDs must be stored and indexed as quint64.\n' >&2
+    fail=1
+fi
+
+if rg -q 'channel->setId\(.*(static_cast<quint32>|\.toInt\(\))' "$json_parser"; then
+    printf 'Twitch channel ID parsing must not narrow IDs to 32-bit integers.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'QMap<qint64, QMap<QString, QMap<QString, QString>>> channelBitsUrls;' "$badge_container_header" \
+    || ! rg -q 'bool loadChannelBitsUrls\(qint64 channel\);' "$badge_container_header"; then
+    printf 'Twitch channel Bits metadata caches must preserve 64-bit channel IDs.\n' >&2
     fail=1
 fi
 
@@ -313,7 +335,7 @@ if ! printf '%s\n' "$edit_user_block_block" | rg -q 'const QString normalizedBlo
     fail=1
 fi
 
-if ! printf '%s\n' "$get_channel_badges_block" | rg -q 'if \(channelID <= 0\)' \
+if ! printf '%s\n' "$get_channel_badges_block" | rg -q 'if \(channelID == 0\)' \
     || ! printf '%s\n' "$get_channel_badges_block" | rg -q 'emit getChannelBadgeBetaUrlsOperationFinished\(channelID, empty\)'; then
     printf 'Channel badge metadata requests must reject non-positive channel IDs.\n' >&2
     fail=1
@@ -325,13 +347,13 @@ if ! printf '%s\n' "$get_channel_bits_block" | rg -q 'if \(channelID <= 0\)' \
     fail=1
 fi
 
-if ! printf '%s\n' "$channel_badges_reply_block" | rg -q 'request\(\)\.attribute\(QNetworkRequest::User\)\.toInt\(\)' \
+if ! printf '%s\n' "$channel_badges_reply_block" | rg -q 'request\(\)\.attribute\(QNetworkRequest::User\)\.toULongLong\(\)' \
     || printf '%s\n' "$channel_badges_reply_block" | rg -q 'lastIndexOf|startsWith\(CHANNEL_BADGES_BETA_URL_PREFIX\)'; then
     printf 'Channel badge metadata replies must use request context instead of reparsing URLs.\n' >&2
     fail=1
 fi
 
-if ! printf '%s\n' "$channel_bits_reply_block" | rg -q 'request\(\)\.attribute\(QNetworkRequest::User\)\.toInt\(\)' \
+if ! printf '%s\n' "$channel_bits_reply_block" | rg -q 'request\(\)\.attribute\(QNetworkRequest::User\)\.toLongLong\(\)' \
     || printf '%s\n' "$channel_bits_reply_block" | rg -q "lastIndexOf|mid\\(eqPos|toString\\(\\)"; then
     printf 'Channel Cheermote metadata replies must use request context instead of reparsing URLs.\n' >&2
     fail=1
@@ -367,7 +389,7 @@ if ! printf '%s\n' "$channel_ffz_reply_block" | rg -q 'request\(\)\.attribute\(R
     fail=1
 fi
 
-if ! printf '%s\n' "$load_channel_badges_block" | rg -q 'if \(channel > 0\)' \
+if ! printf '%s\n' "$load_channel_badges_block" | rg -q 'if \(channel != 0\)' \
     || ! printf '%s\n' "$load_channel_badges_block" | rg -q 'netman->getGlobalBadgesUrlsBeta\(\)'; then
     printf 'BadgeContainer must skip invalid channel badge requests while still loading global badges.\n' >&2
     fail=1
