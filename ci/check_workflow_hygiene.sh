@@ -65,6 +65,11 @@ if ! rg -q 'ci/check_github_issue_templates\.sh' "$workflow"; then
     exit 1
 fi
 
+if ! rg -q 'ci/check_github_community_files\.sh' "$workflow"; then
+    printf 'CI workflow must validate GitHub community health files.\n' >&2
+    exit 1
+fi
+
 ci_packages=$(ORION_CI_APT_DRY_RUN=1 "$repo_dir/ci/install_ubuntu_ci_deps.sh")
 if ! rg -q '^shellcheck$' <<<"$ci_packages"; then
     printf 'CI dependency installer must include shellcheck for shell-script linting.\n' >&2

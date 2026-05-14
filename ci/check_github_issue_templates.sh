@@ -35,6 +35,7 @@ for file in "$config" "$bug" "$feature" "$android" "$twitch"; do
 done
 
 require_token "$config" "blank_issues_enabled: false" "disabled blank issues"
+require_token "$config" "Support policy" "support policy contact link"
 require_token "$config" "Current releases" "release contact link"
 require_token "$config" "Upstream issue triage" "upstream triage contact link"
 
