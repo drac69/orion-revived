@@ -152,8 +152,8 @@ MprisManager::MprisManager(QObject *parent)
 
 MprisManager *MprisManager::getInstance()
 {
-    static MprisManager instance;
-    return &instance;
+    static MprisManager *instance = new MprisManager();
+    return instance;
 }
 
 QString MprisManager::playbackStatus() const

@@ -76,14 +76,11 @@ VodManager::VodManager(QObject *parent) :
 
     emit modelChanged();
 
-    std::atexit([](){
-       VodManager::getInstance()->saveSettings();
-    });
 }
 
 VodManager *VodManager::getInstance() {
-    static VodManager instance;
-    return &instance;
+    static VodManager *instance = new VodManager();
+    return instance;
 }
 
 VodManager::~VodManager()

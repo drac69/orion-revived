@@ -78,6 +78,37 @@ if rg -n '\.(setAttribute|attribute)\(static_cast<QNetworkRequest::Attribute>\(Q
     exit 1
 fi
 
+if rg -n 'static (SettingsManager|VodManager|LogBuffer|MprisManager) instance;' \
+    "$repo_dir/src/model/settingsmanager.cpp" \
+    "$repo_dir/src/model/vodmanager.cpp" \
+    "$repo_dir/src/model/logbuffer.cpp" \
+    "$repo_dir/src/model/mprismanager.cpp"; then
+    printf 'App-parented QML singleton QObjects must not be stack-static instances.\n' >&2
+    exit 1
+fi
+
+for entry in \
+    "$repo_dir/src/model/settingsmanager.cpp|static SettingsManager *instance = new SettingsManager();" \
+    "$repo_dir/src/model/vodmanager.cpp|static VodManager *instance = new VodManager();" \
+    "$repo_dir/src/model/logbuffer.cpp|static LogBuffer *instance = new LogBuffer();" \
+    "$repo_dir/src/model/mprismanager.cpp|static MprisManager *instance = new MprisManager();"
+do
+    file=${entry%%|*}
+    line=${entry#*|}
+    if ! rg -Fq "$line" "$file"; then
+        printf 'QML singleton must stay heap-backed for Qt parent cleanup in %s.\n' "$file" >&2
+        exit 1
+    fi
+done
+
+if rg -q 'CachedImageProvider _cacheProvider;' "$repo_dir/src/model/imageprovider.h" \
+    || ! rg -q 'CachedImageProvider \*_cacheProvider;' "$repo_dir/src/model/imageprovider.h" \
+    || ! rg -q '_cacheProvider\(new CachedImageProvider\(this\)\)' "$repo_dir/src/model/imageprovider.cpp" \
+    || ! rg -q 'return _cacheProvider;' "$repo_dir/src/model/imageprovider.cpp"; then
+    printf 'QML image providers must be heap-backed because QQmlEngine takes ownership.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'QNetworkReply \*replyFromSender\(const char \*context\) const;' "$network_manager_header" \
     || ! rg -q 'QNetworkReply \*NetworkManager::replyFromSender\(const char \*context\) const' "$network_manager" \
     || ! rg -q 'finished without a network reply sender' "$network_manager"; then

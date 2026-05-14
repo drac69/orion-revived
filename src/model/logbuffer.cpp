@@ -9,8 +9,8 @@ LogBuffer::LogBuffer(QObject *parent)
 
 LogBuffer *LogBuffer::getInstance()
 {
-    static LogBuffer instance;
-    return &instance;
+    static LogBuffer *instance = new LogBuffer();
+    return instance;
 }
 
 QString LogBuffer::text() const
