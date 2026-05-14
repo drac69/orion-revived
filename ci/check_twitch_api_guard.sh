@@ -14,6 +14,9 @@ channel_list_model="src/model/channellistmodel.h"
 chat_view="src/qml/irc/ChatView.qml"
 chat_qml="src/qml/irc/Chat.qml"
 viewer_list="src/qml/irc/ViewerList.qml"
+games_view="src/qml/GamesView.qml"
+info_drawer="src/qml/components/InfoDrawer.qml"
+grid_tooltip="src/qml/components/GridTooltip.qml"
 game_model="src/model/game.h"
 game_list_model="src/model/gamelistmodel.h"
 irc_chat="src/model/ircchat.h"
@@ -23,6 +26,7 @@ vod_manager="src/model/vodmanager.cpp"
 get_stream_block=$(sed -n '/void NetworkManager::getStream/,/^}/p' "$network_manager")
 search_channels_block=$(sed -n '/void NetworkManager::searchChannels/,/^}/p' "$network_manager")
 search_games_block=$(sed -n '/void NetworkManager::searchGames/,/^}/p' "$network_manager")
+get_streams_for_language_block=$(sed -n '/void NetworkManager::getStreamsForLanguage/,/^}/p' "$network_manager")
 get_streams_for_game_block=$(sed -n '/void NetworkManager::getStreamsForGame(/,/^}/p' "$network_manager")
 get_streams_for_game_id_block=$(sed -n '/void NetworkManager::getStreamsForGameId/,/^}/p' "$network_manager")
 get_channel_playback_block=$(sed -n '/void NetworkManager::getChannelPlaybackStream/,/^}/p' "$network_manager")
@@ -205,6 +209,120 @@ for required_vod_field in description language published_at url muted_segments; 
         fail=1
     fi
 done
+
+for required_language_token in \
+    'channel->setLanguage(jsonObj["language"].toString())' \
+    'channel->setLanguage(jsonObj["broadcaster_language"].toString())' \
+    'channel->setLanguage(json["broadcaster_language"].toString())' \
+    'roles[LanguageRole] = "language";' \
+    'language: model.language' \
+    'language: channel.language' \
+    'item.language.toUpperCase()' \
+    'Language " + html(channel.language.toUpperCase())'
+do
+    if ! rg -q -F "$required_language_token" "$json_parser" src/model/channellistmodel.cpp src/qml/components/ChannelGrid.qml src/qml/util.js "$info_drawer" "$grid_tooltip"; then
+        printf 'Helix stream/channel language parsing and display is missing token: %s\n' "$required_language_token" >&2
+        fail=1
+    fi
+done
+
+for required_language_network_token in \
+    'void getStreamsForGame(const QString&, const quint32&, const quint32&, const QString &language = QString());' \
+    'QMap<quint32, QString> languageStreamsPageCursors;' \
+    'void getStreamsForGameId(const QString &gameId, const quint32 offset, const quint32 limit, const QString &language = QString());'
+do
+    if ! rg -q -F "$required_language_network_token" "$network_manager_header"; then
+        printf 'NetworkManager header must expose Helix language stream search support: %s\n' "$required_language_network_token" >&2
+        fail=1
+    fi
+done
+
+for required_language_stream_token in \
+    'const QString normalizedLanguage = language.trimmed().toLower();' \
+    'if (normalizedLanguage.isEmpty())' \
+    'requireHelixAccessToken("Language stream search")' \
+    'languageStreamsPageCursors.clear();' \
+    'lastLanguageStreamsQuery = normalizedLanguage;' \
+    'query.addQueryItem("language", normalizedLanguage);' \
+    'request.setAttribute(RequestContextAttribute1, pageSize);' \
+    'connect(reply, &QNetworkReply::finished, this, &NetworkManager::gameStreamsReply);'
+do
+    if ! printf '%s\n' "$get_streams_for_language_block" | rg -q -F "$required_language_stream_token"; then
+        printf 'NetworkManager::getStreamsForLanguage must use current Helix language search semantics: %s\n' "$required_language_stream_token" >&2
+        fail=1
+    fi
+done
+
+for required_game_language_token in \
+    'const QString normalizedLanguage = language.trimmed().toLower();' \
+    'const QString queryKey = gameName + "\n" + normalizedLanguage;' \
+    'getStreamsForGameId(gameId, offset, pageSize, normalizedLanguage);' \
+    'request.setAttribute(RequestContextAttribute3, normalizedLanguage);'
+do
+    if ! printf '%s\n' "$get_streams_for_game_block" | rg -q -F "$required_game_language_token"; then
+        printf 'NetworkManager::getStreamsForGame must carry game language filters through lookup: %s\n' "$required_game_language_token" >&2
+        fail=1
+    fi
+done
+
+for required_game_id_language_token in \
+    'const QString normalizedLanguage = language.trimmed().toLower();' \
+    'if (!normalizedLanguage.isEmpty())' \
+    'query.addQueryItem("language", normalizedLanguage);'
+do
+    if ! printf '%s\n' "$get_streams_for_game_id_block" | rg -q -F "$required_game_id_language_token"; then
+        printf 'NetworkManager::getStreamsForGameId must add Helix language filters to game streams: %s\n' "$required_game_id_language_token" >&2
+        fail=1
+    fi
+done
+
+for required_language_reply_token in \
+    'const bool isHelixLanguageStreams = isHelixStreams && query.hasQueryItem("language") && !query.hasQueryItem("game_id");' \
+    'if (isHelixGameStreams || isHelixLanguageStreams)' \
+    'languageStreamsPageCursors.insert(nextOffset, out.cursor);' \
+    'const QString language = reply->request().attribute(RequestContextAttribute3).toString();' \
+    'getStreamsForGameId(gameId, offset, limit, language);'
+do
+    if ! rg -q -F "$required_language_reply_token" "$network_manager"; then
+        printf 'NetworkManager stream replies must preserve language pagination and game lookup context: %s\n' "$required_language_reply_token" >&2
+        fail=1
+    fi
+done
+
+for required_language_command_token in \
+    'game.lastIndexOf(" /language ", -1, Qt::CaseInsensitive)' \
+    'game.lastIndexOf(" /lang ", -1, Qt::CaseInsensitive)' \
+    'language = game.mid(languageIndex + languagePrefixLength).trimmed();' \
+    'game = game.left(languageIndex).trimmed();' \
+    'netman->getStreamsForGame(game, offset, limit, language);' \
+    'query.startsWith("/language ") || query.startsWith("/lang ")' \
+    "query.section(' ', 1).trimmed()" \
+    'netman->getStreamsForLanguage(language, offset, limit);'
+do
+    if ! printf '%s\n' "$channel_manager_search_channels_block" | rg -q -F "$required_language_command_token"; then
+        printf 'ChannelManager search commands must route language filters correctly: %s\n' "$required_language_command_token" >&2
+        fail=1
+    fi
+done
+
+for required_games_language_token in \
+    'property var languageCodes:' \
+    'property var languageNames:' \
+    'text: "Stream language"' \
+    'model: root.languageNames' \
+    'var language = languageOption.currentIndex >= 0 ? languageCodes[languageOption.currentIndex] : ""' \
+    'query += " /language " + language'
+do
+    if ! rg -q -F "$required_games_language_token" "$games_view"; then
+        printf 'GamesView must expose and apply the stream-language selector: %s\n' "$required_games_language_token" >&2
+        fail=1
+    fi
+done
+
+if ! rg -q -F '/language en' README.md; then
+    printf 'README must document the language search command.\n' >&2
+    fail=1
+fi
 
 if rg -qF 'QString::number(tokenJson["vod_id"].toInt())' "$json_parser"; then
     printf 'VOD playback-token parsing must not coerce string vod_id values to zero.\n' >&2

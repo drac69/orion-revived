@@ -105,7 +105,12 @@ The upstream repository is archived and had 79 open issues at the time this fork
   screen so multi-monitor users can choose where alerts appear; CI now guards
   the QML notification surface, selected-screen geometry, corner positioning,
   and persisted options controls.
-* #240: Helix stream and channel language fields are parsed and shown in stream details, authenticated searches support `/language <code>` using Helix `Get Streams`, `/game <name> /language <code>` combines game and language filtering, and the Games view includes a stream-language selector.
+* #240: Helix stream and channel language fields are parsed and shown in stream
+  details, authenticated searches support `/language <code>` using Helix `Get
+  Streams`, `/game <name> /language <code>` combines game and language
+  filtering, and the Games view includes a stream-language selector; CI now
+  guards language parsing/display, command routing, Helix query parameters,
+  pagination cursors, and Games view selector wiring.
 * #268: Twitch `USERNOTICE` raid messages append a channel URL from the raid `msg-param-login` tag, chat system notices render URLs as selectable/clickable links, and an opt-in setting can automatically follow live raids in the player.
 * #292: kept the upstream fix that avoids trying to play an empty stream URL and falls back to `source` quality when the stored quality is unavailable; playback startup now retries short-lived stalls and shows a header error instead of leaving only the spinner when no playable quality or URL is available, and network/API failures include HTTP status plus structured response messages in logs and the UI error footer when Twitch provides them.
 * #298 / #304: kept the upstream chat-emote initialization workaround from #294.
