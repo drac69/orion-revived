@@ -4,6 +4,8 @@ set -euo pipefail
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 readme="$repo_dir/README.md"
 main_qml="$repo_dir/src/qml/main.qml"
+topbar_qml="$repo_dir/src/qml/TopBar.qml"
+sidebar_qml="$repo_dir/src/qml/SideBar.qml"
 options_view="$repo_dir/src/qml/OptionsView.qml"
 common_grid_qml="$repo_dir/src/qml/components/CommonGrid.qml"
 main_cpp="$repo_dir/src/main.cpp"
@@ -81,6 +83,98 @@ for required in \
 do
     if ! rg -q -F "$required" "$options_view"; then
         printf 'OptionsView must expose the multiple-instance toggle: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'Q_PROPERTY(bool compactNavigation READ compactNavigation WRITE setCompactNavigation NOTIFY compactNavigationChanged)' \
+    'Q_PROPERTY(bool sideNavigation READ sideNavigation WRITE setSideNavigation NOTIFY sideNavigationChanged)' \
+    'bool mCompactNavigation = false;' \
+    'bool mSideNavigation = false;' \
+    'bool compactNavigation() const;' \
+    'void setCompactNavigation(bool compactNavigation);' \
+    'bool sideNavigation() const;' \
+    'void setSideNavigation(bool sideNavigation);' \
+    'void compactNavigationChanged();' \
+    'void sideNavigationChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose compact and side navigation preferences: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setCompactNavigation(settings.value("compactNavigation", mCompactNavigation).toBool());' \
+    'setSideNavigation(settings.value("sideNavigation", mSideNavigation).toBool());' \
+    'settings.setValue("compactNavigation", compactNavigation);' \
+    'settings.setValue("sideNavigation", sideNavigation);' \
+    'emit compactNavigationChanged();' \
+    'emit sideNavigationChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist compact and side navigation preferences: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: "Compact navigation"' \
+    'checked: Settings.compactNavigation' \
+    'onClicked: Settings.compactNavigation = checked' \
+    'text: "Side navigation"' \
+    'checked: Settings.sideNavigation' \
+    'onClicked: Settings.sideNavigation = checked' \
+    'text: "Chat position"' \
+    'model: ["Left", "Right", "Bottom", "Top"]' \
+    'selection: Settings.chatEdge'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must expose compact/side navigation and chat-position controls: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'property bool sideNavigationVisible: Settings.sideNavigation && !appFullScreen && !isMobile()' \
+    'anchors.leftMargin: sideNavigationVisible ? sidebar.width : 0' \
+    'SideBar {' \
+    'id: sidebar' \
+    'visible: sideNavigationVisible' \
+    'currentIndex: view.currentIndex' \
+    'onIndexRequested: topbar.setCurrentIndex(index)' \
+    'visible: !root.sideNavigationVisible && !appFullScreen'
+do
+    if ! rg -q -F "$required" "$main_qml"; then
+        printf 'main.qml must route between top and side navigation without hiding player fullscreen state: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'property bool showIcons: Settings.compactNavigation || root.width < 700' \
+    'font.family: showIcons ? "Material Icons" : rootWindow.font.name' \
+    'text: !tab.showIcons ? "Channels" : "\ue8b6"' \
+    'text: !tab.showIcons ? "Player" : "\ue038"'
+do
+    if ! rg -q -F "$required" "$topbar_qml"; then
+        printf 'TopBar must keep compact navigation icon fallback behavior: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'signal indexRequested(int index)' \
+    'width: 56' \
+    '{ "index": 0, "label": "Channels", "icon": "\ue8b6" }' \
+    '{ "index": 4, "label": "Player", "icon": "\ue038" }' \
+    'checked: root.currentIndex === modelData.index' \
+    'ToolTip.text: modelData.label' \
+    'onClicked: root.indexRequested(modelData.index)'
+do
+    if ! rg -q -F "$required" "$sidebar_qml"; then
+        printf 'SideBar must keep desktop side navigation routing and labels: %s\n' "$required" >&2
         exit 1
     fi
 done
