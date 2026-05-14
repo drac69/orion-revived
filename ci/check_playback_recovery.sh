@@ -12,6 +12,8 @@ mpv_object_source="$repo_dir/src/player/mpvobject.cpp"
 mpv_qt_helper="$repo_dir/src/player/qthelper.hpp"
 vod_manager="$repo_dir/src/model/vodmanager.cpp"
 settings_manager="$repo_dir/src/model/settingsmanager.cpp"
+network_manager="$repo_dir/src/network/networkmanager.cpp"
+test_connection_reply_block=$(sed -n '/void NetworkManager::testConnectionReply()/,/^}/p' "$network_manager")
 
 if ! printf '%s\n' "$status_changed_block" | rg -q 'renderer\.status === "BUFFERING"'; then
     printf 'PlayerView must restart stall recovery when active playback returns to BUFFERING.\n' >&2
@@ -154,5 +156,15 @@ fi
 
 if ! rg -q 'syncSettings\("remember channel quality"\)' "$settings_manager"; then
     printf 'SettingsManager must immediately sync the per-channel quality memory toggle.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$test_connection_reply_block" | rg -q 'if \(!reply\)'; then
+    printf 'Network connection test replies must guard missing reply senders.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$test_connection_reply_block" | rg -q 'reply->deleteLater\(\)'; then
+    printf 'Network connection test replies must release QNetworkReply objects.\n' >&2
     exit 1
 fi

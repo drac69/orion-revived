@@ -215,11 +215,17 @@ void NetworkManager::testConnection()
 void NetworkManager::testConnectionReply()
 {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply) {
+        qWarning() << "Network connection test finished without a reply sender";
+        emit finishedConnectionTest();
+        return;
+    }
 
 //    if (reply->error() == QNetworkReply::NoError)
 //        qDebug() << "Got response: " << reply->readAll();
 
     handleNetworkError(reply);
+    reply->deleteLater();
 
     emit finishedConnectionTest();
 }
