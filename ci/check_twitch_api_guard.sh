@@ -5,6 +5,7 @@ fail=0
 json_parser="src/util/jsonparser.cpp"
 badge_container="src/model/badgecontainer.cpp"
 channel_manager="src/model/channelmanager.cpp"
+irc_chat="src/model/ircchat.h"
 network_manager="src/network/networkmanager.cpp"
 vod_manager="src/model/vodmanager.cpp"
 get_stream_block=$(sed -n '/void NetworkManager::getStream/,/^}/p' "$network_manager")
@@ -87,6 +88,11 @@ done
 
 if ! rg -q 'ircCommandKeyword' src/model/ircchat.cpp; then
     printf 'Twitch IRC command parsing must use the structured command keyword helper.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'quint64 user_id;' "$irc_chat"; then
+    printf 'Twitch chat user IDs must be stored as quint64 before Helix block-list/edit calls.\n' >&2
     fail=1
 fi
 

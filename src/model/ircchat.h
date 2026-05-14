@@ -161,7 +161,7 @@ private slots:
     void getBlockedUserList();
 
 private:
-    quint16 user_id;
+    quint64 user_id;
 
     static const qint16 PORT;
     static const QString HOST;
