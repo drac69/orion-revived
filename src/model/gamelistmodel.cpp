@@ -30,6 +30,10 @@ Qt::ItemFlags GameListModel::flags(const QModelIndex &index) const
         return Qt::NoItemFlags;
     }
 
+    if (index.column() != 0 || index.row() < 0 || index.row() >= games.size()) {
+        return Qt::NoItemFlags;
+    }
+
     return Qt::ItemIsEnabled;
 }
 
@@ -41,7 +45,7 @@ QVariant GameListModel::data(const QModelIndex &index, int role) const
         return var;
     }
 
-    if (index.row() < 0 || index.row() >= games.size()) {
+    if (index.column() != 0 || index.row() < 0 || index.row() >= games.size()) {
         return var;
     }
 
