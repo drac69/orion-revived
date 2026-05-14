@@ -14,6 +14,9 @@ get_streams_for_game_id_block=$(sed -n '/void NetworkManager::getStreamsForGameI
 get_channel_playback_block=$(sed -n '/void NetworkManager::getChannelPlaybackStream/,/^}/p' "$network_manager")
 get_broadcasts_block=$(sed -n '/void NetworkManager::getBroadcasts/,/^}/p' "$network_manager")
 get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybackStream/,/^}/p' "$network_manager")
+get_user_favourites_block=$(sed -n '/void NetworkManager::getUserFavourites/,/^}/p' "$network_manager")
+get_blocked_user_list_block=$(sed -n '/void NetworkManager::getBlockedUserList/,/^}/p' "$network_manager")
+edit_user_block_block=$(sed -n '/void NetworkManager::editUserBlock(/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
 vod_get_broadcasts_block=$(sed -n '/void VodManager::getBroadcasts/,/^}/p' "$vod_manager")
 channel_manager_search_channels_block=$(sed -n '/void ChannelManager::searchChannels/,/^}/p' "$channel_manager")
@@ -262,6 +265,32 @@ if ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'const QString normal
     || ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'if \(!vodOk \|\| vodId == 0\)' \
     || ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'emit m3u8OperationBFinished\(QVariantMap\(\)\)'; then
     printf 'VOD playback-token requests must reject malformed or zero VOD ids before calling Twitch.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_user_favourites_block" | rg -q 'if \(userId == 0\)' \
+    || ! printf '%s\n' "$get_user_favourites_block" | rg -q 'emit favouritesReplyFinished\(empty, offset, offset\)' \
+    || ! printf '%s\n' "$get_user_favourites_block" | rg -q 'requireHelixAccessToken\("Followed channel loading", HelixAuthMode::UserOnly\)' \
+    || ! printf '%s\n' "$get_user_favourites_block" | rg -q '!userFavouritesPageCursors\.contains\(offset\)'; then
+    printf 'Followed-channel requests must reject zero users, require user auth, and guard invalid cursors.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_blocked_user_list_block" | rg -q 'userId == 0' \
+    || ! printf '%s\n' "$get_blocked_user_list_block" | rg -q 'requireHelixAccessToken\("Blocked user list loading", HelixAuthMode::UserOnly\)' \
+    || ! printf '%s\n' "$get_blocked_user_list_block" | rg -q 'emit blockedUserListLoadOperationFinished\(empty, offset, offset\)' \
+    || ! printf '%s\n' "$get_blocked_user_list_block" | rg -q '!blockedUserListPageCursors\.contains\(offset\)' \
+    || ! printf '%s\n' "$get_blocked_user_list_block" | rg -q 'qMax<quint32>\(1, qMin<quint32>\(limit, 100\)\)'; then
+    printf 'Blocked-user list requests must reject invalid users/auth/cursors and clamp page size.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$edit_user_block_block" | rg -q 'const QString normalizedBlockUsername = blockUsername\.trimmed\(\)' \
+    || ! printf '%s\n' "$edit_user_block_block" | rg -q 'if \(myUserId == 0 \|\| normalizedBlockUsername\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$edit_user_block_block" | rg -q 'requireHelixAccessToken\("Blocked user editing", HelixAuthMode::UserOnly\)' \
+    || ! printf '%s\n' "$edit_user_block_block" | rg -q 'query\.addQueryItem\("login", normalizedBlockUsername\)' \
+    || ! printf '%s\n' "$edit_user_block_block" | rg -q 'setAttribute\(RequestContextAttribute1, normalizedBlockUsername\)'; then
+    printf 'Blocked-user edits must reject missing users/names and use normalized login names.\n' >&2
     fail=1
 fi
 

@@ -696,11 +696,25 @@ void NetworkManager::getUser()
 
 void NetworkManager::getUserFavourites(const quint64 userId, quint32 offset, quint32 limit)
 {
-    if (!userId)
+    if (userId == 0) {
+        QList<Channel *> empty;
+        emit favouritesReplyFinished(empty, offset, offset);
         return;
+    }
+
+    if (!requireHelixAccessToken("Followed channel loading", HelixAuthMode::UserOnly)) {
+        QList<Channel *> empty;
+        emit favouritesReplyFinished(empty, offset, offset);
+        return;
+    }
 
     if (offset == 0) {
         userFavouritesPageCursors.clear();
+    }
+    else if (!userFavouritesPageCursors.contains(offset)) {
+        QList<Channel *> empty;
+        emit favouritesReplyFinished(empty, offset, offset);
+        return;
     }
 
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
@@ -778,14 +792,26 @@ void NetworkManager::loadChatterList(const QString channel) {
 
 void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offset, const quint32 limit) {
     qDebug() << "Loading blocked user list for user" << userId;
+    if (userId == 0 || !requireHelixAccessToken("Blocked user list loading", HelixAuthMode::UserOnly)) {
+        QList<QString> empty;
+        emit blockedUserListLoadOperationFinished(empty, offset, offset);
+        return;
+    }
+
     if (offset == 0) {
         blockedUserListPageCursors.clear();
+    }
+    else if (!blockedUserListPageCursors.contains(offset)) {
+        QList<QString> empty;
+        emit blockedUserListLoadOperationFinished(empty, offset, offset);
+        return;
     }
 
     QUrl url(QString(HELIX_API) + "/users/blocks");
     QUrlQuery query;
     query.addQueryItem("broadcaster_id", QString::number(userId));
-    query.addQueryItem("first", QString::number(qMin<quint32>(limit, 100)));
+    const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
+    query.addQueryItem("first", QString::number(pageSize));
 
     const QString cursor = blockedUserListPageCursors.value(offset);
     if (!cursor.isEmpty()) {
@@ -800,7 +826,7 @@ void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offs
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, offset);
-    request.setAttribute(RequestContextAttribute1, limit);
+    request.setAttribute(RequestContextAttribute1, pageSize);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -808,9 +834,18 @@ void NetworkManager::getBlockedUserList(const quint64 userId, const quint32 offs
 }
 
 void NetworkManager::editUserBlock(const quint64 myUserId, const QString & blockUsername, const bool isBlock) {
+    const QString normalizedBlockUsername = blockUsername.trimmed();
+    if (myUserId == 0 || normalizedBlockUsername.isEmpty()) {
+        return;
+    }
+
+    if (!requireHelixAccessToken("Blocked user editing", HelixAuthMode::UserOnly)) {
+        return;
+    }
+
     QUrl url(QString(HELIX_API) + "/users");
     QUrlQuery query;
-    query.addQueryItem("login", blockUsername);
+    query.addQueryItem("login", normalizedBlockUsername);
     url.setQuery(query);
 
     QNetworkRequest request;
@@ -818,7 +853,7 @@ void NetworkManager::editUserBlock(const quint64 myUserId, const QString & block
     request.setUrl(url);
 
     request.setAttribute(QNetworkRequest::User, myUserId);
-    request.setAttribute(RequestContextAttribute1, blockUsername);
+    request.setAttribute(RequestContextAttribute1, normalizedBlockUsername);
     request.setAttribute(RequestContextAttribute2, isBlock);
     QNetworkReply *reply = operation->get(request);
 
