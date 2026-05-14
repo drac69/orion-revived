@@ -397,7 +397,10 @@ fi
 
 if ! rg -q 'loadChatterList\(const QString channel, const quint64 broadcasterId = 0, const quint64 moderatorId = 0\)' "$network_manager_header" \
     || ! rg -q 'quint64 chatterListRequestId = 0;' "$network_manager_header" \
-    || ! printf '%s\n' "$load_chatter_block" | rg -q 'broadcasterId != 0 && moderatorId != 0 && !access_token\.isEmpty\(\)' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'broadcasterId != 0' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'moderatorId != 0' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q '!access_token\.isEmpty\(\)' \
+    || ! printf '%s\n' "$load_chatter_block" | rg -q 'access_token_scopes\.contains\(QStringLiteral\("moderator:read:chatters"\)\)' \
     || ! printf '%s\n' "$load_chatter_block" | rg -q 'const quint64 requestId = \+\+chatterListRequestId' \
     || ! printf '%s\n' "$load_chatter_block" | rg -q 'requestHelixChatterList\(normalizedChannel, broadcasterId, moderatorId, requestId\)' \
     || ! printf '%s\n' "$load_chatter_block" | rg -q 'loadLegacyChatterList\(normalizedChannel, requestId\)'; then

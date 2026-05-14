@@ -74,6 +74,7 @@ class NetworkManager: public QObject
     NetworkManager(QNetworkAccessManager *mgr);
 
     QString access_token;
+    QStringList access_token_scopes;
     QString app_access_token;
     QString app_client_id;
     QString app_client_secret;

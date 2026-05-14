@@ -10,6 +10,9 @@ fail=0
 for required in \
     'https://id.twitch.tv/oauth2/validate' \
     'Authorization", ("OAuth " + access_token)' \
+    'access_token_scopes.clear()' \
+    'json.value("scopes").toArray()' \
+    'access_token_scopes = tokenScopes' \
     'accessTokenValidator.setInterval(60 * 60 * 1000)' \
     'connect(&accessTokenValidator, &QTimer::timeout, this, &NetworkManager::validateAccessToken)' \
     'accessTokenValidator.stop()' \
@@ -45,6 +48,7 @@ fi
 
 for required in \
     'void validateAccessToken();' \
+    'QStringList access_token_scopes;' \
     'bool access_token_validation_pending = false;' \
     'void accessTokenValidationReply();' \
     'QTimer accessTokenValidator;'

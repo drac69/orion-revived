@@ -17,6 +17,7 @@
 #include "../util/jsonparser.h"
 #include "../util/m3u8parser.h"
 #include <QEventLoop>
+#include <QJsonArray>
 #include <QSet>
 #include <QSslSocket>
 #include <QtGlobal>
@@ -95,6 +96,7 @@ NetworkManager::NetworkManager(QNetworkAccessManager *man) : QObject(man)
 void NetworkManager::setAccessToken(const QString &accessToken)
 {
     access_token = accessToken.trimmed();
+    access_token_scopes.clear();
     if (access_token.isEmpty()) {
         accessTokenValidator.stop();
         access_token_validation_pending = false;
@@ -926,7 +928,10 @@ void NetworkManager::loadChatterList(const QString channel, const quint64 broadc
 
     const quint64 requestId = ++chatterListRequestId;
     qDebug() << "Loading viewer list for" << normalizedChannel;
-    if (broadcasterId != 0 && moderatorId != 0 && !access_token.isEmpty()) {
+    if (broadcasterId != 0
+            && moderatorId != 0
+            && !access_token.isEmpty()
+            && access_token_scopes.contains(QStringLiteral("moderator:read:chatters"))) {
         pendingHelixChatters.clear();
         pendingHelixChatterChannel = normalizedChannel;
         pendingHelixChatterBroadcasterId = broadcasterId;
@@ -1691,6 +1696,14 @@ void NetworkManager::accessTokenValidationReply()
     const QJsonDocument jsonDocument = QJsonDocument::fromJson(data, &parseError);
     const QJsonObject json = jsonDocument.object();
     const QString tokenClientId = json.value("client_id").toString();
+    QStringList tokenScopes;
+    const QJsonArray scopes = json.value("scopes").toArray();
+    for (const auto &scopeValue : scopes) {
+        const QString scope = scopeValue.toString();
+        if (!scope.isEmpty()) {
+            tokenScopes.append(scope);
+        }
+    }
 
     if (parseError.error != QJsonParseError::NoError || tokenClientId.isEmpty()) {
         qWarning() << "Twitch OAuth token validation response was malformed";
@@ -1706,6 +1719,7 @@ void NetworkManager::accessTokenValidationReply()
         return;
     }
 
+    access_token_scopes = tokenScopes;
     qInfo() << "Validated Twitch OAuth access token";
     reply->deleteLater();
 }
