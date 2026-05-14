@@ -36,13 +36,22 @@ Item{
         { "label": "All", "type": "" }
     ]
 
+    function hasSelectedChannelId() {
+        return !!(selectedChannel && selectedChannel._id)
+    }
+
     function requestVods(offset, limit) {
+        if (!hasSelectedChannelId()) {
+            vodSearchInProgress = false
+            return
+        }
+
         vodSearchInProgress = true
         VodManager.search(selectedChannel._id, offset, limit, selectedVodType)
     }
 
     function reloadVods() {
-        if (!selectedChannel) {
+        if (!hasSelectedChannelId()) {
             return
         }
 
@@ -52,8 +61,13 @@ Item{
 
     function search(channel){
 
-        if (!channel || typeof channel == "undefined")
+        if (!channel || typeof channel == "undefined" || !channel._id) {
+            selectedChannel = undefined
+            channelVodPositions = ({})
+            vodSearchInProgress = false
+            itemCount = 0
             return
+        }
 
         selectedChannel = {
             "_id": channel._id,
@@ -75,6 +89,10 @@ Item{
     }
 
     function getLastPlaybackPosition(channel, vod) {
+        if (!channel || !channel.name || !vod || !vod._id) {
+            return 0
+        }
+
         console.log("getLastPlaybackPosition", channel.name, vod._id);
         return VodManager.getVodLastPlaybackPosition(channel.name, vod._id);
     }
@@ -82,12 +100,19 @@ Item{
     function filteredVodsFrom(index) {
         var vods = []
         for (var i = Math.max(0, index); i < vodsModel.count(); i++) {
-            vods.push(vodsModel.itemAt(i))
+            var vod = vodsModel.itemAt(i)
+            if (vod) {
+                vods.push(vod)
+            }
         }
         return vods
     }
 
     function playQueueFrom(index) {
+        if (!selectedChannel) {
+            return
+        }
+
         var vods = filteredVodsFrom(index)
         if (vods.length > 0) {
             playerView.startVodQueue(selectedChannel, vods, 0)
@@ -112,7 +137,7 @@ Item{
 
         onVodLastPositionUpdated: {
             //console.log("onVodLastPositionUpdated", channel, vod, position);
-            if (selectedChannel.name === channel) {
+            if (selectedChannel && selectedChannel.name === channel && channelVodPositions) {
                 channelVodPositions[vod] = position;
                 // need binding to update
                 channelVodPositions = channelVodPositions;
@@ -207,7 +232,7 @@ Item{
                 preview: model.preview
                 logo: preview
                 duration: model.duration
-                position: channelVodPositions[model.id] || 0
+                position: channelVodPositions ? (channelVodPositions[model.id] || 0) : 0
                 game: model.game
                 language: model.language
                 vodType: model.type
@@ -223,6 +248,10 @@ Item{
             }
 
             function playItem(item) {
+                if (!selectedChannel || !item) {
+                    return
+                }
+
                 var lastPlaybackPosition = getLastPlaybackPosition(selectedChannel, item);
                 playerView.getStreams(selectedChannel, item, lastPlaybackPosition || 0);
             }
@@ -231,7 +260,7 @@ Item{
             onItemDoubleClicked: playQueueFrom(index)
 
             onItemTooltipHover: {
-                if (g_tooltip)
+                if (g_tooltip && item)
                     g_tooltip.displayVod(item, getPosition)
             }
 
@@ -240,7 +269,7 @@ Item{
             onUpdateTriggered: search(selectedChannel)
 
             function checkScroll(){
-                if (!vodSearchInProgress && atYEnd && VodManager.loadedCount() >= itemCount && itemCount > 0){
+                if (hasSelectedChannelId() && !vodSearchInProgress && atYEnd && VodManager.loadedCount() >= itemCount && itemCount > 0){
                     requestVods(itemCount, 25)
                     itemCount += 25
                 }
