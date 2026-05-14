@@ -221,6 +221,10 @@ void VodManager::loadCachedVods(quint64 channelId, const QString &type)
         vod->setViews(settings.value("views").toULongLong());
         vod->setPreview(settings.value("preview").toString());
         vod->setCreatedAt(settings.value("createdAt").toString());
+        vod->setPublishedAt(settings.value("publishedAt").toString());
+        vod->setDescription(settings.value("description").toString());
+        vod->setLanguage(settings.value("language").toString());
+        vod->setUrl(settings.value("url").toString());
         vod->setSeekPreviews(settings.value("seekPreviews").toString());
         vod->setMutedSegments(settings.value("mutedSegments").toString());
         vod->setMutedSegmentRanges(settings.value("mutedSegmentRanges").toString());
@@ -259,6 +263,10 @@ void VodManager::saveCachedVods(quint64 channelId, const QString &type) const
         settings.setValue("views", _model->data(index, VodListModel::Views));
         settings.setValue("preview", _model->data(index, VodListModel::Preview));
         settings.setValue("createdAt", _model->data(index, VodListModel::CreatedAt));
+        settings.setValue("publishedAt", _model->data(index, VodListModel::PublishedAt));
+        settings.setValue("description", _model->data(index, VodListModel::Description));
+        settings.setValue("language", _model->data(index, VodListModel::Language));
+        settings.setValue("url", _model->data(index, VodListModel::Url));
         settings.setValue("seekPreviews", _model->data(index, VodListModel::SeekPreviews));
         settings.setValue("mutedSegments", _model->data(index, VodListModel::MutedSegments));
         settings.setValue("mutedSegmentRanges", _model->data(index, VodListModel::MutedSegmentRanges));
