@@ -4,6 +4,8 @@ set -euo pipefail
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 player_view="$repo_dir/src/qml/PlayerView.qml"
 main_qml="$repo_dir/src/qml/main.qml"
+main_source="$repo_dir/src/main.cpp"
+readme="$repo_dir/README.md"
 options_view="$repo_dir/src/qml/OptionsView.qml"
 status_changed_block=$(sed -n '/onStatusChanged:/,/^        }/p' "$player_view")
 seek_preview="$repo_dir/src/qml/components/SeekPreview.qml"
@@ -526,10 +528,62 @@ if rg -q 'command_variant|set_property_variant|set_option_variant|get_property_v
     exit 1
 fi
 
+for required in \
+    'QCommandLineOption mpvConfigOption(QStringList() << "libmpv-config" << "mpv-config",' \
+    'parser.addOption(mpvConfigOption);' \
+    'mpvConfigFile = normalizedLocalFilePath(parser.value(mpvConfigOption));' \
+    'MpvObject::setConfigFile(mpvConfigFile);'
+do
+    if ! rg -q -F "$required" "$main_source"; then
+        printf 'main.cpp must expose and pass through the libmpv config-file option: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'static void setConfigFile(const QString &path);' \
+    'static QString configFile();'
+do
+    if ! rg -q -F "$required" "$mpv_object_header"; then
+        printf 'MpvObject must expose static libmpv config-file accessors: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'QString configuredMpvConfigFile;' \
+    'void MpvObject::setConfigFile(const QString &path)' \
+    'configuredMpvConfigFile = path;' \
+    'QString MpvObject::configFile()' \
+    'mpv_load_config_file(mpv, configPath.constData())' \
+    'mpv_error_string(result)'
+do
+    if ! rg -q -F "$required" "$mpv_object_source"; then
+        printf 'MpvObject must load and diagnose the configured libmpv config file: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if ! rg -q -F 'orion --libmpv-config ~/.config/orion/mpv.conf' "$readme"; then
+    printf 'README must document the libmpv config-file command-line option.\n' >&2
+    exit 1
+fi
+
 hwdec_default_line=$(rg -n 'mpv_set_option_string\(mpv, "hwdec", "auto-copy"\)' "$mpv_object_source" | head -n1 | cut -d: -f1 || true)
+mpv_config_load_line=$(rg -n 'mpv_load_config_file\(mpv, configPath\.constData\(\)\)' "$mpv_object_source" | head -n1 | cut -d: -f1 || true)
 mpv_initialize_line=$(rg -n 'mpv_initialize\(mpv\)' "$mpv_object_source" | head -n1 | cut -d: -f1 || true)
 if [[ -z "$hwdec_default_line" || -z "$mpv_initialize_line" || "$hwdec_default_line" -ge "$mpv_initialize_line" ]]; then
     printf 'MpvObject must set the safe auto-copy hwdec default before mpv_initialize().\n' >&2
+    exit 1
+fi
+
+if [[ -z "$mpv_config_load_line" || -z "$mpv_initialize_line" || "$mpv_config_load_line" -ge "$mpv_initialize_line" ]]; then
+    printf 'MpvObject must load the configured libmpv config file before mpv_initialize().\n' >&2
+    exit 1
+fi
+
+if [[ "$hwdec_default_line" -ge "$mpv_config_load_line" ]]; then
+    printf 'MpvObject must load user libmpv config after the built-in hwdec default so explicit config can override it.\n' >&2
     exit 1
 fi
 
@@ -537,6 +591,39 @@ if ! rg -q 'mpv_error_string\(hwdecResult\)' "$mpv_object_source"; then
     printf 'MpvObject must log failures when applying the safe hwdec default.\n' >&2
     exit 1
 fi
+
+for required in \
+    'Q_PROPERTY(QString decoder READ decoder WRITE setDecoder NOTIFY decoderChanged)' \
+    'QString mDecoder = "auto-copy";' \
+    'void decoderChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose and default the saved mpv decoder preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'const QString savedDecoder = settings.value("decoder", mDecoder).toString();' \
+    'setDecoder(savedDecoder == "auto" ? mDecoder : savedDecoder);' \
+    'settings.setValue("decoder", decoder);' \
+    'emit decoderChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist and migrate the saved mpv decoder preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setDecoderByName(Settings.decoder)' \
+    'onDecoderChanged: setDecoderByName(Settings.decoder)'
+do
+    if ! rg -q -F "$required" "$mpv_backend"; then
+        printf 'MpvBackend must apply the saved mpv decoder preference when available: %s\n' "$required" >&2
+        exit 1
+    fi
+done
 
 if rg -q '#error "This helper is deprecated' "$mpv_qt_helper"; then
     printf 'The bundled mpv Qt helper must not require deprecated libmpv APIs to compile.\n' >&2

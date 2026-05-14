@@ -121,18 +121,6 @@ MpvObject::MpvObject(QQuickItem * parent)
     if (!mpv)
         throw std::runtime_error("could not create mpv context");
 
-    if (!configuredMpvConfigFile.isEmpty()) {
-        const QByteArray configPath = configuredMpvConfigFile.toLocal8Bit();
-        const int result = mpv_load_config_file(mpv, configPath.constData());
-        if (result < 0) {
-            qWarning().noquote() << "Could not load libmpv config file"
-                                 << configuredMpvConfigFile << "-"
-                                 << mpv_error_string(result);
-        } else {
-            qInfo().noquote() << "Loaded libmpv config file" << configuredMpvConfigFile;
-        }
-    }
-
 #ifdef DEBUG_LIBMPV
     mpv_set_option_string(mpv, "terminal", "yes");
     mpv_set_option_string(mpv, "msg-level", "all=v");
@@ -145,6 +133,18 @@ MpvObject::MpvObject(QQuickItem * parent)
     if (hwdecResult < 0) {
         qWarning().noquote() << "Could not set default libmpv hwdec option -"
                              << mpv_error_string(hwdecResult);
+    }
+
+    if (!configuredMpvConfigFile.isEmpty()) {
+        const QByteArray configPath = configuredMpvConfigFile.toLocal8Bit();
+        const int result = mpv_load_config_file(mpv, configPath.constData());
+        if (result < 0) {
+            qWarning().noquote() << "Could not load libmpv config file"
+                                 << configuredMpvConfigFile << "-"
+                                 << mpv_error_string(result);
+        } else {
+            qInfo().noquote() << "Loaded libmpv config file" << configuredMpvConfigFile;
+        }
     }
 
     if (mpv_initialize(mpv) < 0)
