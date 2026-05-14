@@ -45,6 +45,7 @@ static_scripts=(
     ci/check_version_checker.sh
     ci/check_patch_whitespace.sh
     ci/check_upstream_issue_triage.sh
+    ci/check_twitch_api_surface.sh
     ci/check_twitch_api_guard.sh
     ci/check_oauth_callback_parser.sh
     ci/check_oauth_token_validation.sh

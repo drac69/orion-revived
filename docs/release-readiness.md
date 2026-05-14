@@ -35,16 +35,17 @@ That decision is recorded in [issue #3](https://github.com/belagrf/orion-revived
 | macOS source build | Validated in CI | `macos-15` Qt5/mpv job | None for the source-only release policy; signed or notarized macOS packages are not published |
 | Windows source build | Validated in CI | `windows-2025-vs2026` MSYS2 UCRT64 Qt5/mpv job | None for the source-only release policy; signed Windows installers are not published |
 | Android/F-Droid | Source-level metadata only | `docs/android.md`, `metadata/app.orion.android.yml`, Android/F-Droid metadata guards | Reproducible Android build recipe and target-device validation; tracked in [issue #2](https://github.com/belagrf/orion-revived/issues/2) |
-| Twitch Helix metadata | Maintained where official APIs exist | `ci/check_twitch_api_guard.sh`, `docs/upstream-issue-triage.md` | Reports need official Twitch documentation or a documented fallback |
-| Native Twitch HLS, replay chat, rewards-credit behavior | Fallback-supported, not a supported native API claim | Player header twitch.tv fallback, replay-chat notice, Twitch API guard | Unsupported Twitch playlist-token, replay-chat, and rewards behavior; tracked in [issue #1](https://github.com/belagrf/orion-revived/issues/1) |
+| Twitch Helix metadata | Maintained where official APIs exist | `ci/check_twitch_api_guard.sh`, `ci/check_twitch_api_surface.sh`, `docs/twitch-api-surface.md`, `docs/upstream-issue-triage.md` | Reports need official Twitch documentation or a documented fallback |
+| Native Twitch HLS, replay chat, rewards-credit behavior | Fallback-supported, not a supported native API claim | `docs/twitch-api-surface.md`, player header twitch.tv fallback, replay-chat notice, Twitch API guards | Unsupported Twitch playlist-token, replay-chat, and rewards behavior; tracked in [issue #1](https://github.com/belagrf/orion-revived/issues/1) |
 
 ## Closure criteria
 
 Issue #1 can close only when every remaining Twitch playback/replay/rewards
 path either uses current official Twitch documentation or has an intentional
 product decision that keeps users on the twitch.tv fallback instead of claiming
-native support. Do not ship a Twitch client secret in a public package or
-launcher.
+native support. The current product decision and source inventory live in
+`docs/twitch-api-surface.md`. Do not ship a Twitch client secret in a public
+package or launcher.
 
 Issue #2 can close only when a maintainer posts reproducible Android build
 commands plus target-device or emulator evidence covering playback,

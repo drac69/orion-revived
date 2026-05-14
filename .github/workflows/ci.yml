@@ -79,6 +79,9 @@ jobs:
       - name: Validate upstream issue triage
         run: ci/check_upstream_issue_triage.sh
 
+      - name: Validate Twitch API surface
+        run: ci/check_twitch_api_surface.sh
+
       - name: Validate Twitch API usage
         run: ci/check_twitch_api_guard.sh
 

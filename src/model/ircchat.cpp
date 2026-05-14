@@ -216,6 +216,8 @@ void IrcChat::sendJoinCurrentRoom()
 }
 
 void IrcChat::replay(const QString channel, const QString channelId, const quint64 /*vodId*/, double /*vodStartEpochTime*/, double /*playbackOffset*/) {
+    // Native replay chat is intentionally disabled; QML shows the timestamped
+    // twitch.tv fallback instead of calling removed VOD comments endpoints.
     replayMode = true;
     roomInitCommon(channel, channelId);
     qWarning() << "Twitch no longer exposes VOD replay chat through a supported public API";

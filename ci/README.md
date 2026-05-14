@@ -9,8 +9,9 @@ validates
 least-privilege workflow permissions and stale-run cancellation,
 GitHub issue templates,
 GitHub community health files,
-desktop/AppStream metadata, checks the install target, runs the Twitch API and emote-ID regression
-guards, validates the local OAuth callback parser and stored-token validation,
+desktop/AppStream metadata, checks the install target, validates the Twitch API
+surface inventory, runs the Twitch API and emote-ID regression guards, validates
+the local OAuth callback parser and stored-token validation,
 verifies that preserved legacy release helpers keep their explicit opt-in
 guard, validates source-build documentation, validates the release-readiness
 matrix, checks that the upstream issue

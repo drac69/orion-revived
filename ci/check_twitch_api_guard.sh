@@ -71,7 +71,7 @@ check_absent() {
     local pattern="$2"
     local matches
 
-    matches=$(rg -n --glob '!*.md' --glob '!distfiles/**' --glob '!ci/check_twitch_api_guard.sh' "$pattern" src ci .github || true)
+    matches=$(rg -n --glob '!*.md' --glob '!distfiles/**' --glob '!ci/check_twitch_api_guard.sh' --glob '!ci/check_twitch_api_surface.sh' "$pattern" src ci .github || true)
     if [[ -n "$matches" ]]; then
         printf 'Deprecated Twitch API usage found: %s\n%s\n' "$label" "$matches" >&2
         fail=1

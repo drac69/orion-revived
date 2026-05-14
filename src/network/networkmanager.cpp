@@ -725,6 +725,8 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
         return;
     }
 
+    // This endpoint is not a supported Helix API. Keep it best-effort and use
+    // the player-header twitch.tv fallback when token or playlist loading fails.
     QString url = QString(TWITCH_API)
             + QString("/channels/%1").arg(normalizedChannelName)
             + QString("/access_token");
@@ -805,6 +807,8 @@ void NetworkManager::getBroadcastPlaybackStream(const QString &vod)
         return;
     }
 
+    // This endpoint is not a supported Helix API. Keep it best-effort and use
+    // the player-header twitch.tv fallback when token or playlist loading fails.
     QString url = QString(TWITCH_API)
             + QString("/vods/%1").arg(normalizedVod)
             + QString("/access_token");

@@ -91,6 +91,11 @@ if ! rg -q 'ci/check_release_readiness\.sh' "$workflow"; then
     exit 1
 fi
 
+if ! rg -q 'ci/check_twitch_api_surface\.sh' "$workflow"; then
+    printf 'CI workflow must validate the Twitch API surface inventory.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'ci/check_apple_metadata\.sh' "$workflow"; then
     printf 'CI workflow must validate Apple bundle metadata.\n' >&2
     exit 1
