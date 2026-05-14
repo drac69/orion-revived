@@ -7,6 +7,7 @@ targets on Ubuntu 24.04, builds the macOS Qt 5/mpv source target on the
 Windows Qt 5/mpv source target on the `windows-2025` runner with MSYS2 UCRT64,
 validates
 least-privilege workflow permissions and stale-run cancellation,
+GitHub issue templates,
 desktop/AppStream metadata, checks the install target, runs the Twitch API and emote-ID regression
 guards, validates the local OAuth callback parser and stored-token validation,
 verifies that preserved legacy release helpers keep their explicit opt-in

@@ -1,0 +1,65 @@
+name: Feature request
+description: Propose a focused Orion improvement for the maintained fork.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for concrete improvements that can be implemented in the fork.
+
+        Do not paste OAuth tokens, client secrets, cookies, passwords, or other private credentials.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or workflow
+      description: Describe the user workflow or failure mode this would improve.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful behavior change.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Playback
+        - Chat
+        - Twitch metadata or login
+        - VODs
+        - Packaging or installation
+        - Android
+        - macOS
+        - Windows
+        - Linux or BSD
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: twitch-dependency
+    attributes:
+      label: Twitch API/Product dependency
+      description: If this needs Twitch API behavior, link the official Twitch documentation or explain why the twitch.tv fallback is not sufficient.
+      placeholder: "Official docs URL, EventSub topic, Helix endpoint, IRC behavior, or N/A"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Note existing settings, twitch.tv fallback links, or external tools that partly cover the request.
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Request checklist
+      options:
+        - label: I checked `docs/upstream-issue-triage.md` for related archived upstream issues.
+          required: true
+        - label: I understand unsupported Twitch-native HLS, replay chat, and rewards-credit APIs may require a product fallback instead of native implementation.
+          required: true
+        - label: I removed OAuth tokens, client secrets, cookies, and passwords from this request.
+          required: true

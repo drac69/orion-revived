@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Current releases
+    url: https://github.com/belagrf/orion-revived/releases
+    about: Check the latest source release and release notes before filing a report.
+  - name: Upstream issue triage
+    url: https://github.com/belagrf/orion-revived/blob/modernize-maintenance/docs/upstream-issue-triage.md
+    about: Review the archived upstream issue audit and known Twitch API or platform blockers.

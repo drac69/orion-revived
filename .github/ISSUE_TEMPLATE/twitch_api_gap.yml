@@ -1,0 +1,64 @@
+name: Twitch API or product gap
+description: Track a Twitch behavior that may need official API support or a product fallback.
+title: "[Twitch API]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Some archived upstream issues depend on Twitch behavior that no longer has a supported public API for third-party native clients. Use this when proposing a replacement based on current Twitch documentation.
+
+        Do not paste OAuth tokens, client secrets, cookies, passwords, or other private credentials.
+  - type: dropdown
+    id: feature
+    attributes:
+      label: Affected feature
+      options:
+        - Native HLS playback token or playlist loading
+        - VOD replay chat
+        - Drops or rewards credit
+        - Viewer list or chatters
+        - Follow, unfollow, or account actions
+        - Other Twitch API behavior
+    validations:
+      required: true
+  - type: textarea
+    id: current-docs
+    attributes:
+      label: Current official Twitch documentation
+      description: Link official Twitch docs or explain that no public docs were found. Avoid unofficial scraped endpoints unless the request is explicitly for a fallback decision.
+      placeholder: "https://dev.twitch.tv/docs/..."
+    validations:
+      required: true
+  - type: textarea
+    id: requested-behavior
+    attributes:
+      label: Requested Orion behavior
+      description: Describe the desired native behavior or the product fallback Orion should expose.
+    validations:
+      required: true
+  - type: textarea
+    id: auth-scope
+    attributes:
+      label: Required auth or scope
+      description: List required OAuth scopes, broadcaster/moderator requirements, EventSub subscriptions, or entitlement permissions if documented.
+      placeholder: "N/A, user token with ..., app access token, EventSub ..."
+    validations:
+      required: true
+  - type: textarea
+    id: fallback
+    attributes:
+      label: Existing fallback
+      description: Note whether Orion's twitch.tv fallback, visible error footer, or logged-out token-required state already covers the case.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: API checklist
+      options:
+        - label: I checked `docs/upstream-issue-triage.md` for the matching archived upstream issue.
+          required: true
+        - label: I linked current official Twitch documentation or stated clearly that no supported documentation was found.
+          required: true
+        - label: I removed OAuth tokens, client secrets, cookies, and passwords from this report.
+          required: true

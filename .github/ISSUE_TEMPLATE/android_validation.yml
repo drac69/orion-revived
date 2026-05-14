@@ -1,0 +1,65 @@
+name: Android validation report
+description: Report Android target-device results for the legacy Qt Android source.
+title: "[Android]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Android release publishing is disabled until reproducible builds and target-device behavior are validated. Use this template for real device or emulator results.
+
+        Do not paste OAuth tokens, client secrets, cookies, passwords, signing keys, keystore passwords, or other private credentials.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "1.6.9 or 0b8576b"
+    validations:
+      required: true
+  - type: textarea
+    id: target-device
+    attributes:
+      label: Target device
+      description: Include physical device or emulator, CPU ABI, Android version, screen density, and whether Google Play services are present.
+      placeholder: "Pixel 7, arm64-v8a, Android 15, 420 dpi, physical device"
+    validations:
+      required: true
+  - type: textarea
+    id: build-recipe
+    attributes:
+      label: Build recipe
+      description: Include Qt for Android version, SDK, NDK, Gradle/build-tools versions, OpenSSL source build details if used, and exact qmake/androiddeployqt commands.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: validation-results
+    attributes:
+      label: Validation results
+      description: Cover playback pause/resume, Phone-call/audio-focus behavior, Lifecycle/backgrounding behavior, chat stability, emote resolution, login state, and VOD/live playback where applicable.
+      placeholder: |
+        Playback pause/resume:
+        Phone-call/audio-focus behavior:
+        Lifecycle/backgrounding behavior:
+        Chat stability:
+        Emote resolution:
+        Login state:
+        Live/VOD playback:
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: adb logcat or crash output
+      description: Paste relevant `adb logcat` snippets, tombstones, Qt Android deployment output, or screenshots. Redact private data.
+      render: text
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Android checklist
+      options:
+        - label: I read `docs/android.md` and understand Android packages are not currently published by this fork.
+          required: true
+        - label: I included a concrete Qt/SDK/NDK/toolchain version set instead of only an APK filename.
+          required: true
+        - label: I removed OAuth tokens, client secrets, cookies, passwords, signing keys, and keystore passwords from this report.
+          required: true

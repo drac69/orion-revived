@@ -61,6 +61,9 @@ jobs:
       - name: Validate workflow hygiene
         run: ci/check_workflow_hygiene.sh
 
+      - name: Validate GitHub issue templates
+        run: ci/check_github_issue_templates.sh
+
       - name: Validate version checker
         run: ci/check_version_checker.sh
 

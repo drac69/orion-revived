@@ -1,0 +1,104 @@
+name: Bug report
+description: Report a reproducible Orion bug in the maintained fork.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping keep Orion usable. Include enough detail for a maintainer to reproduce the problem on a current source build when possible.
+
+        Do not paste OAuth tokens, client secrets, cookies, passwords, or other private credentials.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Use the release version, tag, package version, or `git rev-parse --short HEAD` from the build you tested.
+      placeholder: "1.6.9 or 0b8576b"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Linux
+        - FreeBSD
+        - macOS
+        - Windows
+        - Android
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: build-source
+    attributes:
+      label: Build or package source
+      options:
+        - Local source build from this fork
+        - GitHub Actions source build
+        - Distro package
+        - Legacy upstream package
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment details
+      description: Include OS version, Qt version if known, player backend, mpv or GStreamer versions when relevant, GPU/driver details for playback issues, and package manager or compiler details for build issues.
+      placeholder: "Ubuntu 24.04, Qt 5.15.13, mpv backend, libmpv 0.37, NVIDIA 550"
+    validations:
+      required: true
+  - type: dropdown
+    id: twitch-auth-mode
+    attributes:
+      label: Twitch auth mode
+      description: Choose the mode used when the problem occurred.
+      options:
+        - Logged in through Orion
+        - App access token environment variables
+        - App client credentials environment variables
+        - Anonymous or no token
+        - Not related to Twitch API access
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List exact commands, settings, channel or VOD path, and UI actions. Use public channel or VOD names when possible.
+      placeholder: |
+        1. Start `orion --debug`
+        2. Open ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Paste relevant `orion --debug` output, terminal build logs, screenshots, or short screen recordings. Redact credentials before posting.
+      render: text
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Report checklist
+      options:
+        - label: I checked the latest release notes or current `modernize-maintenance` branch before filing.
+          required: true
+        - label: I searched existing issues and `docs/upstream-issue-triage.md` for the same report.
+          required: true
+        - label: I removed OAuth tokens, client secrets, cookies, and passwords from this report.
+          required: true
