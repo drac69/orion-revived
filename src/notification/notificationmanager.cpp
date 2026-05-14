@@ -59,7 +59,6 @@ NotificationManager::~NotificationManager()
     delete currentObject;
     currentObject = nullptr;
 
-    qDeleteAll(queue);
     queue.clear();
 }
 
@@ -72,12 +71,12 @@ void NotificationManager::showNext()
     }
 
     if (!queue.isEmpty()){
-        NotificationData *data = queue.takeFirst();
+        const NotificationData data = queue.takeFirst();
 
 #if defined(Q_OS_MACOS) || defined (Q_OS_LINUX)
         //NotificationSender deletes itself after displaying message
         NotificationSender *msg = new NotificationSender(net);
-        msg->pushNotification(data->title, data->message, data->imgUrl);
+        msg->pushNotification(data.title, data.message, data.imgUrl);
 #else
         QQmlComponent component(engine, QUrl(QStringLiteral("qrc:/components/Notification.qml")));
         currentObject = component.create();
@@ -89,28 +88,21 @@ void NotificationManager::showNext()
             currentObject->setProperty("screenWidth", geometry.width());
             currentObject->setProperty("screenHeight", geometry.height());
             currentObject->setProperty("location", SettingsManager::getInstance()->alertPosition());
-            currentObject->setProperty("title", data->title);
-            currentObject->setProperty("description", data->message);
-            currentObject->setProperty("imgSrc", data->imgUrl);
+            currentObject->setProperty("title", data.title);
+            currentObject->setProperty("description", data.message);
+            currentObject->setProperty("imgSrc", data.imgUrl);
             currentObject->setProperty("visible", true);
         } else {
             qDebug() << "Error loading notification component:" << component.errors();
         }
 #endif
-        delete data;
-
         timer->start();
     }
 }
 
 void NotificationManager::pushNotification(const QString &title, const QString &message, const QString &imgUrl)
 {
-    NotificationData *data = new NotificationData;
-    data->title = title;
-    data->message = message;
-    data->imgUrl = imgUrl;
-
-    queue.append(data);
+    queue.append(NotificationData{title, message, imgUrl});
 
     if (!timer->isActive()){
         showNext();

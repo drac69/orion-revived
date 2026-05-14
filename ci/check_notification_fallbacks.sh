@@ -49,3 +49,10 @@ if ! rg -q 'delete currentObject;' "$repo_dir/src/notification/notificationmanag
     printf 'NotificationManager must release any active QML notification object on shutdown.\n' >&2
     exit 1
 fi
+
+if rg -q 'QList<NotificationData\*>|new NotificationData|qDeleteAll\(queue\)' \
+    "$repo_dir/src/notification/notificationmanager.h" \
+    "$repo_dir/src/notification/notificationmanager.cpp"; then
+    printf 'NotificationManager queue must store notification data by value instead of raw pointers.\n' >&2
+    exit 1
+fi

@@ -27,11 +27,11 @@
 
 #endif
 
-typedef struct {
+struct NotificationData {
     QString title;
     QString message;
     QString imgUrl;
-} NotificationData;
+};
 
 class NotificationManager: public QObject
 {
@@ -53,7 +53,7 @@ private:
 
     QTimer *timer;
 
-    QList<NotificationData*> queue;
+    QList<NotificationData> queue;
 
     QObject *currentObject;
 };
