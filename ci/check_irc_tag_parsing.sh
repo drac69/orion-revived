@@ -3,8 +3,10 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 irc_chat="$repo_dir/src/model/ircchat.cpp"
+irc_chat_header="$repo_dir/src/model/ircchat.h"
 chat_qml="$repo_dir/src/qml/irc/Chat.qml"
 chat_view="$repo_dir/src/qml/irc/ChatView.qml"
+chat_messages_view="$repo_dir/src/qml/irc/ChatMessagesView.qml"
 chat_drawer="$repo_dir/src/qml/ChatDrawer.qml"
 chat_message="$repo_dir/src/qml/irc/ChatMessage.qml"
 player_view="$repo_dir/src/qml/PlayerView.qml"
@@ -203,3 +205,59 @@ if ! rg -q 'ci/check_irc_tag_parsing\.sh' "$workflow"; then
     printf 'CI workflow must run the IRC tag parsing guard.\n' >&2
     exit 1
 fi
+
+for required in \
+    'bool isWhisper;' \
+    'void messageReceived(QString user, QVariantList message, QString chatColor, bool subscriber, bool turbo, bool mod, bool isAction, QVariantList badges, bool isChannelNotice, QString systemMessage, bool isWhisper);'
+do
+    if ! rg -q -F "$required" "$irc_chat_header"; then
+        printf 'IrcChat must keep whisper state in the chat message contract: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'const QStringList whisperPrefixes = { QStringLiteral("/msg "), QStringLiteral("/w ") };' \
+    'emit noticeReceived("Ignoring whisper with empty message");' \
+    'ircCmd = "PRIVMSG #" + room + " :/w " + recipient + " " + displayMessage + "\r\n";' \
+    'QString systemMessage = isWhisper ? ("Whispered to " + recipient + ":") : "";' \
+    'parse.chatMessage.isWhisper = true;' \
+    'parse.chatMessage.systemMessage = QString("Whisper from");'
+do
+    if ! rg -q -F "$required" "$irc_chat"; then
+        printf 'IrcChat must support incoming and outgoing whispers: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'signal messageReceived(string user, variant message, string chatColor, bool subscriber, bool turbo, bool isAction, var badges, bool isChannelNotice, string systemMessage, bool isWhisper)' \
+    'root.messageReceived(user, message, chatColor, subscriber, turbo, isAction, badges, isChannelNotice, systemMessage, isWhisper)' \
+    'isWhisper: model.isWhisper'
+do
+    if ! rg -q -F "$required" "$chat_qml" "$chat_messages_view"; then
+        printf 'Chat QML must propagate whisper state to message delegates: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'property bool hasUnreadMessages: chatList.hasUnreadMessages || whisperList.hasUnreadMessages' \
+    'visible: whisperList.hasUnreadMessages' \
+    'onClicked: chatContainer.currentIndex = 2' \
+    'id: whisperList' \
+    'function notifyHiddenChatMessage(user, message, isWhisper, isChannelNotice)' \
+    'Settings.chatNotifications' \
+    '&& !chat.replayMode' \
+    '&& (!chatdrawer.opened || chatdrawer.position <= 0)' \
+    'ChannelManager.notifyChatMessage(user + " sent you a whisper", chatNotificationContext(), "")' \
+    'messageMentionsCurrentUser(message)' \
+    'ChannelManager.notifyChatMessage(user + " mentioned you in chat", chatNotificationContext(), "")' \
+    'if (isWhisper) {' \
+    'whisperList.chatModel.addMessage(messageObj)'
+do
+    if ! rg -q -F "$required" "$chat_view"; then
+        printf 'ChatView must keep hidden-chat whisper and mention notification behavior: %s\n' "$required" >&2
+        exit 1
+    fi
+done

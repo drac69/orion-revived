@@ -133,7 +133,14 @@ The upstream repository is archived and had 79 open issues at the time this fork
   guards the raw UTF-8 socket response write, browser fragment-to-query
   redirect, and absence of the legacy `QDataStream` response wrapper that
   corrupted some browsers' callback handling.
-* #108: hidden live chat sends desktop notifications for incoming whispers and `@username` mentions, outgoing `/w` whispers are flagged as whispers, and chat now has a dedicated Whispers tab with unread state. Native notification delivery now sends text-only notifications directly, loads bundled qrc notification images without a network fetch, and still shows the notification when a remote notification image fails.
+* #108: hidden live chat sends desktop notifications for incoming whispers and
+  `@username` mentions, outgoing `/w` whispers are flagged as whispers, and
+  chat now has a dedicated Whispers tab with unread state. Native notification
+  delivery now sends text-only notifications directly, loads bundled qrc
+  notification images without a network fetch, and still shows the notification
+  when a remote notification image fails; CI now guards incoming/outgoing
+  whisper parsing, `isWhisper` propagation, hidden live-chat notification
+  gating, and Whispers-tab unread routing.
 * #101: added configurable log levels, per-sink stdout/stderr/file/journal log thresholds, optional file logging, optional Linux systemd journal output when built with `libsystemd`, and an in-app recent-log viewer with copy/clear actions.
 * #278: added optional compact and desktop side-navigation settings; combined with the existing right-side chat position, this covers the requested 1.5.x-style left-nav/right-chat layout without changing the default layout.
 * #142: the emote picker now includes a common Unicode emoji subset that inserts real Unicode text while displaying image-backed Twemoji assets with font fallback when an image cannot be loaded.
