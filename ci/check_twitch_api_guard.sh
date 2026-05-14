@@ -329,19 +329,21 @@ if ! printf '%s\n' "$get_channel_playback_block" | rg -q 'const QString normaliz
 fi
 
 if ! printf '%s\n' "$get_broadcasts_block" | rg -q 'if \(channelId == 0\)' \
-    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFailed\(channelId, offset, videoType\)' \
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFailed\(channelId, offset, videoType, requestId\)' \
     || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'request\.setAttribute\(RequestContextAttribute2, channelId\)' \
     || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'request\.setAttribute\(RequestContextAttribute3, videoType\)' \
-    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFinished\(empty, channelId, offset, videoType\)'; then
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'request\.setAttribute\(RequestContextAttribute4, requestId\)' \
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFinished\(empty, channelId, offset, videoType, requestId\)'; then
     printf 'VOD listing requests must reject zero channel ids before calling Helix.\n' >&2
     fail=1
 fi
 
 if ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'const quint64 channelId = reply->request\(\)\.attribute\(RequestContextAttribute2\)\.toULongLong\(\)' \
     || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'const QString type = reply->request\(\)\.attribute\(RequestContextAttribute3\)\.toString\(\)' \
-    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'emit broadcastsOperationFailed\(channelId, offset, type\)' \
-    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'emit broadcastsOperationFinished\(result\.items, channelId, offset, type\)'; then
-    printf 'VOD listing replies must carry channel/type/offset context for stale-reply rejection.\n' >&2
+    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'const quint64 requestId = reply->request\(\)\.attribute\(RequestContextAttribute4\)\.toULongLong\(\)' \
+    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'emit broadcastsOperationFailed\(channelId, offset, type, requestId\)' \
+    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'emit broadcastsOperationFinished\(result\.items, channelId, offset, type, requestId\)'; then
+    printf 'VOD listing replies must carry channel/type/offset/search context for stale-reply rejection.\n' >&2
     fail=1
 fi
 
@@ -352,13 +354,17 @@ if ! printf '%s\n' "$vod_search_block" | rg -q 'if \(channelId == 0\)' \
     fail=1
 fi
 
-if ! rg -q 'bool VodManager::isCurrentSearch' "$vod_manager" \
-    || ! printf '%s\n' "$vod_search_finished_block" | rg -q '!isCurrentSearch\(channelId, offset, type\)' \
+if ! rg -q 'bool VodManager::isCurrentSearch\(quint64 channelId, const QString &type, quint64 requestId\) const' "$vod_manager" \
+    || ! rg -q 'currentSearchRequestId' "$vod_manager" \
+    || ! printf '%s\n' "$vod_search_block" | rg -q '\+\+currentSearchRequestId' \
+    || ! printf '%s\n' "$vod_search_block" | rg -q 'netman->getBroadcasts\(channelId, offset, limit, videoType, currentSearchRequestId\)' \
+    || ! printf '%s\n' "$vod_search_finished_block" | rg -q '!isCurrentSearch\(channelId, type, requestId\)' \
     || ! printf '%s\n' "$vod_search_finished_block" | rg -q 'Ignoring stale VOD listing reply' \
     || ! printf '%s\n' "$vod_search_finished_block" | rg -q 'qDeleteAll\(items\)' \
-    || ! printf '%s\n' "$vod_search_failed_block" | rg -q '!isCurrentSearch\(channelId, offset, type\)' \
+    || ! printf '%s\n' "$vod_search_finished_block" | rg -q '_model->mergePage\(items, offset\)' \
+    || ! printf '%s\n' "$vod_search_failed_block" | rg -q '!isCurrentSearch\(channelId, type, requestId\)' \
     || ! printf '%s\n' "$vod_search_failed_block" | rg -q 'Ignoring stale failed VOD listing reply'; then
-    printf 'VodManager must ignore stale VOD listing replies after channel/type/offset changes.\n' >&2
+    printf 'VodManager must ignore stale VOD listing replies after channel/type/search-generation changes.\n' >&2
     fail=1
 fi
 

@@ -739,16 +739,16 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::streamExtractReply);
 }
 
-void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type)
+void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type, quint64 requestId)
 {
     const QString videoType = type.trimmed();
     if (channelId == 0) {
-        emit broadcastsOperationFailed(channelId, offset, videoType);
+        emit broadcastsOperationFailed(channelId, offset, videoType, requestId);
         return;
     }
 
     if (!requireHelixAccessToken("VOD listing")) {
-        emit broadcastsOperationFailed(channelId, offset, videoType);
+        emit broadcastsOperationFailed(channelId, offset, videoType, requestId);
         return;
     }
 
@@ -761,7 +761,7 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
     }
     else if (!broadcastsPageCursors.contains(offset)) {
         QList<Vod *> empty;
-        emit broadcastsOperationFinished(empty, channelId, offset, videoType);
+        emit broadcastsOperationFinished(empty, channelId, offset, videoType, requestId);
         return;
     }
 
@@ -772,6 +772,7 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
     request.setAttribute(RequestContextAttribute1, pageSize);
     request.setAttribute(RequestContextAttribute2, channelId);
     request.setAttribute(RequestContextAttribute3, videoType);
+    request.setAttribute(RequestContextAttribute4, requestId);
 
     url = QUrl(QString(HELIX_API) + "/videos");
     QUrlQuery query;
@@ -2187,9 +2188,10 @@ void NetworkManager::broadcastsReply()
     const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
     const quint64 channelId = reply->request().attribute(RequestContextAttribute2).toULongLong();
     const QString type = reply->request().attribute(RequestContextAttribute3).toString();
+    const quint64 requestId = reply->request().attribute(RequestContextAttribute4).toULongLong();
 
     if (!handleNetworkError(reply)) {
-        emit broadcastsOperationFailed(channelId, offset, type);
+        emit broadcastsOperationFailed(channelId, offset, type, requestId);
         reply->deleteLater();
         return;
     }
@@ -2205,7 +2207,7 @@ void NetworkManager::broadcastsReply()
         broadcastsPageCursors.insert(nextOffset, result.cursor);
     }
 
-    emit broadcastsOperationFinished(result.items, channelId, offset, type);
+    emit broadcastsOperationFinished(result.items, channelId, offset, type, requestId);
 
     reply->deleteLater();
 }

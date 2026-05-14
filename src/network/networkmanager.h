@@ -100,7 +100,7 @@ public:
     void getStreamsForLanguage(const QString&, const quint32&, const quint32&);
     void getStreamsForGame(const QString&, const quint32&, const quint32&, const QString &language = QString());
     void getChannelPlaybackStream(const QString&);
-    void getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type = QStringLiteral("archive"));
+    void getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type = QStringLiteral("archive"), quint64 requestId = 0);
     void getBroadcastPlaybackStream(const QString &vod);
 
     //Methods using oauth
@@ -137,8 +137,8 @@ signals:
     void featuredStreamsOperationFinished(const QList<Channel *>&, const int total);
     void searchChannelsOperationFinished(const QList<Channel *>&, const int total);
     void searchGamesOperationFinished(const QList<Game *>&);
-    void broadcastsOperationFinished(const QList<Vod *> &, quint64 channelId, quint32 offset, const QString &type);
-    void broadcastsOperationFailed(quint64 channelId, quint32 offset, const QString &type);
+    void broadcastsOperationFinished(const QList<Vod *> &, quint64 channelId, quint32 offset, const QString &type, quint64 requestId);
+    void broadcastsOperationFailed(quint64 channelId, quint32 offset, const QString &type, quint64 requestId);
     void m3u8OperationFinished(const QVariantMap&);
     void m3u8OperationBFinished(const QVariantMap&);
     void fileOperationFinished(const QByteArray&);

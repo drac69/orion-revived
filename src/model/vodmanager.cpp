@@ -93,8 +93,14 @@ VodManager::~VodManager()
 void VodManager::search(const quint64 channelId, const quint32 offset, const quint32 limit, const QString &type)
 {
     const QString videoType = type.trimmed();
+    const bool newSearch = channelId != currentSearchChannelId
+            || videoType != currentSearchType
+            || offset == 0;
+    if (newSearch) {
+        ++currentSearchRequestId;
+    }
+
     currentSearchChannelId = channelId;
-    currentSearchOffset = offset;
     currentSearchType = videoType;
     if (channelId == 0) {
         if (offset == 0) {
@@ -110,25 +116,25 @@ void VodManager::search(const quint64 channelId, const quint32 offset, const qui
         emit searchStarted();
     }
 
-    netman->getBroadcasts(channelId, offset, limit, videoType);
+    netman->getBroadcasts(channelId, offset, limit, videoType, currentSearchRequestId);
 }
 
-bool VodManager::isCurrentSearch(quint64 channelId, quint32 offset, const QString &type) const
+bool VodManager::isCurrentSearch(quint64 channelId, const QString &type, quint64 requestId) const
 {
     return currentSearchChannelId == channelId
-            && currentSearchOffset == offset
-            && currentSearchType == type.trimmed();
+            && currentSearchType == type.trimmed()
+            && currentSearchRequestId == requestId;
 }
 
-void VodManager::onSearchFinished(QList<Vod *> items, quint64 channelId, quint32 offset, const QString &type)
+void VodManager::onSearchFinished(QList<Vod *> items, quint64 channelId, quint32 offset, const QString &type, quint64 requestId)
 {
-    if (!isCurrentSearch(channelId, offset, type)) {
-        qDebug() << "Ignoring stale VOD listing reply for channel" << channelId << "offset" << offset << "type" << type;
+    if (!isCurrentSearch(channelId, type, requestId)) {
+        qDebug() << "Ignoring stale VOD listing reply for channel" << channelId << "offset" << offset << "type" << type << "request" << requestId;
         qDeleteAll(items);
         return;
     }
 
-    _model->mergePage(items, currentSearchOffset);
+    _model->mergePage(items, offset);
     if (currentSearchChannelId != 0) {
         saveCachedVods(currentSearchChannelId, currentSearchType);
     }
@@ -139,10 +145,10 @@ void VodManager::onSearchFinished(QList<Vod *> items, quint64 channelId, quint32
     emit searchFinished();
 }
 
-void VodManager::onSearchFailed(quint64 channelId, quint32 offset, const QString &type)
+void VodManager::onSearchFailed(quint64 channelId, quint32 offset, const QString &type, quint64 requestId)
 {
-    if (!isCurrentSearch(channelId, offset, type)) {
-        qDebug() << "Ignoring stale failed VOD listing reply for channel" << channelId << "offset" << offset << "type" << type;
+    if (!isCurrentSearch(channelId, type, requestId)) {
+        qDebug() << "Ignoring stale failed VOD listing reply for channel" << channelId << "offset" << offset << "type" << type << "request" << requestId;
         return;
     }
 
