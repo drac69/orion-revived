@@ -100,8 +100,8 @@ GridView {
         tooltipTimer.stop()
     }
 
-    onContentXChanged: g_tooltip.hide()
-    onContentYChanged: g_tooltip.hide()
+    onContentXChanged: if (g_tooltip) g_tooltip.hide()
+    onContentYChanged: if (g_tooltip) g_tooltip.hide()
 
     MouseArea{
         id: mArea

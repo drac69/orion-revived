@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 main_qml="$repo_dir/src/qml/main.qml"
+common_grid_qml="$repo_dir/src/qml/components/CommonGrid.qml"
 
 for required in \
     'function refreshWindowScreenAssociation()' \
@@ -24,3 +25,18 @@ if [ -n "$missing_workaround" ]; then
     printf 'QML menu files must call rootWindow.preparePopupMenu before showing menus:\n%s\n' "$missing_workaround" >&2
     exit 1
 fi
+
+if rg -q 'onContent[XY]Changed: g_tooltip\.hide\(\)' "$common_grid_qml"; then
+    printf 'CommonGrid scroll handlers must guard g_tooltip before hiding it.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'onContentXChanged: if (g_tooltip) g_tooltip.hide()' \
+    'onContentYChanged: if (g_tooltip) g_tooltip.hide()'
+do
+    if ! rg -q -F "$required" "$common_grid_qml"; then
+        printf 'CommonGrid is missing guarded tooltip scroll handler token: %s\n' "$required" >&2
+        exit 1
+    fi
+done
