@@ -71,6 +71,18 @@ quint64 unsignedIdFromJson(const QJsonValue &value)
 
     return 0;
 }
+
+QString stringIdFromJson(const QJsonValue &value)
+{
+    if (value.isString()) {
+        return value.toString().trimmed();
+    }
+    if (value.isDouble()) {
+        return QString::number(static_cast<quint64>(value.toDouble()));
+    }
+
+    return QString();
+}
 }
 
 PagedResult<Channel*> JsonParser::parseStreams(const QByteArray &data)
@@ -247,7 +259,7 @@ Game* JsonParser::parseGame(const QJsonObject &json)
     Game* game = new Game();
 
     if (json.contains("box_art_url")) {
-        game->setId(json["id"].toString().toUInt());
+        game->setId(stringIdFromJson(json["id"]));
         game->setName(json["name"].toString());
 
         QString boxArtUrl = json["box_art_url"].toString();
@@ -261,7 +273,7 @@ Game* JsonParser::parseGame(const QJsonObject &json)
         const QJsonObject gameObj = json["game"].toObject();
 
         if (!gameObj["_id"].isNull())
-            game->setId(gameObj["_id"].toInt());
+            game->setId(stringIdFromJson(gameObj["_id"]));
 
         if (!json["viewers"].isNull())
             game->setViewers(json["viewers"].toInt());
@@ -278,7 +290,7 @@ Game* JsonParser::parseGame(const QJsonObject &json)
     //From games search
     else {
         if (!json["_id"].isNull())
-            game->setId(json["_id"].toInt());
+            game->setId(stringIdFromJson(json["_id"]));
 
         if (!json["name"].isNull())
             game->setName(json["name"].toString());

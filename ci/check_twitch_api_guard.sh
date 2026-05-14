@@ -8,6 +8,8 @@ badge_container_header="src/model/badgecontainer.h"
 channel_manager="src/model/channelmanager.cpp"
 channel_model="src/model/channel.h"
 channel_list_model="src/model/channellistmodel.h"
+game_model="src/model/game.h"
+game_list_model="src/model/gamelistmodel.h"
 irc_chat="src/model/ircchat.h"
 network_manager="src/network/networkmanager.cpp"
 vod_manager="src/model/vodmanager.cpp"
@@ -109,6 +111,19 @@ fi
 
 if rg -q 'channel->setId\(.*(static_cast<quint32>|\.toInt\(\))' "$json_parser"; then
     printf 'Twitch channel ID parsing must not narrow IDs to 32-bit integers.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'QString id;' "$game_model" \
+    || ! rg -q 'QString getId\(\) const;' "$game_model" \
+    || ! rg -q 'void setId\(const QString &value\);' "$game_model" \
+    || ! rg -q 'Game \*find\(const QString &\);' "$game_list_model"; then
+    printf 'Twitch category IDs must be stored as strings.\n' >&2
+    fail=1
+fi
+
+if rg -q 'game->setId\(.*\.to(UInt|Int)\(\)|QString::number\(result\.items\.first\(\)->getId\(\)\)' "$json_parser" "$network_manager"; then
+    printf 'Twitch category ID parsing and lookups must not narrow string IDs to integers.\n' >&2
     fail=1
 fi
 

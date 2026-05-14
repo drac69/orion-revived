@@ -37,7 +37,7 @@ public:
     void addAll(const QList<Game*> &);
     void addGame(Game*);
     void removeGame(Game*);
-    Game *find(const uint);
+    Game *find(const QString &);
     void clear();
 
     enum Roles {

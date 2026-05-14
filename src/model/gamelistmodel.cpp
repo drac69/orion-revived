@@ -133,7 +133,7 @@ void GameListModel::removeGame(Game *game)
     }
 }
 
-Game *GameListModel::find(const uint id)
+Game *GameListModel::find(const QString &id)
 {
     const QList<Game *> &knownGames = games;
     for (Game *game : knownGames) {

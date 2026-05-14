@@ -1684,7 +1684,7 @@ void NetworkManager::gameStreamsGameLookupReply()
     QByteArray data = reply->readAll();
     auto result = JsonParser::parseGameResults(data);
 
-    if (result.items.isEmpty() || result.items.first()->getId() == 0) {
+    if (result.items.isEmpty() || result.items.first()->getId().isEmpty()) {
         QList<Channel *> empty;
         emit gameStreamsOperationFinished(empty, offset);
         qDeleteAll(result.items);
@@ -1692,7 +1692,7 @@ void NetworkManager::gameStreamsGameLookupReply()
         return;
     }
 
-    const QString gameId = QString::number(result.items.first()->getId());
+    const QString gameId = result.items.first()->getId();
     gameStreamsGameIds.insert(game, gameId);
 
     qDeleteAll(result.items);

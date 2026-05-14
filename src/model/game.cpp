@@ -54,12 +54,12 @@ void Game::setPreview(const QString &value)
 {
     preview = value;
 }
-uint Game::getId() const
+QString Game::getId() const
 {
     return id;
 }
 
-void Game::setId(const uint &value)
+void Game::setId(const QString &value)
 {
     id = value;
 }
