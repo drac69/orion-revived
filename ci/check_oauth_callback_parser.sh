@@ -27,7 +27,8 @@ done
 
 for required in \
     'QString m_state;' \
-    'Q_INVOKABLE QString state() const;'
+    'Q_INVOKABLE QString state() const;' \
+    'Q_INVOKABLE bool isOk() const;'
 do
     if ! rg -qF "$required" "$header_file"; then
         printf 'OAuth callback state contract is missing required token: %s\n' "$required" >&2
@@ -40,7 +41,9 @@ for required in \
     'encodeURIComponent(LoginService.state())' \
     'function twitchLoginScopes()' \
     'function twitchLoginUrl()' \
-    'encodeURIComponent(twitchLoginScopes().join(" "))'
+    'encodeURIComponent(twitchLoginScopes().join(" "))' \
+    'if (!LoginService.isOk())' \
+    'Login server unavailable'
 do
     if ! rg -qF "$required" "$options_view"; then
         printf 'OAuth login URL is missing required state token: %s\n' "$required" >&2

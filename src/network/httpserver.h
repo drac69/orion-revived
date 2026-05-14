@@ -25,7 +25,7 @@ public:
     Q_INVOKABLE QString port();
     Q_INVOKABLE QString state() const;
 
-    bool isOk() const;
+    Q_INVOKABLE bool isOk() const;
 
 public slots:
     // starts server

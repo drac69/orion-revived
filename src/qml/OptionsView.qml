@@ -82,6 +82,10 @@ Page {
                         onClicked: {
                             if (!loggedIn) {
                                 LoginService.start();
+                                if (!LoginService.isOk()) {
+                                    twitchName.text = "Login server unavailable"
+                                    return;
+                                }
                                 Qt.openUrlExternally(root.twitchLoginUrl());
                             }
                             else {
