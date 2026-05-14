@@ -65,7 +65,9 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #241: added a highlighted-user list for chat styling of specific chatters; CI
   now guards setting persistence, options editing, user normalization, and row
   highlighting.
-* #234: BTTV emotes now carry direct source URLs and render through `AnimatedImage`, allowing animated formats to move.
+* #234: BTTV emotes now carry direct source URLs and render through
+  `AnimatedImage`, allowing animated formats to move; CI now guards the C++
+  source URL payload and QML animated renderer path.
 * #141: added FrankerFaceZ global and channel emote loading, rendering, and picker entries.
 * #123: added `--libmpv-config` / `--mpv-config` for loading an explicit mpv config file with the mpv backend, and the saved mpv hardware-decoder preference is now applied when the backend loads.
 * #254: added an optional per-channel stream quality memory on top of the global default quality preset.

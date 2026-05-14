@@ -47,3 +47,13 @@ check_present "IRC emote tag conversion guard" 'toInt\(&firstOk\)' "src/model/ir
 check_present "IRC emote tag range guard" 'last < first' "src/model/ircchat.cpp"
 check_present "IRC emote tag availability guard" 'hasValidPosition' "src/model/ircchat.cpp"
 check_absent "unguarded IRC emote range conversion" 'firstAndLast\[0\]\.toInt\(\)|firstAndLast\[1\]\.toInt\(\)' "src/model/ircchat.cpp"
+
+check_present "BTTV direct emote URL helper" 'QString IrcChat::bttvEmoteUrl\(const QString &id\) const' "src/model/ircchat.cpp"
+check_present "BTTV CDN URL template" 'https://cdn\.betterttv\.net/emote/%1/[12]x' "src/model/ircchat.cpp" "src/model/ircchat.h"
+check_present "optional inline image source URL" 'QVariantMap createImageEntry\(QString imageProvider, QString imageId, QString originalText, QString sourceUrl = QString\(\)\)' "src/model/ircchat.cpp"
+check_present "inline image sourceUrl payload" 'imageObj\.insert\("sourceUrl", sourceUrl\)' "src/model/ircchat.cpp"
+check_present "BTTV substitution direct source URL" 'bttvEmoteUrl\(emoteId\)' "src/model/ircchat.cpp"
+check_present "BTTV IRC direct source URL" 'bttvEmoteUrl\(imageId\)' "src/model/ircchat.cpp"
+check_present "QML sourceUrl image path" 'if \(msg\[index\]\.sourceUrl\)' "src/qml/irc/ChatMessage.qml"
+check_present "QML animated inline image renderer" 'AnimatedImage' "src/qml/irc/ChatMessage.qml"
+check_present "QML animated sourceUrl binding" 'Util\.withImageReloadToken\(msgItem\.sourceUrl \|\| "", Network\.imageReloadToken\)' "src/qml/irc/ChatMessage.qml"
