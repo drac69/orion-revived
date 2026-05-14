@@ -33,8 +33,12 @@ The upstream repository is archived and had 79 open issues at the time this fork
   top-edge hover, avoiding the repeated resize loop; CI now guards that app
   navigation stays hidden by fullscreen state while mouse movement only refreshes
   the in-player overlay headers.
-* #264: added a setting to enable or disable screensaver inhibition during playback.
-* #260: Linux screensaver reset calls now only run while screensaver inhibition is active.
+* #264: added a setting to enable or disable screensaver inhibition during
+  playback; CI now guards the persisted setting, options toggle, and player
+  state binding.
+* #260: Linux screensaver reset calls now only run while screensaver inhibition
+  is active; CI now guards that the timer returns before invoking
+  `xdg-screensaver reset` when inhibition is inactive.
 * #89 / #205: multiple-stream use is supported through the persisted multiple-instance setting; second instances are blocked unless that setting is enabled.
 * #134: added a Ctrl+Q application shortcut.
 * #44: the existing version checker now checks this fork's releases instead of the archived upstream repository, and falls back to this fork's semantic version tags when no GitHub Release has been published.

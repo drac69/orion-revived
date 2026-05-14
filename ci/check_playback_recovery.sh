@@ -17,6 +17,8 @@ m3u8_parser="$repo_dir/src/util/m3u8parser.h"
 vod_manager="$repo_dir/src/model/vodmanager.cpp"
 settings_manager="$repo_dir/src/model/settingsmanager.cpp"
 settings_manager_header="$repo_dir/src/model/settingsmanager.h"
+power_manager="$repo_dir/src/power/power.cpp"
+power_manager_header="$repo_dir/src/power/power.h"
 network_manager="$repo_dir/src/network/networkmanager.cpp"
 test_connection_reply_block=$(sed -n '/void NetworkManager::testConnectionReply()/,/^}/p' "$network_manager")
 click_timer_block=$(sed -n '/id: clickTimer/,/id: hideTimer/p' "$player_view")
@@ -147,6 +149,105 @@ fi
 if ! printf '%s\n' "$click_timer_block" | rg -q -F 'onTriggered: {' \
     || ! printf '%s\n' "$click_timer_block" | rg -q -F 'togglePlayback();'; then
     printf 'PlayerView must keep the click timer connected to playback toggling when the preference allows it.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'Q_PROPERTY(bool inhibitScreensaver READ inhibitScreensaver WRITE setInhibitScreensaver NOTIFY inhibitScreensaverChanged)' \
+    'bool mInhibitScreensaver = true;' \
+    'bool inhibitScreensaver() const;' \
+    'void setInhibitScreensaver(bool inhibitScreensaver);' \
+    'void inhibitScreensaverChanged();'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose the screensaver-inhibition preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setInhibitScreensaver(settings.value("inhibitScreensaver", mInhibitScreensaver).toBool())' \
+    'settings.setValue("inhibitScreensaver", inhibitScreensaver)' \
+    'emit inhibitScreensaverChanged()'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist the screensaver-inhibition preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'Q_PROPERTY(bool screensaver READ screensaver WRITE setScreensaver)' \
+    'bool screensaverEnabled;' \
+    'Q_INVOKABLE void setScreensaver(bool);'
+do
+    if ! rg -q -F "$required" "$power_manager_header"; then
+        printf 'Power manager must expose screensaver control to QML: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'screensaverEnabled(true)' \
+    'setScreensaver(true);' \
+    'screensaverEnabled = enabled;' \
+    'dbus.call("Inhibit", APP_NAME, "Playing video")' \
+    'dbus.call("UnInhibit", QVariant(cookie))' \
+    'SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED)' \
+    'QAndroidJniObject::callStaticMethod<void>("com/orion/MainActivity", "setPlaybackScreenOn")' \
+    'QAndroidJniObject::callStaticMethod<void>("com/orion/MainActivity", "clearPlaybackScreenOn")' \
+    'QProcess::startDetached(QStringLiteral("xdg-screensaver"), QStringList() << QStringLiteral("reset"))'
+do
+    if ! rg -q -F "$required" "$power_manager"; then
+        printf 'Power manager must keep platform screensaver inhibition behavior: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: "Prevent screensaver while playing"' \
+    'checked: Settings.inhibitScreensaver' \
+    'onClicked: Settings.inhibitScreensaver = checked'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must expose the screensaver-inhibition toggle: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'function updateScreensaverState()' \
+    'PowerManager.screensaver = !Settings.inhibitScreensaver || (renderer.status !== "PLAYING")' \
+    'onInhibitScreensaverChanged: root.updateScreensaverState()' \
+    'root.updateScreensaverState()'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must update screensaver inhibition from playback state and settings: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if ! awk '
+    /void Power::timerEvent\(QTimerEvent \*event\)/ {
+        in_timer = 1
+    }
+    in_timer && /if \(screensaverEnabled\) \{/ {
+        saw_guard = 1
+    }
+    in_timer && saw_guard && /return;/ {
+        saw_return = 1
+    }
+    in_timer && /QProcess::startDetached\(QStringLiteral\("xdg-screensaver"\), QStringList\(\) << QStringLiteral\("reset"\)\)/ {
+        saw_reset = 1
+        if (!saw_return) {
+            exit 2
+        }
+    }
+    END {
+        exit(saw_guard && saw_return && saw_reset ? 0 : 1)
+    }
+' "$power_manager"; then
+    printf 'Power::timerEvent must return before xdg-screensaver reset while screensaver inhibition is inactive.\n' >&2
     exit 1
 fi
 
