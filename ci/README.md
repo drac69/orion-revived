@@ -32,6 +32,13 @@ Qmake invocations go through `ci/run_qmake.sh`, which accepts an explicit
 `QMAKE` override and otherwise selects the available Qt 5 `qmake` or
 `qmake-qt5` executable.
 
+To reproduce the Linux workflow locally without installing Qt build
+dependencies on the host, run `ci/check_ubuntu_container_ci.sh`. It uses Podman
+or Docker with an Ubuntu 24.04 image, runs the maintained static checks and HLS
+parser smoke test, and builds/installs the mpv, Qt Multimedia, and combined
+backend matrix. Set `CONTAINER_ENGINE`, `ORION_CI_CONTAINER_IMAGE`, or
+`ORION_CI_CONTAINER_VOLUME_SUFFIX` to override the defaults.
+
 GitHub Actions versions are monitored by Dependabot through
 `.github/dependabot.yml`, and the workflow hygiene guard verifies that weekly
 GitHub Actions update checks stay enabled. The workflow hygiene guard also
