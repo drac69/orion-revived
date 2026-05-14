@@ -229,6 +229,12 @@ because the MSVC runtime is missing, install Microsoft's latest supported Visual
 C++ Redistributable for Visual Studio 2015, 2017, 2019, and 2022:
 <https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist>
 
+If a Windows build starts but every content tab stays empty or only shows a
+connection error after login, run it with `--debug` and check the Qt Network SSL
+messages. Older Orion Windows builds could silently load OpenSSL DLLs from the
+wrong architecture; local Windows packages must ship SSL libraries that match
+the executable and Qt build.
+
 ## Known limitations
 
 * Native live and VOD playback still depends on Twitch playlist-token endpoints that are not documented as a supported Helix API. If Orion cannot load a playable playlist, use the player header action to open the channel or VOD on twitch.tv.

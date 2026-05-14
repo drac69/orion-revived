@@ -29,6 +29,13 @@ if ! rg -q 'latest-supported-vc-redist' "$readme"; then
     exit 1
 fi
 
+if ! rg -q 'every content tab stays empty' "$readme" \
+    || ! rg -q 'Qt Network SSL' "$readme" \
+    || ! rg -q 'wrong architecture' "$readme"; then
+    printf 'README Windows troubleshooting must document the old empty-tabs/SSL DLL architecture failure path.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'pkg install .*qt5-qmake' "$readme"; then
     printf 'README FreeBSD dependencies must include qt5-qmake for the Qt 5 qmake wrapper.\n' >&2
     exit 1
