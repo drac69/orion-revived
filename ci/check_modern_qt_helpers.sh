@@ -8,6 +8,7 @@ network_manager_header="$repo_dir/src/network/networkmanager.h"
 mpris_manager="$repo_dir/src/model/mprismanager.cpp"
 mpris_manager_header="$repo_dir/src/model/mprismanager.h"
 player_view="$repo_dir/src/qml/PlayerView.qml"
+file_utils="$repo_dir/src/util/fileutils.cpp"
 parse_game_results_block=$(sed -n '/PagedResult<Game\*> JsonParser::parseGameResults/,/^}/p' "$json_parser")
 game_find_block=$(sed -n '/Game \*GameListModel::find/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
 game_add_all_block=$(sed -n '/void GameListModel::addAll/,/^}/p' "$repo_dir/src/model/gamelistmodel.cpp")
@@ -63,6 +64,11 @@ fi
 
 if rg -n '\.toStdString\(\)\.c_str\(\)' "$repo_dir/src"; then
     printf 'src must write Qt strings through explicit Qt byte arrays instead of temporary std::string c_str pointers.\n' >&2
+    exit 1
+fi
+
+if rg -q 'QTextStream' "$file_utils" && ! rg -q '#include <QTextStream>' "$file_utils"; then
+    printf 'fileutils.cpp must include QTextStream directly when using QTextStream.\n' >&2
     exit 1
 fi
 

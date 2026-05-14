@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 #include <QFile>
 #include <QIODevice>
+#include <QTextStream>
 
 namespace {
 bool writeAll(const QString &filename, const QByteArray &data, QIODevice::OpenMode mode)
