@@ -15,7 +15,7 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 
 ## Downloads
 
-This fork currently validates source builds on Linux through GitHub Actions. Revalidated Windows, macOS, Android, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
+This fork currently validates source builds on Linux and macOS through GitHub Actions. Revalidated Windows, macOS, Android, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. Android source status is tracked in `docs/android.md`. Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
 
 The maintained automation entry point is `.github/workflows/ci.yml`. Older release helper scripts under `ci/` are preserved for reference only, require an explicit legacy opt-in before running, and should not be treated as current build instructions.
 
@@ -175,9 +175,9 @@ orion --libmpv-config ~/.config/orion/mpv.conf
 
 ## Building on MacOS
 
-macOS packaging has not been revalidated in this fork. The bundle metadata is
-kept current for local source builds, but no signed or notarized `.app` package
-is published yet.
+macOS source builds are validated in GitHub Actions with Homebrew `qt@5` and
+`mpv` on the `macos-15` runner. Signed or notarized `.app` packages are not
+published yet.
 
 #### Install needed libraries and software
 

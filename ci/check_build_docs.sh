@@ -38,6 +38,14 @@ if ! rg -q 'Qt 5 qmake wrapper' "$readme"; then
     exit 1
 fi
 
+if ! rg -q 'validates source builds on Linux and macOS through GitHub Actions' "$readme" \
+    || ! rg -q 'macOS source builds are validated in GitHub Actions' "$readme" \
+    || ! rg -q 'Homebrew `qt@5` and' "$readme" \
+    || ! rg -q '`macos-15` runner' "$readme"; then
+    printf 'README must document macOS source-build CI validation without claiming signed packages.\n' >&2
+    exit 1
+fi
+
 if rg -q "I'll|next version|Visual C\+\+ 2015-runtime" "$readme"; then
     printf 'README must not keep stale upstream Windows installer/runtime wording.\n' >&2
     exit 1

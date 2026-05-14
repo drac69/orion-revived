@@ -143,3 +143,37 @@ jobs:
           test -f "$install_root/usr/share/metainfo/Orion.appdata.xml"
           test -f "$install_root/usr/share/applications/Orion.desktop"
           test -f "$install_root/usr/share/icons/hicolor/scalable/apps/orion.svg"
+
+  macos-build:
+    name: macOS Qt5/mpv
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: "1"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Install dependencies
+        run: brew install qt@5 mpv
+
+      - name: Configure
+        run: |
+          qt_prefix="$(brew --prefix qt@5)"
+          mpv_prefix="$(brew --prefix mpv)"
+          echo "QMAKE=$qt_prefix/bin/qmake" >> "$GITHUB_ENV"
+          echo "$qt_prefix/bin" >> "$GITHUB_PATH"
+          QMAKE="$qt_prefix/bin/qmake" ci/run_qmake.sh orion.pro CONFIG+=mpv "INCLUDEPATH+=$mpv_prefix/include" "LIBS+=-L$mpv_prefix/lib"
+
+      - name: Build
+        run: make -j"$(sysctl -n hw.ncpu)"
+
+      - name: Validate app bundle
+        run: |
+          test -d orion.app
+          test -x orion.app/Contents/MacOS/orion
+          plutil -lint orion.app/Contents/Info.plist

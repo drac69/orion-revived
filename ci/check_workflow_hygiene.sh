@@ -32,6 +32,14 @@ if ! rg -q 'fetch-depth:\s*2' "$workflow"; then
     exit 1
 fi
 
+if ! rg -q 'runs-on:\s*macos-15' "$workflow" \
+        || ! rg -q 'brew install qt@5 mpv' "$workflow" \
+        || ! rg -Fq 'ci/run_qmake.sh orion.pro CONFIG+=mpv "INCLUDEPATH+=$mpv_prefix/include" "LIBS+=-L$mpv_prefix/lib"' "$workflow" \
+        || ! rg -q 'orion\.app/Contents/MacOS/orion' "$workflow"; then
+    printf 'CI workflow must keep the macOS Qt 5/mpv source-build validation job.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'ci/check_shell_scripts\.sh' "$workflow"; then
     printf 'CI workflow must run ShellCheck for maintained shell scripts.\n' >&2
     exit 1
