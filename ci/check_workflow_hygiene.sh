@@ -32,7 +32,8 @@ if ! rg -q 'ci/check_shell_scripts\.sh' "$workflow"; then
     exit 1
 fi
 
-if ! ORION_CI_APT_DRY_RUN=1 "$repo_dir/ci/install_ubuntu_ci_deps.sh" | rg -q '^shellcheck$'; then
+ci_packages=$(ORION_CI_APT_DRY_RUN=1 "$repo_dir/ci/install_ubuntu_ci_deps.sh")
+if ! rg -q '^shellcheck$' <<<"$ci_packages"; then
     printf 'CI dependency installer must include shellcheck for shell-script linting.\n' >&2
     exit 1
 fi
