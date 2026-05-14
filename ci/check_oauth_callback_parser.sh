@@ -17,7 +17,11 @@ for required in \
     'QUuid::createUuid().toString(QUuid::WithoutBraces)' \
     'stateMatches' \
     'listenError = true' \
-    'listenError = false'
+    'listenError = false' \
+    "window.location.href = uri.replace('#','?');" \
+    'socket->write(response.toUtf8());' \
+    'socket->waitForBytesWritten();' \
+    'socket->disconnectFromHost();'
 do
     if ! rg -qF "$required" "$source_file"; then
         printf 'OAuth callback parser is missing required token: %s\n' "$required" >&2
@@ -51,9 +55,9 @@ do
     fi
 done
 
-for forbidden in 'split("&")' 'split("=")' 'QMap<QString,QString>'; do
+for forbidden in 'split("&")' 'split("=")' 'QMap<QString,QString>' 'QDataStream' 'socket->write(block)'; do
     if rg -qF "$forbidden" "$source_file"; then
-        printf 'OAuth callback parser must use QUrlQuery instead of ad hoc query splitting.\n' >&2
+        printf 'OAuth callback handling contains a forbidden legacy token: %s\n' "$forbidden" >&2
         fail=1
     fi
 done

@@ -129,7 +129,10 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #298 / #304: kept the upstream chat-emote initialization workaround from
   #294; CI now guards provider hookup before QML image-provider registration
   and emote path propagation into chat message delegates.
-* #284: kept the upstream localhost OAuth response fix from #272.
+* #284: kept the upstream localhost OAuth response fix from #272; CI now
+  guards the raw UTF-8 socket response write, browser fragment-to-query
+  redirect, and absence of the legacy `QDataStream` response wrapper that
+  corrupted some browsers' callback handling.
 * #108: hidden live chat sends desktop notifications for incoming whispers and `@username` mentions, outgoing `/w` whispers are flagged as whispers, and chat now has a dedicated Whispers tab with unread state. Native notification delivery now sends text-only notifications directly, loads bundled qrc notification images without a network fetch, and still shows the notification when a remote notification image fails.
 * #101: added configurable log levels, per-sink stdout/stderr/file/journal log thresholds, optional file logging, optional Linux systemd journal output when built with `libsystemd`, and an in-app recent-log viewer with copy/clear actions.
 * #278: added optional compact and desktop side-navigation settings; combined with the existing right-side chat position, this covers the requested 1.5.x-style left-nav/right-chat layout without changing the default layout.
