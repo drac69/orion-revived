@@ -27,6 +27,11 @@ if ! rg -q 'ci/check_patch_whitespace\.sh' "$workflow"; then
     exit 1
 fi
 
+if ! rg -q 'fetch-depth:\s*2' "$workflow"; then
+    printf 'CI checkout must fetch the previous commit for patch-only whitespace checks.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'ci/check_shell_scripts\.sh' "$workflow"; then
     printf 'CI workflow must run ShellCheck for maintained shell scripts.\n' >&2
     exit 1
