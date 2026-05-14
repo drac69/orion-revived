@@ -37,6 +37,29 @@ if ! rg -q 'unexpectedStopRecoveryTimer' "$player_view"; then
 fi
 
 for required in \
+    'function rendererStatus()' \
+    'function rendererPosition()' \
+    'Player backend is not available' \
+    'running: rendererStatus() === "BUFFERING"' \
+    'show(rendererStatus() !== "PLAYING" ?' \
+    'text: rendererStatus() !== "PLAYING" && rendererStatus() !== "BUFFERING"' \
+    'if (!renderer) {' \
+    'return 0' \
+    'if (renderer) {' \
+    'renderer.setVolume(value)'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must guard UI controls when the renderer item is unavailable: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if rg -q 'running: renderer\.status|show\(renderer\.status|text: renderer\.status|if \(renderer\.status === "PAUSED" \|\| renderer\.status === "STOPPED"\)' "$player_view"; then
+    printf 'PlayerView controls must use guarded rendererStatus() bindings outside renderer Connections.\n' >&2
+    exit 1
+fi
+
+for required in \
     'function currentSeekPreviewSource()' \
     'return currentChannel && currentChannel.seekPreviews ? currentChannel.seekPreviews : ""' \
     'onCurrentChannelChanged: preview.source = currentSeekPreviewSource()' \

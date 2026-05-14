@@ -60,6 +60,14 @@ Page {
         return renderer && typeof renderer.getPlaybackStats === "function"
     }
 
+    function rendererStatus() {
+        return renderer ? renderer.status : "STOPPED"
+    }
+
+    function rendererPosition() {
+        return renderer ? renderer.position : 0
+    }
+
     function updateScreensaverState() {
         if (renderer)
             PowerManager.screensaver = !Settings.inhibitScreensaver || (renderer.status !== "PLAYING")
@@ -249,6 +257,11 @@ Page {
         if (!streamMap) {
             console.log("streamMap not available yet");
             return;
+        }
+        if (!renderer || typeof renderer.load !== "function") {
+            startupRetryTimer.stop()
+            showPlaybackError("backend_error", "Player backend is not available: " + Settings.backend)
+            return
         }
 
         if (!isRetry) {
@@ -577,9 +590,9 @@ Page {
 
     function updateMprisPlaybackStatus() {
         if (!MprisManager.available() || !renderer) return;
-        if (renderer.status === "PLAYING") {
+        if (rendererStatus() === "PLAYING") {
             MprisManager.setPlaybackStatus("Playing")
-        } else if (renderer.status === "PAUSED" || renderer.status === "BUFFERING") {
+        } else if (rendererStatus() === "PAUSED" || rendererStatus() === "BUFFERING") {
             MprisManager.setPlaybackStatus("Paused")
         } else {
             MprisManager.setPlaybackStatus("Stopped")
@@ -603,7 +616,7 @@ Page {
 
     function seekTo(position) {
         console.log("Seeking to", position, duration)
-        if (isVod){
+        if (isVod && renderer){
             chatdrawer.chat.playerSeek(position)
             renderer.seekTo(position)
         }
@@ -631,6 +644,10 @@ Page {
     }
 
     function resumePlayback() {
+        if (!renderer) {
+            return
+        }
+
         if (isVod && renderer.status === "STOPPED") {
             reloadStream()
             return
@@ -640,6 +657,10 @@ Page {
     }
 
     function togglePlayback() {
+        if (!renderer) {
+            return
+        }
+
         if (isVod && renderer.status === "STOPPED") {
             reloadStream()
             return
@@ -935,7 +956,7 @@ Page {
             visible: running
             hoverEnabled: false
             anchors.centerIn: parent
-            running: renderer.status === "BUFFERING"
+            running: rendererStatus() === "BUFFERING"
         }
     }
 
@@ -1001,7 +1022,7 @@ Page {
             }
 
             function run() {
-                 show(renderer.status !== "PLAYING" ? "\ue037" : "\ue034")
+                 show(rendererStatus() !== "PLAYING" ? "\ue037" : "\ue034")
             }
 
             function abort() {
@@ -1047,7 +1068,7 @@ Page {
             onTriggered: {
                 if (!root.headersVisible || headerBarArea.containsMouse || bottomBarArea.containsMouse) return
 
-                if (renderer.status === "PAUSED" || renderer.status === "STOPPED") return
+                if (rendererStatus() === "PAUSED" || rendererStatus() === "STOPPED") return
 
                 // Bug?: MouseArea doesn't work over Controls
                 var controls = [ favBtn, chatBtn, playBtn, resetBtn, volumeBtn, volumeSlider, seekBar, sourcesBox, cropBtn, statsBtn, fsBtn];
@@ -1264,7 +1285,7 @@ Page {
                 property real prev: 0
                 onValueChanged: {
                     if (seekTimer.running)
-                        value = renderer.position + seekTimer.offset
+                        value = rendererPosition() + seekTimer.offset
                 }
 
                 Timer {
@@ -1273,14 +1294,18 @@ Page {
                     repeat: false
                     property real offset: 0
                     onTriggered: {
-                        seekTo(renderer.position + offset);
+                        seekTo(rendererPosition() + offset);
                         offset = 0
                     }
                 }
 
                 function seekAdvance(val) {
+                    if (!renderer) {
+                        return 0
+                    }
+
                     seekTimer.offset += val
-                    value = renderer.position + seekTimer.offset
+                    value = rendererPosition() + seekTimer.offset
                     seekTimer.restart()
                     return seekTimer.offset
                 }
@@ -1392,7 +1417,7 @@ Page {
 
                 IconButtonFlat {
                     id: playBtn
-                    text: renderer.status !== "PLAYING" && renderer.status !== "BUFFERING" ? "\ue037" : "\ue034"
+                    text: rendererStatus() !== "PLAYING" && rendererStatus() !== "BUFFERING" ? "\ue037" : "\ue034"
                     onClicked: togglePlayback()
                 }
 
@@ -1448,7 +1473,9 @@ Page {
 
                     Component.onCompleted: {
                         value = Settings.volumeLevel
-                        renderer.setVolume(value)
+                        if (renderer) {
+                            renderer.setVolume(value)
+                        }
 
                         playBtn.hoverEnabled = true
                         resetBtn.hoverEnabled = true
@@ -1479,7 +1506,9 @@ Page {
                     onPressedChanged: update()
 
                     onValueChanged: {
-                        renderer.setVolume(value)
+                        if (renderer) {
+                            renderer.setVolume(value)
+                        }
                         Settings.volumeLevel = value;
                         if (MprisManager.available()) {
                             MprisManager.setVolume(value / 100)
