@@ -363,14 +363,29 @@ do
     fi
 done
 
-if ! rg -q 'fast_bread' src/util/jsonparser.cpp; then
-    printf 'Low-latency live playback must request Twitch fast_bread playlists.\n' >&2
-    fail=1
-fi
-
-for required_mpv_low_latency_token in 'profile-restore' 'apply-profile' 'low-latency' 'lowLatencyProfileApplied'; do
-    if ! rg -q "$required_mpv_low_latency_token" src/qml/MpvBackend.qml; then
-        printf 'mpv low-latency playback token %s is required.\n' "$required_mpv_low_latency_token" >&2
+for required_low_latency_token in \
+    'Q_PROPERTY(bool lowLatencyPlayback READ lowLatencyPlayback WRITE setLowLatencyPlayback NOTIFY lowLatencyPlaybackChanged)' \
+    'setLowLatencyPlayback(settings.value("lowLatencyPlayback", mLowLatencyPlayback).toBool());' \
+    'settings.setValue("lowLatencyPlayback", lowLatencyPlayback);' \
+    'checked: Settings.lowLatencyPlayback' \
+    'onClicked: Settings.lowLatencyPlayback = checked' \
+    'if (SettingsManager::getInstance()->lowLatencyPlayback())' \
+    'query.addQueryItem("fast_bread", "true");' \
+    'liveStreamActive = start < 0' \
+    'configureLowLatencyProfile(liveStreamActive && Settings.lowLatencyPlayback)' \
+    'renderer.setOption("profile-restore", "copy")' \
+    'renderer.command(["apply-profile", "low-latency"])' \
+    'renderer.command(["apply-profile", "low-latency", "restore"])' \
+    'property bool lowLatencyProfileApplied: false' \
+    'onLowLatencyPlaybackChanged: configureLowLatencyProfile(liveStreamActive && Settings.lowLatencyPlayback)'
+do
+    if ! rg -q -F "$required_low_latency_token" \
+        src/model/settingsmanager.h \
+        src/model/settingsmanager.cpp \
+        src/qml/OptionsView.qml \
+        src/qml/MpvBackend.qml \
+        src/util/jsonparser.cpp; then
+        printf 'Low-latency playback contract token is required: %s\n' "$required_low_latency_token" >&2
         fail=1
     fi
 done
