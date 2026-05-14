@@ -76,6 +76,9 @@ jobs:
       - name: Validate Twitch emote ID handling
         run: ci/check_twitch_emote_ids.sh
 
+      - name: Validate IRC tag parsing
+        run: ci/check_irc_tag_parsing.sh
+
       - name: Validate Android metadata
         run: ci/check_android_metadata.sh
 

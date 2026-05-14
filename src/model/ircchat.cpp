@@ -629,28 +629,69 @@ void IrcChat::disposeOfMessage(ChatMessage m) {
 }
 
 QList<QString> getTags(const QString cmd) {
-    if (cmd.at(0) == QChar('@')) {
+    if (cmd.isEmpty() || cmd.at(0) != QChar('@')) {
+        return QList<QString>();
+    }
+    else {
         // tags are present
         int tagsEnd = cmd.indexOf(" ");
+        if (tagsEnd == -1) {
+            return QList<QString>();
+        }
         QString tags = cmd.mid(1, tagsEnd - 1);
         return tags.split(";");
     }
-    else {
-        return QList<QString>();
+}
+
+QString unescapeIrcTagValue(const QString &value)
+{
+    QString out;
+    out.reserve(value.length());
+
+    bool escaped = false;
+    for (const QChar &character : value) {
+        if (!escaped) {
+            if (character == QLatin1Char('\\')) {
+                escaped = true;
+            } else {
+                out.append(character);
+            }
+            continue;
+        }
+
+        if (character == QLatin1Char(':')) {
+            out.append(QLatin1Char(';'));
+        } else if (character == QLatin1Char('s')) {
+            out.append(QLatin1Char(' '));
+        } else if (character == QLatin1Char('\\')) {
+            out.append(QLatin1Char('\\'));
+        } else if (character == QLatin1Char('r')) {
+            out.append(QLatin1Char('\r'));
+        } else if (character == QLatin1Char('n')) {
+            out.append(QLatin1Char('\n'));
+        } else {
+            out.append(character);
+        }
+        escaped = false;
     }
+
+    return out;
 }
 
 class Tag {
 public:
     Tag(const QString tag) {
         int assignPos = tag.indexOf("=");
-        if (assignPos == -1) {
+        if (tag.isEmpty()) {
             valid = false;
+        } else if (assignPos == -1) {
+            valid = true;
+            key = tag;
         }
         else {
             valid = true;
             key = tag.left(assignPos);
-            value = tag.mid(assignPos + 1);
+            value = unescapeIrcTagValue(tag.mid(assignPos + 1));
         }
     }
 public:
@@ -1115,14 +1156,7 @@ void IrcChat::parseCommand(QString cmd) {
                 raidChannel = tag.value;
             }
             else if (tag.key == "system-msg") {
-                QString systemMessage = tag.value;
-
-                // \s -> space
-                systemMessage.replace("\\s", " ");
-                // double backslash -> single backslash
-                systemMessage.replace("\\\\", "\\");
-
-                parse.chatMessage.systemMessage = systemMessage;
+                parse.chatMessage.systemMessage = tag.value;
             }
         }
 
