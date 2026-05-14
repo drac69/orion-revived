@@ -372,6 +372,11 @@ void VodManager::getBroadcasts(QString vod)
 {
     //Remove leading NaN characters
     vod.remove(QRegularExpression(QStringLiteral("[^0-9]")));
+    if (vod.isEmpty()) {
+        qWarning() << "Ignoring VOD playback request with an invalid VOD id";
+        emit streamsGetFinished(QVariantMap());
+        return;
+    }
 
     netman->getBroadcastPlaybackStream(vod);
 }

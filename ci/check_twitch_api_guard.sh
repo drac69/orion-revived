@@ -7,7 +7,9 @@ network_manager="src/network/networkmanager.cpp"
 vod_manager="src/model/vodmanager.cpp"
 get_stream_block=$(sed -n '/void NetworkManager::getStream/,/^}/p' "$network_manager")
 get_broadcasts_block=$(sed -n '/void NetworkManager::getBroadcasts/,/^}/p' "$network_manager")
+get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybackStream/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
+vod_get_broadcasts_block=$(sed -n '/void VodManager::getBroadcasts/,/^}/p' "$vod_manager")
 add_offline_channels_block=$(sed -n '/void addOfflineChannels/,/^}/p' "$network_manager")
 add_ulong_list_block=$(sed -n '/void addULongLongStringList/,/^}/p' "$network_manager")
 
@@ -185,6 +187,21 @@ if ! printf '%s\n' "$vod_search_block" | rg -q 'if \(channelId == 0\)' \
     || ! printf '%s\n' "$vod_search_block" | rg -q '_model->clear\(\)' \
     || ! printf '%s\n' "$vod_search_block" | rg -q 'emit searchFailed\(\)'; then
     printf 'VodManager::search must reject zero channel ids and end the QML loading state.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$vod_get_broadcasts_block" | rg -q 'vod\.remove\(QRegularExpression' \
+    || ! printf '%s\n' "$vod_get_broadcasts_block" | rg -q 'if \(vod\.isEmpty\(\)\)' \
+    || ! printf '%s\n' "$vod_get_broadcasts_block" | rg -q 'emit streamsGetFinished\(QVariantMap\(\)\)'; then
+    printf 'VodManager::getBroadcasts must reject invalid VOD ids before playback-token lookup.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'const QString normalizedVod = vod\.trimmed\(\)' \
+    || ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'normalizedVod\.toULongLong\(&vodOk\)' \
+    || ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'if \(!vodOk \|\| vodId == 0\)' \
+    || ! printf '%s\n' "$get_broadcast_playback_block" | rg -q 'emit m3u8OperationBFinished\(QVariantMap\(\)\)'; then
+    printf 'VOD playback-token requests must reject malformed or zero VOD ids before calling Twitch.\n' >&2
     fail=1
 fi
 

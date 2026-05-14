@@ -626,8 +626,16 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
 
 void NetworkManager::getBroadcastPlaybackStream(const QString &vod)
 {
+    const QString normalizedVod = vod.trimmed();
+    bool vodOk = false;
+    const quint64 vodId = normalizedVod.toULongLong(&vodOk);
+    if (!vodOk || vodId == 0) {
+        emit m3u8OperationBFinished(QVariantMap());
+        return;
+    }
+
     QString url = QString(TWITCH_API)
-            + QString("/vods/%1").arg(vod)
+            + QString("/vods/%1").arg(normalizedVod)
             + QString("/access_token");
     QNetworkRequest request;
     request.setRawHeader("Client-ID", getPrivateClientId().toUtf8());
