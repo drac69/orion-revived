@@ -1111,19 +1111,8 @@ void NetworkManager::channelBitsUrlsReply() {
     }
     QByteArray data = reply->readAll();
 
-    int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
-    if (channelID == 0) {
-        QString urlString = reply->url().toString();
-        qDebug() << "url was" << urlString;
-
-        int eqPos = urlString.lastIndexOf('=');
-        if (eqPos != -1) {
-            QString channelIDStr = urlString.mid(eqPos + 1);
-            channelID = channelIDStr.toInt();
-        }
-    }
-
-    if (channelID != 0) {
+    const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+    if (channelID > 0) {
         qDebug() << "bits urls for channel" << channelID << "loaded";
         BitsQStringsMap urls;
         BitsQStringsMap colors;
@@ -1132,7 +1121,7 @@ void NetworkManager::channelBitsUrlsReply() {
         emit getChannelBitsUrlsOperationFinished(channelID, urls, colors);
     }
     else {
-        qDebug() << "can't determine channel from request url";
+        qDebug() << "can't determine channel from Cheermote request context";
     }
 
     reply->deleteLater();
@@ -1966,27 +1955,15 @@ void NetworkManager::channelBadgeUrlsBetaReply()
     }
     QByteArray data = reply->readAll();
 
-    QString urlString = reply->url().toString();
-
-    qDebug() << "url was" << urlString;
-
-    if (reply->url().path() == "/helix/chat/badges") {
-        int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
-        qDebug() << "beta badges for channel" << channelID << "loaded";
-        auto badges = JsonParser::parseBadgeUrlsBetaFormat(data);
-
-        emit getChannelBadgeBetaUrlsOperationFinished(channelID, badges);
-    }
-    else if (urlString.startsWith(CHANNEL_BADGES_BETA_URL_PREFIX) && urlString.endsWith(CHANNEL_BADGES_BETA_URL_SUFFIX)) {
-        QString channelIDStr = urlString.mid(CHANNEL_BADGES_BETA_URL_PREFIX.length(), urlString.length() - CHANNEL_BADGES_BETA_URL_PREFIX.length() - CHANNEL_BADGES_BETA_URL_SUFFIX.length());
-        int channelID = channelIDStr.toInt();
+    const int channelID = reply->request().attribute(QNetworkRequest::User).toInt();
+    if (channelID > 0) {
         qDebug() << "beta badges for channel" << channelID << "loaded";
         auto badges = JsonParser::parseBadgeUrlsBetaFormat(data);
 
         emit getChannelBadgeBetaUrlsOperationFinished(channelID, badges);
     }
     else {
-        qDebug() << "can't determine channel from badges request url";
+        qDebug() << "can't determine channel from badge request context";
     }
 
     reply->deleteLater();

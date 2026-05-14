@@ -22,6 +22,8 @@ get_channel_badges_block=$(sed -n '/void NetworkManager::getChannelBadgeUrlsBeta
 get_channel_bits_block=$(sed -n '/void NetworkManager::getChannelBitsUrls/,/^}/p' "$network_manager")
 get_channel_bttv_block=$(sed -n '/void NetworkManager::getChannelBttvEmotes/,/^}/p' "$network_manager")
 get_channel_ffz_block=$(sed -n '/void NetworkManager::getChannelFfzEmotes/,/^}/p' "$network_manager")
+channel_badges_reply_block=$(sed -n '/void NetworkManager::channelBadgeUrlsBetaReply/,/^}/p' "$network_manager")
+channel_bits_reply_block=$(sed -n '/void NetworkManager::channelBitsUrlsReply/,/^}/p' "$network_manager")
 channel_bttv_reply_block=$(sed -n '/void NetworkManager::channelBttvEmotesReply/,/^}/p' "$network_manager")
 channel_ffz_reply_block=$(sed -n '/void NetworkManager::channelFfzEmotesReply/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
@@ -314,6 +316,18 @@ fi
 if ! printf '%s\n' "$get_channel_bits_block" | rg -q 'if \(channelID <= 0\)' \
     || ! printf '%s\n' "$get_channel_bits_block" | rg -q 'emit getChannelBitsUrlsOperationFinished\(channelID, emptyUrls, emptyColors\)'; then
     printf 'Channel Cheermote metadata requests must reject non-positive channel IDs.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$channel_badges_reply_block" | rg -q 'request\(\)\.attribute\(QNetworkRequest::User\)\.toInt\(\)' \
+    || printf '%s\n' "$channel_badges_reply_block" | rg -q 'lastIndexOf|startsWith\(CHANNEL_BADGES_BETA_URL_PREFIX\)'; then
+    printf 'Channel badge metadata replies must use request context instead of reparsing URLs.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$channel_bits_reply_block" | rg -q 'request\(\)\.attribute\(QNetworkRequest::User\)\.toInt\(\)' \
+    || printf '%s\n' "$channel_bits_reply_block" | rg -q "lastIndexOf|mid\\(eqPos|toString\\(\\)"; then
+    printf 'Channel Cheermote metadata replies must use request context instead of reparsing URLs.\n' >&2
     fail=1
 fi
 
