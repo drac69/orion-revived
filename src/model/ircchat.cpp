@@ -60,6 +60,12 @@ void writeIrcCommand(QSslSocket *socket, const QString &command)
     socket->write(bytes);
 }
 
+QString sslUnavailableMessage()
+{
+    return QStringLiteral("Chat SSL is unavailable. Qt build SSL: %1; runtime SSL: %2")
+            .arg(QSslSocket::sslLibraryBuildVersionString(), QSslSocket::sslLibraryVersionString());
+}
+
 }
 
 IrcChat::IrcChat(QObject *parent) :
@@ -253,6 +259,14 @@ void IrcChat::reopenSocket() {
         joinedRoom = false;
         if (sock->isOpen())
             sock->close();
+
+        if (!QSslSocket::supportsSsl()) {
+            const QString message = sslUnavailableMessage();
+            qWarning().noquote() << message;
+            emit errorOccured(message);
+            return;
+        }
+
         sock->open(QIODevice::ReadWrite);
         sock->connectToHostEncrypted(HOST, PORT);
         if (!sock->isOpen()) {
@@ -575,7 +589,7 @@ void IrcChat::processError(QAbstractSocket::SocketError socketError) {
         err = "Connection refused.";
         break;
     default:
-        err = "Unknown error.";
+        err = sock ? sock->errorString() : "Unknown error.";
     }
 
     emit errorOccured(err);
