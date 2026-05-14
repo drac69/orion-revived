@@ -32,6 +32,11 @@ if ! rg -q 'fetch-depth:\s*2' "$workflow"; then
     exit 1
 fi
 
+if ! rg -q 'fetch-tags:\s*true' "$workflow"; then
+    printf 'CI checkout must fetch tags so release-pinned metadata can be validated.\n' >&2
+    exit 1
+fi
+
 if ! rg -q 'runs-on:\s*macos-15' "$workflow" \
         || ! rg -q 'brew install qt@5 mpv' "$workflow" \
         || ! rg -Fq 'ci/run_qmake.sh orion.pro CONFIG+=mpv "INCLUDEPATH+=$mpv_prefix/include" "LIBS+=-L$mpv_prefix/lib"' "$workflow" \
