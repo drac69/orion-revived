@@ -45,7 +45,11 @@ done
 
 for required in \
     'if (clickedItem) {' \
-    'if (foo) {' \
+    'property int clickedIndex: -1' \
+    'var currentIndex = root.indexAt(contentPointX, contentPointY)' \
+    'currentIndex === clickedIndex' \
+    'var clickedItem = root.itemAt(contentPointX, contentPointY)' \
+    '_ct.reset()' \
     'if (clickedItem && mouse.button === Qt.LeftButton)'
 do
     if ! rg -q -F "$required" "$common_grid_qml"; then

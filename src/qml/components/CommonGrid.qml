@@ -140,41 +140,64 @@ GridView {
 
         Timer {
             id: _ct
-            property var foo
+            property int clickedIndex: -1
+            property int mouseButton: Qt.NoButton
+            property real contentPointX: -1
+            property real contentPointY: -1
+            property real mousePointX: -1
+            property real mousePointY: -1
             interval: 100
             repeat: false
             onTriggered: {
-                if (foo && typeof foo === 'function')
-                    foo()
-                _ct.foo = undefined
+                var currentIndex = root.indexAt(contentPointX, contentPointY)
+                if (clickedIndex !== -1 && currentIndex === clickedIndex) {
+                    var clickedItem = root.itemAt(contentPointX, contentPointY)
+                    if (clickedItem) {
+                        if (mouseButton === Qt.LeftButton) {
+                            root.itemClicked(clickedIndex, clickedItem)
+                        } else if (mouseButton === Qt.RightButton) {
+                            root.itemRightClicked(clickedIndex, clickedItem, mousePointX, mousePointY)
+                        }
+                    }
+                }
+                reset()
+            }
+
+            function reset() {
+                clickedIndex = -1
+                mouseButton = Qt.NoButton
+                contentPointX = -1
+                contentPointY = -1
+                mousePointX = -1
+                mousePointY = -1
             }
         }
 
         onClicked: {
-            var foo;
+            _ct.stop()
+            _ct.reset()
+
             var clickedIndex = indexAt(contentX + mouseX, contentY + mouseY);
             root.currentIndex = clickedIndex;
             if (clickedIndex !== -1){
                 var clickedItem = itemAt(mouse.x + root.contentX, mouse.y + root.contentY);
                 if (clickedItem) {
-                    if (mouse.button === Qt.LeftButton) {
-                        foo = function(){ itemClicked(clickedIndex, clickedItem) }
-                    } else if (mouse.button === Qt.RightButton){
-                        foo = function(){ itemRightClicked(clickedIndex, clickedItem, mouse.x, mouse.y) }
-                    }
+                    _ct.clickedIndex = clickedIndex
+                    _ct.mouseButton = mouse.button
+                    _ct.contentPointX = mouse.x + root.contentX
+                    _ct.contentPointY = mouse.y + root.contentY
+                    _ct.mousePointX = mouse.x
+                    _ct.mousePointY = mouse.y
                 }
             }
-            _ct.foo = foo
-            if (foo) {
+            if (_ct.clickedIndex !== -1) {
                 _ct.restart()
-            } else {
-                _ct.stop()
             }
         }
 
         onDoubleClicked: {
             _ct.stop()
-            _ct.foo = undefined
+            _ct.reset()
 
             var clickedIndex = indexAt(mouse.x + root.contentX, mouse.y + root.contentY);
             if (clickedIndex !== -1){
