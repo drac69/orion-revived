@@ -205,6 +205,23 @@ do
     fi
 done
 
+for required in \
+    'id: videoPositionLabel' \
+    'function updateText()' \
+    'if (!isVod || duration <= 0) {' \
+    'text = ""' \
+    'Util.formatTime(seekBar.value) + "/" + Util.formatTime(duration)' \
+    'onIsVodChanged: videoPositionLabel.updateText()' \
+    'onDurationChanged: videoPositionLabel.updateText()' \
+    'onValueChanged: videoPositionLabel.updateText()' \
+    'onPlayingStopped: videoPositionLabel.text = ""'
+do
+    if ! rg -q -F "$required" "$player_view"; then
+        printf 'PlayerView must keep VOD timestamp display current and clear stale non-VOD text: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
 if ! rg -q 'onBackendError' "$player_view" || ! rg -q 'backend_error' "$player_view"; then
     printf 'PlayerView must surface backend playback errors through the common playback error UI.\n' >&2
     exit 1

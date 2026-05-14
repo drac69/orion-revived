@@ -76,7 +76,9 @@ These issues remained open upstream but the final `master` code already contains
 * #223: UI/text scaling and font selection settings; CI now guards persisted
   text scaling, chat input/message/emote scaling, installed-font selection, and
   reset-to-bundled-default behavior.
-* #220: VOD timestamp/position display is present in the player controls.
+* #220: VOD timestamp/position display is present in the player controls and
+  now clears stale text when leaving VOD playback; CI guards the label update
+  hooks.
 * #217: chat background opacity is configurable in the chat settings; CI now
   guards the persisted opacity range, options slider, and ChatView background
   binding.

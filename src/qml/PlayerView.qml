@@ -1539,8 +1539,16 @@ Page {
                     horizontalAlignment: Qt.AlignLeft
                     clip: true
                     function updateText() {
-                        if (!isVod) return ""
+                        if (!isVod || duration <= 0) {
+                            text = ""
+                            return
+                        }
                         text = Util.formatTime(seekBar.value) + "/" + Util.formatTime(duration)
+                    }
+                    Connections {
+                        target: root
+                        onIsVodChanged: videoPositionLabel.updateText()
+                        onDurationChanged: videoPositionLabel.updateText()
                     }
                     Connections {
                         target: seekBar
