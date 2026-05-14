@@ -113,8 +113,21 @@ void VodManager::search(const quint64 channelId, const quint32 offset, const qui
     netman->getBroadcasts(channelId, offset, limit, videoType);
 }
 
-void VodManager::onSearchFinished(QList<Vod *> items)
+bool VodManager::isCurrentSearch(quint64 channelId, quint32 offset, const QString &type) const
 {
+    return currentSearchChannelId == channelId
+            && currentSearchOffset == offset
+            && currentSearchType == type.trimmed();
+}
+
+void VodManager::onSearchFinished(QList<Vod *> items, quint64 channelId, quint32 offset, const QString &type)
+{
+    if (!isCurrentSearch(channelId, offset, type)) {
+        qDebug() << "Ignoring stale VOD listing reply for channel" << channelId << "offset" << offset << "type" << type;
+        qDeleteAll(items);
+        return;
+    }
+
     _model->mergePage(items, currentSearchOffset);
     if (currentSearchChannelId != 0) {
         saveCachedVods(currentSearchChannelId, currentSearchType);
@@ -126,8 +139,13 @@ void VodManager::onSearchFinished(QList<Vod *> items)
     emit searchFinished();
 }
 
-void VodManager::onSearchFailed()
+void VodManager::onSearchFailed(quint64 channelId, quint32 offset, const QString &type)
 {
+    if (!isCurrentSearch(channelId, offset, type)) {
+        qDebug() << "Ignoring stale failed VOD listing reply for channel" << channelId << "offset" << offset << "type" << type;
+        return;
+    }
+
     emit searchFailed();
 }
 

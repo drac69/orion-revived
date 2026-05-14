@@ -137,8 +137,8 @@ signals:
     void featuredStreamsOperationFinished(const QList<Channel *>&, const int total);
     void searchChannelsOperationFinished(const QList<Channel *>&, const int total);
     void searchGamesOperationFinished(const QList<Game *>&);
-    void broadcastsOperationFinished(const QList<Vod *>&);
-    void broadcastsOperationFailed();
+    void broadcastsOperationFinished(const QList<Vod *> &, quint64 channelId, quint32 offset, const QString &type);
+    void broadcastsOperationFailed(quint64 channelId, quint32 offset, const QString &type);
     void m3u8OperationFinished(const QVariantMap&);
     void m3u8OperationBFinished(const QVariantMap&);
     void fileOperationFinished(const QByteArray&);

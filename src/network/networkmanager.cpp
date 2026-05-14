@@ -741,19 +741,19 @@ void NetworkManager::getChannelPlaybackStream(const QString &channelName)
 
 void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quint32 limit, const QString &type)
 {
+    const QString videoType = type.trimmed();
     if (channelId == 0) {
-        emit broadcastsOperationFailed();
+        emit broadcastsOperationFailed(channelId, offset, videoType);
         return;
     }
 
     if (!requireHelixAccessToken("VOD listing")) {
-        emit broadcastsOperationFailed();
+        emit broadcastsOperationFailed(channelId, offset, videoType);
         return;
     }
 
     const quint32 pageSize = qMax<quint32>(1, qMin<quint32>(limit, 100));
 
-    const QString videoType = type.trimmed();
     if (offset == 0 || channelId != lastBroadcastsChannelId || videoType != lastBroadcastsType) {
         broadcastsPageCursors.clear();
         lastBroadcastsChannelId = channelId;
@@ -761,7 +761,7 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
     }
     else if (!broadcastsPageCursors.contains(offset)) {
         QList<Vod *> empty;
-        emit broadcastsOperationFinished(empty);
+        emit broadcastsOperationFinished(empty, channelId, offset, videoType);
         return;
     }
 
@@ -770,6 +770,8 @@ void NetworkManager::getBroadcasts(const quint64 channelId, quint32 offset, quin
     addHelixHeaders(request);
     request.setAttribute(QNetworkRequest::User, offset);
     request.setAttribute(RequestContextAttribute1, pageSize);
+    request.setAttribute(RequestContextAttribute2, channelId);
+    request.setAttribute(RequestContextAttribute3, videoType);
 
     url = QUrl(QString(HELIX_API) + "/videos");
     QUrlQuery query;
@@ -2182,8 +2184,12 @@ void NetworkManager::broadcastsReply()
         return;
     }
 
+    const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
+    const quint64 channelId = reply->request().attribute(RequestContextAttribute2).toULongLong();
+    const QString type = reply->request().attribute(RequestContextAttribute3).toString();
+
     if (!handleNetworkError(reply)) {
-        emit broadcastsOperationFailed();
+        emit broadcastsOperationFailed(channelId, offset, type);
         reply->deleteLater();
         return;
     }
@@ -2193,14 +2199,13 @@ void NetworkManager::broadcastsReply()
     auto result = JsonParser::parseVodResults(data);
     const bool isHelix = reply->url().path() == "/helix/videos";
     if (isHelix && !result.cursor.isEmpty()) {
-        const quint32 offset = reply->request().attribute(QNetworkRequest::User).toUInt();
         const quint32 limit = reply->request().attribute(RequestContextAttribute1).toUInt();
         const quint32 returnedCount = static_cast<quint32>(result.items.size());
         const quint32 nextOffset = offset + (returnedCount > 0 ? returnedCount : limit);
         broadcastsPageCursors.insert(nextOffset, result.cursor);
     }
 
-    emit broadcastsOperationFinished(result.items);
+    emit broadcastsOperationFinished(result.items, channelId, offset, type);
 
     reply->deleteLater();
 }

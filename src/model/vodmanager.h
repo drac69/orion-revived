@@ -60,10 +60,11 @@ private:
     void savePlaybackPositionSnapshot() const;
     void loadCachedVods(quint64 channelId, const QString &type);
     void saveCachedVods(quint64 channelId, const QString &type) const;
+    bool isCurrentSearch(quint64 channelId, quint32 offset, const QString &type) const;
 
 public slots:
-    void onSearchFinished(QList<Vod *>);
-    void onSearchFailed();
+    void onSearchFinished(QList<Vod *> items, quint64 channelId, quint32 offset, const QString &type);
+    void onSearchFailed(quint64 channelId, quint32 offset, const QString &type);
     void setVodLastPlaybackPosition(const QString & channel, const QString & vod, quint64 position);
     QVariant getVodLastPlaybackPosition(const QString & channel, const QString & vod);
     QVariantMap getChannelVodsLastPlaybackPositions(const QString & channel);

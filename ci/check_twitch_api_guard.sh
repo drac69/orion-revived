@@ -27,6 +27,7 @@ get_streams_for_game_block=$(sed -n '/void NetworkManager::getStreamsForGame(/,/
 get_streams_for_game_id_block=$(sed -n '/void NetworkManager::getStreamsForGameId/,/^}/p' "$network_manager")
 get_channel_playback_block=$(sed -n '/void NetworkManager::getChannelPlaybackStream/,/^}/p' "$network_manager")
 get_broadcasts_block=$(sed -n '/void NetworkManager::getBroadcasts/,/^}/p' "$network_manager")
+broadcasts_reply_block=$(sed -n '/void NetworkManager::broadcastsReply/,/^}/p' "$network_manager")
 get_broadcast_playback_block=$(sed -n '/void NetworkManager::getBroadcastPlaybackStream/,/^}/p' "$network_manager")
 get_user_block=$(sed -n '/void NetworkManager::getUser/,/^}/p' "$network_manager")
 user_reply_block=$(sed -n '/void NetworkManager::userReply/,/^}/p' "$network_manager")
@@ -46,6 +47,8 @@ channel_bits_reply_block=$(sed -n '/void NetworkManager::channelBitsUrlsReply/,/
 channel_bttv_reply_block=$(sed -n '/void NetworkManager::channelBttvEmotesReply/,/^}/p' "$network_manager")
 channel_ffz_reply_block=$(sed -n '/void NetworkManager::channelFfzEmotesReply/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
+vod_search_finished_block=$(sed -n '/void VodManager::onSearchFinished/,/^}/p' "$vod_manager")
+vod_search_failed_block=$(sed -n '/void VodManager::onSearchFailed/,/^}/p' "$vod_manager")
 vod_get_broadcasts_block=$(sed -n '/void VodManager::getBroadcasts/,/^}/p' "$vod_manager")
 load_channel_badges_block=$(sed -n '/bool BadgeContainer::loadChannelBetaBadgeUrls/,/^}/p' "$badge_container")
 load_channel_bits_block=$(sed -n '/bool BadgeContainer::loadChannelBitsUrls/,/^}/p' "$badge_container")
@@ -326,8 +329,19 @@ if ! printf '%s\n' "$get_channel_playback_block" | rg -q 'const QString normaliz
 fi
 
 if ! printf '%s\n' "$get_broadcasts_block" | rg -q 'if \(channelId == 0\)' \
-    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFailed\(\)'; then
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFailed\(channelId, offset, videoType\)' \
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'request\.setAttribute\(RequestContextAttribute2, channelId\)' \
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'request\.setAttribute\(RequestContextAttribute3, videoType\)' \
+    || ! printf '%s\n' "$get_broadcasts_block" | rg -q 'emit broadcastsOperationFinished\(empty, channelId, offset, videoType\)'; then
     printf 'VOD listing requests must reject zero channel ids before calling Helix.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'const quint64 channelId = reply->request\(\)\.attribute\(RequestContextAttribute2\)\.toULongLong\(\)' \
+    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'const QString type = reply->request\(\)\.attribute\(RequestContextAttribute3\)\.toString\(\)' \
+    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'emit broadcastsOperationFailed\(channelId, offset, type\)' \
+    || ! printf '%s\n' "$broadcasts_reply_block" | rg -q 'emit broadcastsOperationFinished\(result\.items, channelId, offset, type\)'; then
+    printf 'VOD listing replies must carry channel/type/offset context for stale-reply rejection.\n' >&2
     fail=1
 fi
 
@@ -335,6 +349,16 @@ if ! printf '%s\n' "$vod_search_block" | rg -q 'if \(channelId == 0\)' \
     || ! printf '%s\n' "$vod_search_block" | rg -q '_model->clear\(\)' \
     || ! printf '%s\n' "$vod_search_block" | rg -q 'emit searchFailed\(\)'; then
     printf 'VodManager::search must reject zero channel ids and end the QML loading state.\n' >&2
+    fail=1
+fi
+
+if ! rg -q 'bool VodManager::isCurrentSearch' "$vod_manager" \
+    || ! printf '%s\n' "$vod_search_finished_block" | rg -q '!isCurrentSearch\(channelId, offset, type\)' \
+    || ! printf '%s\n' "$vod_search_finished_block" | rg -q 'Ignoring stale VOD listing reply' \
+    || ! printf '%s\n' "$vod_search_finished_block" | rg -q 'qDeleteAll\(items\)' \
+    || ! printf '%s\n' "$vod_search_failed_block" | rg -q '!isCurrentSearch\(channelId, offset, type\)' \
+    || ! printf '%s\n' "$vod_search_failed_block" | rg -q 'Ignoring stale failed VOD listing reply'; then
+    printf 'VodManager must ignore stale VOD listing replies after channel/type/offset changes.\n' >&2
     fail=1
 fi
 
