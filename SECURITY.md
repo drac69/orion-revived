@@ -6,6 +6,9 @@ Security fixes are accepted for the current `modernize-maintenance` branch and
 the latest GitHub Release from this fork. The archived upstream repository and
 old binary packages are not maintained here.
 
+Official maintained releases are source-only. CI-built binaries are validation
+outputs, not signed or notarized release artifacts.
+
 Android packages, signed Windows installers, and signed or notarized macOS
 packages are not currently published by this fork. Treat reports about those
 channels as source-maintenance or packaging-validation work unless a maintained

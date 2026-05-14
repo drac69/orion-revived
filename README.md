@@ -15,7 +15,7 @@ Some old upstream issues are broad feature requests or depend on Twitch API beha
 
 ## Downloads
 
-This fork currently validates source builds on Linux, macOS, and Windows through GitHub Actions. Revalidated Windows/macOS installers, Android packages, and F-Droid packages are not published yet; check the GitHub Releases page for any available builds, otherwise use the source build steps below. The release-readiness matrix is tracked in `docs/release-readiness.md`. The desktop release-channel decision is tracked in [issue #3](https://github.com/belagrf/orion-revived/issues/3), and Android source status is tracked in `docs/android.md` plus [issue #2](https://github.com/belagrf/orion-revived/issues/2). Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
+This fork currently validates source builds on Linux, macOS, and Windows through GitHub Actions. The maintained release channel is source-only: signed Windows installers, signed or notarized macOS packages, Android packages, and F-Droid packages are not published by this fork. Check the GitHub Releases page for source releases, otherwise use the source build steps below. The release-readiness matrix is tracked in `docs/release-readiness.md`. The desktop source-only release decision is recorded in [issue #3](https://github.com/belagrf/orion-revived/issues/3), and Android source status is tracked in `docs/android.md` plus [issue #2](https://github.com/belagrf/orion-revived/issues/2). Twitch directory, search, and VOD metadata use Helix and require either logging in, providing an app access token, or allowing Orion to request one with user-supplied Twitch app credentials; followed-channel and account actions still require logging in.
 
 The maintained automation entry point is `.github/workflows/ci.yml`. Older release helper scripts under `ci/` are preserved for reference only, require an explicit legacy opt-in before running, and should not be treated as current build instructions.
 
@@ -177,7 +177,7 @@ orion --libmpv-config ~/.config/orion/mpv.conf
 
 macOS source builds are validated in GitHub Actions with Homebrew `qt@5` and
 `mpv` on the `macos-15` runner. Signed or notarized `.app` packages are not
-published yet; that release-channel decision is tracked in
+published by this fork; the source-only release decision is recorded in
 [issue #3](https://github.com/belagrf/orion-revived/issues/3).
 
 #### Install needed libraries and software
@@ -203,7 +203,8 @@ There will now be an orion.app application in the build directory.
 
 Windows source builds are validated in GitHub Actions with MSYS2 UCRT64,
 Qt 5, and mpv on the `windows-2025-vs2026` runner. Signed installers are not
-published yet.
+published by this fork; the source-only release decision is recorded in
+[issue #3](https://github.com/belagrf/orion-revived/issues/3).
 
 Install MSYS2, open the UCRT64 shell, then install build dependencies:
 
@@ -246,10 +247,10 @@ See more on [qt material docs](https://doc.qt.io/qt-5/qtquickcontrols2-material.
 
 ## Windows troubleshooting
 
-Revalidated Windows installers are not published from this fork yet. If you are
-testing an older Windows build or a local Windows build and it fails to start
-because the MSVC runtime is missing, install Microsoft's latest supported Visual
-C++ Redistributable for Visual Studio 2015, 2017, 2019, and 2022:
+Windows installers are not published from this fork. If you are testing an
+older Windows build or a local Windows build and it fails to start because the
+MSVC runtime is missing, install Microsoft's latest supported Visual C++
+Redistributable for Visual Studio 2015, 2017, 2019, and 2022:
 <https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist>
 
 If a Windows build starts but every content tab stays empty or only shows a

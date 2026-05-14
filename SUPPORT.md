@@ -9,6 +9,9 @@ Twitch API gaps explicit.
 Supported reports should use the current `modernize-maintenance` branch or the
 latest GitHub Release from this fork.
 
+Official maintained releases are source-only. CI-built desktop binaries are
+validation evidence, not signed or notarized release artifacts.
+
 Currently maintained:
 
 * Linux and FreeBSD source builds using Qt 5.15 and the mpv backend.

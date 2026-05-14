@@ -34,6 +34,7 @@ done
 
 require_token "$support" "current \`modernize-maintenance\` branch" "current-branch support scope"
 require_token "$support" "latest GitHub Release" "latest-release support scope"
+require_token "$support" "Official maintained releases are source-only" "source-only release policy"
 require_token "$support" "Linux and FreeBSD source builds" "desktop source-build scope"
 require_token "$support" "macOS source builds validated by GitHub Actions" "macOS source-build scope"
 require_token "$support" "Windows source builds validated by GitHub Actions" "Windows source-build scope"
@@ -46,6 +47,7 @@ require_token "$support" "Do not paste OAuth tokens" "credential redaction warni
 
 require_token "$security" "current \`modernize-maintenance\` branch" "security support scope"
 require_token "$security" "latest GitHub Release" "security release scope"
+require_token "$security" "Official maintained releases are source-only" "source-only security release policy"
 require_token "$security" "Android packages, signed Windows installers, and signed or notarized macOS" "unsupported artifact caveat"
 require_token "$security" "Do not disclose exploitable details" "responsible disclosure warning"
 require_token "$security" "OAuth tokens, Twitch client secrets" "credential redaction warning"
