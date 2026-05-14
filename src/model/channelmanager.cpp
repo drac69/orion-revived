@@ -88,6 +88,11 @@ void ChannelManager::addToFavourites(const quint32 &id, const QString &serviceNa
         return;
     }
 
+    if (id == 0) {
+        qWarning() << "Ignoring favourite channel with id 0";
+        return;
+    }
+
     if (!favouritesModel->find(id)){
         Channel *channel = new Channel();
         channel->setId(id);
@@ -252,6 +257,11 @@ void ChannelManager::addToFavourites(const quint32 &id){
         return;
     }
 
+    if (id == 0) {
+        qWarning() << "Ignoring favourite channel with id 0";
+        return;
+    }
+
     Channel *channel = resultsModel->find(id);
 
     if (channel){
@@ -269,6 +279,11 @@ void ChannelManager::addToFavourites(const quint32 &id){
 void ChannelManager::removeFromFavourites(const quint32 &id){
     if (isAccessTokenAvailable()) {
         qWarning() << "Twitch unfollow API is no longer available; not editing remote followed channels";
+        return;
+    }
+
+    if (id == 0) {
+        qWarning() << "Ignoring favourite removal with id 0";
         return;
     }
 

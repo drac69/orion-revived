@@ -12,6 +12,9 @@ channel_add_block=$(sed -n '/void ChannelListModel::addChannel/,/^}/p' "$repo_di
 channel_update_stream_block=$(sed -n '/bool ChannelListModel::updateStream/,/^}/p' "$repo_dir/src/model/channellistmodel.cpp")
 channel_manager_check_streams_block=$(sed -n '/void ChannelManager::checkStreams/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 channel_manager_channel_ids_block=$(sed -n '/QString commaSeparatedChannelIds/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_add_favourite_full_block=$(sed -n '/void ChannelManager::addToFavourites(const quint32 &id, const QString &serviceName/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_add_favourite_id_block=$(sed -n '/void ChannelManager::addToFavourites(const quint32 &id)/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
+channel_manager_remove_favourite_block=$(sed -n '/void ChannelManager::removeFromFavourites/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 channel_manager_add_search_results_block=$(sed -n '/void ChannelManager::addSearchResults/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 channel_manager_update_favourites_block=$(sed -n '/void ChannelManager::updateFavourites/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
 channel_manager_notify_multiple_block=$(sed -n '/void ChannelManager::notifyMultipleChannelsOnline/,/^}/p' "$repo_dir/src/model/channelmanager.cpp")
@@ -158,6 +161,17 @@ if ! printf '%s\n' "$channel_manager_channel_ids_block" | rg -q 'if \(channel\)'
     printf 'Channel ID formatting must skip null channel pointers.\n' >&2
     exit 1
 fi
+
+for block in \
+    "$channel_manager_add_favourite_full_block" \
+    "$channel_manager_add_favourite_id_block" \
+    "$channel_manager_remove_favourite_block"
+do
+    if ! printf '%s\n' "$block" | rg -q 'if \(id == 0\)'; then
+        printf 'ChannelManager favourite operations must reject id 0.\n' >&2
+        exit 1
+    fi
+done
 
 if ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q '!c \|\| !c->getId\(\)' \
     || ! printf '%s\n' "$channel_manager_update_favourites_block" | rg -q 'validChannels\.append\(c\)' \

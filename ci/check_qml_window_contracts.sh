@@ -4,6 +4,8 @@ set -euo pipefail
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 main_qml="$repo_dir/src/qml/main.qml"
 common_grid_qml="$repo_dir/src/qml/components/CommonGrid.qml"
+add_favourites_block=$(sed -n '/function addToFavourites/,/^    }/p' "$main_qml")
+remove_favourites_block=$(sed -n '/function removeFromFavourites/,/^    }/p' "$main_qml")
 
 for required in \
     'function refreshWindowScreenAssociation()' \
@@ -48,6 +50,15 @@ for required in \
 do
     if ! rg -q -F "$required" "$common_grid_qml"; then
         printf 'CommonGrid must guard delegate item lookup before emitting click signals: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for block in "$add_favourites_block" "$remove_favourites_block"; do
+    if ! printf '%s\n' "$block" | rg -q -F 'if (!channel) return' \
+        || ! printf '%s\n' "$block" | rg -q -F 'if (!channel._id)' \
+        || ! printf '%s\n' "$block" | rg -q -F 'showMissingChannelId(channel)'; then
+        printf 'QML favourite helpers must guard missing channel objects and channel IDs.\n' >&2
         exit 1
     fi
 done

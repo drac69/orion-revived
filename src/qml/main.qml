@@ -355,9 +355,22 @@ ApplicationWindow {
         })
     }
 
+    function showMissingChannelId(channel) {
+        dialog.showMessage("This channel is missing a Twitch channel ID. Open "
+                           + (channel && (channel.name || channel.title) ? (channel.name || channel.title) : "this channel")
+                           + " on twitch.tv?", function() {
+            Qt.openUrlExternally(channelPageUrl(channel))
+        })
+    }
+
     function addToFavourites(channel, callback) {
+        if (!channel) return
         if (Settings.hasAccessToken) {
             showTwitchFollowUnavailable(channel)
+            return
+        }
+        if (!channel._id) {
+            showMissingChannelId(channel)
             return
         }
 
@@ -373,8 +386,13 @@ ApplicationWindow {
     }
 
     function removeFromFavourites(channel, callback) {
+        if (!channel) return
         if (Settings.hasAccessToken) {
             showTwitchFollowUnavailable(channel)
+            return
+        }
+        if (!channel._id) {
+            showMissingChannelId(channel)
             return
         }
 
