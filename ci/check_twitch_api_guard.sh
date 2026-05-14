@@ -22,6 +22,8 @@ get_channel_badges_block=$(sed -n '/void NetworkManager::getChannelBadgeUrlsBeta
 get_channel_bits_block=$(sed -n '/void NetworkManager::getChannelBitsUrls/,/^}/p' "$network_manager")
 get_channel_bttv_block=$(sed -n '/void NetworkManager::getChannelBttvEmotes/,/^}/p' "$network_manager")
 get_channel_ffz_block=$(sed -n '/void NetworkManager::getChannelFfzEmotes/,/^}/p' "$network_manager")
+channel_bttv_reply_block=$(sed -n '/void NetworkManager::channelBttvEmotesReply/,/^}/p' "$network_manager")
+channel_ffz_reply_block=$(sed -n '/void NetworkManager::channelFfzEmotesReply/,/^}/p' "$network_manager")
 vod_search_block=$(sed -n '/void VodManager::search/,/^}/p' "$vod_manager")
 vod_get_broadcasts_block=$(sed -n '/void VodManager::getBroadcasts/,/^}/p' "$vod_manager")
 load_channel_badges_block=$(sed -n '/bool BadgeContainer::loadChannelBetaBadgeUrls/,/^}/p' "$badge_container")
@@ -318,7 +320,8 @@ fi
 if ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'const QString normalizedChannel = channel\.trimmed\(\)' \
     || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'if \(normalizedChannel\.isEmpty\(\)\)' \
     || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'emit getChannelBttvEmotesOperationFinished\(QString\(\), empty\)' \
-    || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'QUrl::toPercentEncoding\(normalizedChannel\)'; then
+    || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'QUrl::toPercentEncoding\(normalizedChannel\)' \
+    || ! printf '%s\n' "$get_channel_bttv_block" | rg -q 'setAttribute\(RequestContextAttribute1, normalizedChannel\)'; then
     printf 'BTTV channel emote requests must normalize and reject empty channel names.\n' >&2
     fail=1
 fi
@@ -326,8 +329,21 @@ fi
 if ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'const QString normalizedChannel = channel\.trimmed\(\)' \
     || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'if \(normalizedChannel\.isEmpty\(\)\)' \
     || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'emit getChannelFfzEmotesOperationFinished\(QString\(\), empty\)' \
-    || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'QUrl::toPercentEncoding\(normalizedChannel\)'; then
+    || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'QUrl::toPercentEncoding\(normalizedChannel\)' \
+    || ! printf '%s\n' "$get_channel_ffz_block" | rg -q 'setAttribute\(RequestContextAttribute1, normalizedChannel\)'; then
     printf 'FFZ channel emote requests must normalize and reject empty channel names.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$channel_bttv_reply_block" | rg -q 'request\(\)\.attribute\(RequestContextAttribute1\)\.toString\(\)' \
+    || printf '%s\n' "$channel_bttv_reply_block" | rg -q 'lastIndexOf\("/"\)'; then
+    printf 'BTTV channel emote replies must use request context instead of reparsing URLs.\n' >&2
+    fail=1
+fi
+
+if ! printf '%s\n' "$channel_ffz_reply_block" | rg -q 'request\(\)\.attribute\(RequestContextAttribute1\)\.toString\(\)' \
+    || printf '%s\n' "$channel_ffz_reply_block" | rg -q 'lastIndexOf\("/"\)'; then
+    printf 'FFZ channel emote replies must use request context instead of reparsing URLs.\n' >&2
     fail=1
 fi
 

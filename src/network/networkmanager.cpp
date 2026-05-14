@@ -1197,6 +1197,7 @@ void NetworkManager::getChannelBttvEmotes(const QString channel) {
 
     QNetworkRequest request;
     request.setUrl(QUrl(url));
+    request.setAttribute(RequestContextAttribute1, normalizedChannel);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1207,9 +1208,7 @@ void NetworkManager::channelBttvEmotesReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
-        auto url = reply->url();
-        const QString urlString = url.toString();
-        const QString channel = urlString.mid(urlString.lastIndexOf("/") + 1);
+        const QString channel = reply->request().attribute(RequestContextAttribute1).toString();
         QMap<QString, QString> empty;
         emit getChannelBttvEmotesOperationFinished(channel, empty);
         reply->deleteLater();
@@ -1217,9 +1216,7 @@ void NetworkManager::channelBttvEmotesReply() {
     }
     QByteArray data = reply->readAll();
 
-    auto url = reply->url();
-    QString urlString = url.toString();
-    QString channel = urlString.mid(urlString.lastIndexOf("/") + 1);
+    const QString channel = reply->request().attribute(RequestContextAttribute1).toString();
 
     auto emotes = JsonParser::parseBttvEmotesData(data);
 
@@ -1273,6 +1270,7 @@ void NetworkManager::getChannelFfzEmotes(const QString channel) {
 
     QNetworkRequest request;
     request.setUrl(QUrl(url));
+    request.setAttribute(RequestContextAttribute1, normalizedChannel);
 
     QNetworkReply *reply = operation->get(request);
 
@@ -1283,9 +1281,7 @@ void NetworkManager::channelFfzEmotesReply() {
     QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
 
     if (!handleNetworkError(reply)) {
-        auto url = reply->url();
-        const QString urlString = url.toString();
-        const QString channel = QUrl::fromPercentEncoding(urlString.mid(urlString.lastIndexOf("/") + 1).toUtf8());
+        const QString channel = reply->request().attribute(RequestContextAttribute1).toString();
         QMap<QString, QString> empty;
         emit getChannelFfzEmotesOperationFinished(channel, empty);
         reply->deleteLater();
@@ -1293,9 +1289,7 @@ void NetworkManager::channelFfzEmotesReply() {
     }
     QByteArray data = reply->readAll();
 
-    auto url = reply->url();
-    QString urlString = url.toString();
-    QString channel = QUrl::fromPercentEncoding(urlString.mid(urlString.lastIndexOf("/") + 1).toUtf8());
+    const QString channel = reply->request().attribute(RequestContextAttribute1).toString();
 
     auto emotes = JsonParser::parseFfzEmotesData(data);
 
