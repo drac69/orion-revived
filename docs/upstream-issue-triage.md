@@ -71,7 +71,8 @@ The upstream repository is archived and had 79 open issues at the time this fork
 
 These issues remained open upstream but the final `master` code already contains the relevant setting, install rule, shortcut, or behavior:
 
-* #207: setting to disable click-video-to-pause.
+* #207: setting to disable click-video-to-pause; CI now guards the persisted
+  setting, options toggle, desktop-only click handler, and playback timer link.
 * #223: UI/text scaling and font selection settings.
 * #220: VOD timestamp/position display is present in the player controls.
 * #217: chat background opacity is configurable in the chat settings.

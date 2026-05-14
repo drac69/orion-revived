@@ -15,8 +15,10 @@ mpv_qt_helper="$repo_dir/src/player/qthelper.hpp"
 m3u8_parser="$repo_dir/src/util/m3u8parser.h"
 vod_manager="$repo_dir/src/model/vodmanager.cpp"
 settings_manager="$repo_dir/src/model/settingsmanager.cpp"
+settings_manager_header="$repo_dir/src/model/settingsmanager.h"
 network_manager="$repo_dir/src/network/networkmanager.cpp"
 test_connection_reply_block=$(sed -n '/void NetworkManager::testConnectionReply()/,/^}/p' "$network_manager")
+click_timer_block=$(sed -n '/id: clickTimer/,/id: hideTimer/p' "$player_view")
 
 if ! printf '%s\n' "$status_changed_block" | rg -q 'renderer\.status === "BUFFERING"'; then
     printf 'PlayerView must restart stall recovery when active playback returns to BUFFERING.\n' >&2
@@ -80,6 +82,70 @@ done
 
 if rg -q -F 'visible: model.length > 1' "$options_view"; then
     printf 'OptionsView hardware-acceleration control must not depend on model length without checking renderer readiness.\n' >&2
+    exit 1
+fi
+
+for required in \
+    'Q_PROPERTY(bool clickTogglePause READ clickTogglePause WRITE setClickTogglePause NOTIFY clickTogglePauseChanged)' \
+    'bool mClickTogglePause = true;' \
+    'void setClickTogglePause(bool clickTogglePause)' \
+    'void clickTogglePauseChanged()'
+do
+    if ! rg -q -F "$required" "$settings_manager_header"; then
+        printf 'SettingsManager must expose the click-to-pause preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'setClickTogglePause(settings.value("clickTogglePause", mClickTogglePause).toBool())' \
+    'settings.setValue("clickTogglePause", clickTogglePause)' \
+    'emit clickTogglePauseChanged()'
+do
+    if ! rg -q -F "$required" "$settings_manager"; then
+        printf 'SettingsManager must persist the click-to-pause preference: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'text: "Toggle pause by clicking"' \
+    'visible: !isMobile()' \
+    'checked: Settings.clickTogglePause' \
+    'onClicked: Settings.clickTogglePause = checked'
+do
+    if ! rg -q -F "$required" "$options_view"; then
+        printf 'OptionsView must expose the click-to-pause toggle without enabling it on mobile: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+if ! rg -q -F 'if (Settings.clickTogglePause && !isMobile()) {' "$player_view"; then
+    printf 'PlayerView must gate video-click pause toggling behind the setting and desktop mode.\n' >&2
+    exit 1
+fi
+
+if ! awk '
+    /if \(Settings\.clickTogglePause && !isMobile\(\)\) \{/ {
+        in_click_toggle_block = 1
+    }
+    in_click_toggle_block && /clickTimer\.restart\(\)/ {
+        found_restart = 1
+    }
+    in_click_toggle_block && /^[[:space:]]*\}/ {
+        in_click_toggle_block = 0
+    }
+    END {
+        exit(found_restart ? 0 : 1)
+    }
+' "$player_view"; then
+    printf 'PlayerView must only restart the click-to-pause timer from the guarded click-toggle block.\n' >&2
+    exit 1
+fi
+
+if ! printf '%s\n' "$click_timer_block" | rg -q -F 'onTriggered: {' \
+    || ! printf '%s\n' "$click_timer_block" | rg -q -F 'togglePlayback();'; then
+    printf 'PlayerView must keep the click timer connected to playback toggling when the preference allows it.\n' >&2
     exit 1
 fi
 
