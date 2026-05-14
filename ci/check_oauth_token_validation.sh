@@ -15,7 +15,7 @@ for required in \
     'accessTokenValidator.stop()' \
     'SettingsManager::getInstance()->setAccessToken(QString())' \
     'tokenClientId != getClientId()' \
-    'Twitch app access token reply finished without a network reply'
+    'finished without a network reply sender'
 do
     if ! rg -qF "$required" "$source_file"; then
         printf 'OAuth token validation is missing required token: %s\n' "$required" >&2

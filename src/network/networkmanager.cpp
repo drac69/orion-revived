@@ -235,9 +235,8 @@ void NetworkManager::testConnection()
 
 void NetworkManager::testConnectionReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
     if (!reply) {
-        qWarning() << "Network connection test finished without a reply sender";
         emit finishedConnectionTest();
         return;
     }
@@ -886,7 +885,10 @@ void NetworkManager::editUserBlock(const quint64 myUserId, const QString & block
 }
 
 void NetworkManager::blockUserLookupReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         reply->deleteLater();
@@ -944,7 +946,10 @@ void NetworkManager::editUserBlockWithId(const quint64 myUserId, const QString &
 }
 
 void NetworkManager::blockUserReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -970,7 +975,10 @@ void NetworkManager::blockUserReply() {
 }
 
 void NetworkManager::chatterListReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QMap<QString, QList<QString>> empty;
@@ -991,7 +999,10 @@ void NetworkManager::chatterListReply() {
 }
 
 void NetworkManager::blockedUserListReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -1124,7 +1135,10 @@ void NetworkManager::getChannelBitsUrls(const qint64 channelID) {
 }
 
 void NetworkManager::channelBitsUrlsReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         BitsQStringsMap emptyUrls;
@@ -1174,7 +1188,10 @@ void NetworkManager::getGlobalBitsUrls() {
 }
 
 void NetworkManager::globalBitsUrlsReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         BitsQStringsMap emptyUrls;
@@ -1219,7 +1236,10 @@ void NetworkManager::getChannelBttvEmotes(const QString channel) {
 }
 
 void NetworkManager::channelBttvEmotesReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         const QString channel = reply->request().attribute(RequestContextAttribute1).toString();
@@ -1253,7 +1273,10 @@ void NetworkManager::getGlobalBttvEmotes() {
 }
 
 void NetworkManager::globalBttvEmotesReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QMap<QString, QString> empty;
@@ -1292,7 +1315,10 @@ void NetworkManager::getChannelFfzEmotes(const QString channel) {
 }
 
 void NetworkManager::channelFfzEmotesReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         const QString channel = reply->request().attribute(RequestContextAttribute1).toString();
@@ -1326,7 +1352,10 @@ void NetworkManager::getGlobalFfzEmotes() {
 }
 
 void NetworkManager::globalFfzEmotesReply() {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QMap<QString, QString> empty;
@@ -1359,6 +1388,15 @@ void NetworkManager::getM3U8Data(const QString &url, M3U8TYPE type)
     QNetworkReply *reply = operation->get(request);
 
     connect(reply, &QNetworkReply::finished, this, &NetworkManager::m3u8Reply);
+}
+
+QNetworkReply *NetworkManager::replyFromSender(const char *context) const
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    if (!reply) {
+        qWarning() << context << "finished without a network reply sender";
+    }
+    return reply;
 }
 
 bool NetworkManager::handleNetworkError(QNetworkReply *reply)
@@ -1409,11 +1447,10 @@ void NetworkManager::handleSslErrors(QNetworkReply * /*reply*/, const QList<QSsl
 
 void NetworkManager::appAccessTokenReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
     app_access_token_request_pending = false;
 
     if (!reply) {
-        qWarning() << "Twitch app access token reply finished without a network reply";
         emit error("Twitch app access token request failed");
         return;
     }
@@ -1444,7 +1481,7 @@ void NetworkManager::appAccessTokenReply()
 
 void NetworkManager::accessTokenValidationReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
     access_token_validation_pending = false;
 
     if (!reply)
@@ -1497,7 +1534,10 @@ void NetworkManager::accessTokenValidationReply()
 
 void NetworkManager::streamReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         const quint64 channelId = reply->request().attribute(QNetworkRequest::User).toULongLong();
@@ -1560,7 +1600,10 @@ void addULongLongStringList(U & modify, const QStringList & newItems) {
 
 void NetworkManager::allStreamsReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QList<Channel *> empty;
@@ -1592,7 +1635,10 @@ void NetworkManager::allStreamsReply()
 void NetworkManager::searchGamesReply()
 {
 
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QList<Game *> empty;
@@ -1610,7 +1656,10 @@ void NetworkManager::searchGamesReply()
 
 void NetworkManager::gamesReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QList<Game *> empty;
@@ -1637,7 +1686,10 @@ void NetworkManager::gamesReply()
 
 void NetworkManager::gameStreamsReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QList<Channel *> empty;
@@ -1691,7 +1743,10 @@ void NetworkManager::gameStreamsReply()
 
 void NetworkManager::gameStreamsGameLookupReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QList<Channel *> empty;
@@ -1728,7 +1783,10 @@ void NetworkManager::gameStreamsGameLookupReply()
 
 void NetworkManager::featuredStreamsReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QList<Channel *> empty;
@@ -1754,7 +1812,10 @@ void NetworkManager::featuredStreamsReply()
 
 void NetworkManager::searchChannelsReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QList<Channel *> empty;
@@ -1791,7 +1852,10 @@ void NetworkManager::searchChannelsReply()
 
 void NetworkManager::streamExtractReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         emit error("token_error");
@@ -1830,7 +1894,10 @@ void NetworkManager::streamExtractReply()
 
 void NetworkManager::m3u8Reply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
 
@@ -1858,7 +1925,10 @@ void NetworkManager::m3u8Reply()
 
 void NetworkManager::broadcastsReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         emit broadcastsOperationFailed();
@@ -1885,7 +1955,10 @@ void NetworkManager::broadcastsReply()
 
 void NetworkManager::favouritesReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -1919,7 +1992,10 @@ void NetworkManager::favouritesReply()
 
 void NetworkManager::userReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         reply->deleteLater();
@@ -1935,7 +2011,10 @@ void NetworkManager::userReply()
 
 void NetworkManager::emoteSetsReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         if (pendingEmoteSetReplies > 0) {
@@ -1969,7 +2048,10 @@ void NetworkManager::emoteSetsReply()
 
 void NetworkManager::channelBadgeUrlsBetaReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         const quint64 channelID = reply->request().attribute(QNetworkRequest::User).toULongLong();
@@ -1996,7 +2078,10 @@ void NetworkManager::channelBadgeUrlsBetaReply()
 
 void NetworkManager::globalBadgeUrlsBetaReply()
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply *>(sender());
+    QNetworkReply *reply = replyFromSender(Q_FUNC_INFO);
+    if (!reply) {
+        return;
+    }
 
     if (!handleNetworkError(reply)) {
         QMap<QString, QMap<QString, QMap<QString, QString>>> empty;

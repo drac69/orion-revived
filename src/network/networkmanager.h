@@ -59,6 +59,7 @@ class NetworkManager: public QObject
     };
 
     void getM3U8Data(const QString&, M3U8TYPE type);
+    QNetworkReply *replyFromSender(const char *context) const;
     bool handleNetworkError(QNetworkReply *error);
     bool requireHelixAccessToken(const QString &operation, HelixAuthMode mode = HelixAuthMode::UserOrApp);
     QString helixAccessToken(HelixAuthMode mode = HelixAuthMode::UserOrApp) const;

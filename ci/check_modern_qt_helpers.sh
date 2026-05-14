@@ -78,6 +78,20 @@ if rg -n '\.(setAttribute|attribute)\(static_cast<QNetworkRequest::Attribute>\(Q
     exit 1
 fi
 
+if ! rg -q 'QNetworkReply \*replyFromSender\(const char \*context\) const;' "$network_manager_header" \
+    || ! rg -q 'QNetworkReply \*NetworkManager::replyFromSender\(const char \*context\) const' "$network_manager" \
+    || ! rg -q 'finished without a network reply sender' "$network_manager"; then
+    printf 'NetworkManager reply slots must validate sender() before dereferencing QNetworkReply objects.\n' >&2
+    exit 1
+fi
+
+reply_sender_casts=$(rg -c 'qobject_cast<QNetworkReply \*>\(sender\(\)\)' "$network_manager" || true)
+if [ "$reply_sender_casts" -ne 1 ]; then
+    unexpected_reply_senders=$(rg -n 'qobject_cast<QNetworkReply \*>\(sender\(\)\)' "$network_manager" || true)
+    printf 'NetworkManager reply slots must use replyFromSender() instead of inline sender casts.\n%s\n' "$unexpected_reply_senders" >&2
+    exit 1
+fi
+
 if ! rg -q 'QPointer<QNetworkReply> connectionTestReply;' "$network_manager_header" \
     || ! rg -q 'timeoutTimer\.setSingleShot\(true\)' "$network_manager" \
     || ! rg -q 'Network connection test timed out' "$network_manager" \
