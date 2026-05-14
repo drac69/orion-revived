@@ -79,7 +79,10 @@ The upstream repository is archived and had 79 open issues at the time this fork
 * #254: added an optional per-channel stream quality memory on top of the
   global default quality preset; CI now guards the persisted toggle,
   per-channel storage, options control, and PlayerView read/write path.
-* #178: stopped VOD playback now preserves the last position when replaying/reloading, including the Qt Multimedia stopped-state reset path.
+* #178: stopped VOD playback now preserves the last position when
+  replaying/reloading, including the Qt Multimedia stopped-state reset path; CI
+  now guards PlayerView position saves, VodManager sync thresholds, and the
+  multimedia zero-position suppression.
 * #199: chat input focus is restored after sending a message.
 * #195: chat input text now follows the chat text scaling setting.
 * #190: Escape is handled as an application shortcut while the emote picker is open.

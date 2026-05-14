@@ -379,6 +379,18 @@ if rg -q 'onCurrentChannelChanged: .*currentChannel\.seekPreviews' "$player_view
 fi
 
 for required in \
+    'var wasStopping = root.status == "STOPPING"' \
+    'if ((wasStopping || root.status == "STOPPING" || root.status == "STOPPED") && position == 0 && root.position > 0)' \
+    'Suppress stopped-state resets so a VOD reload can resume from the previous position.' \
+    'return;'
+do
+    if ! rg -q -F "$required" "$multimedia_backend"; then
+        printf 'MultimediaBackend must not clear a stopped VOD position back to zero: %s\n' "$required" >&2
+        exit 1
+    fi
+done
+
+for required in \
     'property bool appFullScreen: isMobile() ? (view.playerVisible && !isPortraitMode) : false' \
     'property bool sideNavigationVisible: Settings.sideNavigation && !appFullScreen && !isMobile()' \
     'visible: !root.sideNavigationVisible && !appFullScreen'
