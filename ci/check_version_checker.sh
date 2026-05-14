@@ -15,9 +15,9 @@ if rg -q 'api\.github\.com/repos/alamminsalo/orion|github\.com/alamminsalo/orion
     exit 1
 fi
 
-if ! rg -q 'https://api\.github\.com/repos/belagrf/orion/releases/latest' "$network_manager" \
-    || ! rg -q 'https://api\.github\.com/repos/belagrf/orion/tags\?per_page=100' "$network_manager"; then
-    printf 'Version checker must query this fork releases and fall back to this fork tags.\n' >&2
+if ! rg -q 'https://api\.github\.com/repos/belagrf/orion-revived/releases/latest' "$network_manager" \
+    || ! rg -q 'https://api\.github\.com/repos/belagrf/orion-revived/tags\?per_page=100' "$network_manager"; then
+    printf 'Version checker must query the formal fork releases and fall back to the formal fork tags.\n' >&2
     exit 1
 fi
 
@@ -30,9 +30,9 @@ if ! rg -q 'void checkVersionTags\(\);' "$network_manager_header" \
 fi
 
 if ! rg -q 'githubTagUrl' "$network_manager" \
-    || ! rg -q 'https://github\.com/belagrf/orion/tree/%1' "$network_manager" \
+    || ! rg -q 'https://github\.com/belagrf/orion-revived/tree/%1' "$network_manager" \
     || ! rg -q 'QUrl::toPercentEncoding\(tag\)' "$network_manager"; then
-    printf 'Version tag checks must return a usable fork tag URL.\n' >&2
+    printf 'Version tag checks must return a usable formal fork tag URL.\n' >&2
     exit 1
 fi
 

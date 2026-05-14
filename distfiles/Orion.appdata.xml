@@ -34,8 +34,8 @@
       <image>https://user-images.githubusercontent.com/5585454/27840062-b2f14eba-60fe-11e7-9e04-7d12477519d7.png</image>
     </screenshot>
   </screenshots>
-  <url type="homepage">https://github.com/belagrf/orion</url>
-  <url type="bugtracker">https://github.com/belagrf/orion/issues</url>
+  <url type="homepage">https://github.com/belagrf/orion-revived</url>
+  <url type="bugtracker">https://github.com/belagrf/orion-revived/issues</url>
   <provides>
     <binary>orion</binary>
   </provides>

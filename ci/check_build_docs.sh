@@ -3,6 +3,25 @@ set -euo pipefail
 
 repo_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 readme="$repo_dir/README.md"
+appdata="$repo_dir/distfiles/Orion.appdata.xml"
+
+if ! rg -q 'https://github\.com/belagrf/orion-revived/actions/workflows/ci\.yml' "$readme" \
+    || ! rg -q 'git clone https://github\.com/belagrf/orion-revived' "$readme" \
+    || ! rg -q '^cd orion-revived$' "$readme"; then
+    printf 'README must point users at the formal maintained fork and its passing CI workflow.\n' >&2
+    exit 1
+fi
+
+if rg -q '^cd orion$' "$readme"; then
+    printf 'README clone examples must cd into the formal fork checkout directory.\n' >&2
+    exit 1
+fi
+
+if ! rg -q '<url type="homepage">https://github\.com/belagrf/orion-revived</url>' "$appdata" \
+    || ! rg -q '<url type="bugtracker">https://github\.com/belagrf/orion-revived/issues</url>' "$appdata"; then
+    printf 'AppStream metadata must point at the formal maintained fork and issue tracker.\n' >&2
+    exit 1
+fi
 
 if ! rg -q '\.\./ci/run_qmake\.sh \.\./' "$readme"; then
     printf 'README build commands must use the Qt 5 qmake wrapper from the build directory.\n' >&2

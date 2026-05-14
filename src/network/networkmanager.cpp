@@ -43,7 +43,7 @@ QNetworkRequest githubVersionRequest(const QUrl &url)
 
 QString githubTagUrl(const QString &tag)
 {
-    return QStringLiteral("https://github.com/belagrf/orion/tree/%1")
+    return QStringLiteral("https://github.com/belagrf/orion-revived/tree/%1")
             .arg(QString::fromLatin1(QUrl::toPercentEncoding(tag)));
 }
 
@@ -330,7 +330,7 @@ void NetworkManager::testConnectionReply()
 void NetworkManager::checkVersion()
 {
     QNetworkRequest req = githubVersionRequest(
-                QUrl(QStringLiteral("https://api.github.com/repos/belagrf/orion/releases/latest")));
+                QUrl(QStringLiteral("https://api.github.com/repos/belagrf/orion-revived/releases/latest")));
 
     QNetworkReply *reply = operation->get(req);
     connect(reply, &QNetworkReply::finished, this, [reply, this](){
@@ -358,7 +358,7 @@ void NetworkManager::checkVersion()
 void NetworkManager::checkVersionTags()
 {
     QNetworkRequest req = githubVersionRequest(
-                QUrl(QStringLiteral("https://api.github.com/repos/belagrf/orion/tags?per_page=100")));
+                QUrl(QStringLiteral("https://api.github.com/repos/belagrf/orion-revived/tags?per_page=100")));
 
     QNetworkReply *reply = operation->get(req);
     connect(reply, &QNetworkReply::finished, this, [reply, this](){

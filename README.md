@@ -1,7 +1,7 @@
 
 # Orion
 
-[![CI](https://github.com/belagrf/orion/actions/workflows/ci.yml/badge.svg)](https://github.com/belagrf/orion/actions/workflows/ci.yml)
+[![CI](https://github.com/belagrf/orion-revived/actions/workflows/ci.yml/badge.svg)](https://github.com/belagrf/orion-revived/actions/workflows/ci.yml)
 
 Maintained fork of [alamminsalo/orion](https://github.com/alamminsalo/orion), which was archived by its original author in May 2020.
 
@@ -102,8 +102,8 @@ On Ubuntu/Linux Mint, the Qt Multimedia backend also needs `qtmultimedia5-dev` a
 #### Get orion from github and install
 
 ```
-git clone https://github.com/belagrf/orion
-cd orion
+git clone https://github.com/belagrf/orion-revived
+cd orion-revived
 mkdir build && cd build
 ../ci/run_qmake.sh ../
 make -j"$(nproc)"
@@ -189,8 +189,8 @@ Make sure the Qt 5 `qmake` is on `PATH`.
 #### Get orion from github and install
 
 ```
-git clone https://github.com/belagrf/orion
-cd orion
+git clone https://github.com/belagrf/orion-revived
+cd orion-revived
 mkdir build && cd build
 ../ci/run_qmake.sh ../
 make
