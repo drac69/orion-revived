@@ -61,6 +61,13 @@ if rg -q 'joinChannel\(root\.channel' src/qml/irc/Chat.qml; then
     fail=1
 fi
 
+for required_chat_settings_sync in 'syncSettings("chat blacklist")' 'syncSettings("chat highlight users")'; do
+    if ! rg -qF "$required_chat_settings_sync" src/model/settingsmanager.cpp; then
+        printf 'Chat setting persistence is missing sync token: %s\n' "$required_chat_settings_sync" >&2
+        fail=1
+    fi
+done
+
 if ! rg -q 'www\.twitch\.tv/videos' src/qml/irc/Chat.qml; then
     printf 'VOD replay-chat fallback notices must include a direct Twitch VOD URL.\n' >&2
     fail=1

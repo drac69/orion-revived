@@ -625,6 +625,7 @@ void SettingsManager::setChatBlacklist(const QString &chatBlacklist)
     if (mChatBlacklist != chatBlacklist) {
         mChatBlacklist = chatBlacklist;
         settings.setValue("chatBlacklist", chatBlacklist);
+        syncSettings("chat blacklist");
         emit chatBlacklistChanged();
     }
 }
@@ -639,6 +640,7 @@ void SettingsManager::setChatHighlightUsers(const QString &chatHighlightUsers)
     if (mChatHighlightUsers != chatHighlightUsers) {
         mChatHighlightUsers = chatHighlightUsers;
         settings.setValue("chatHighlightUsers", chatHighlightUsers);
+        syncSettings("chat highlight users");
         emit chatHighlightUsersChanged();
     }
 }
