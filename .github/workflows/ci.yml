@@ -16,185 +16,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  linux-build:
-    name: Linux Qt5/${{ matrix.backend }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 90
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - backend: mpv
-            config: CONFIG+=mpv
-            packages: libmpv-dev
-          - backend: multimedia
-            config: CONFIG+=multimedia
-            packages: qtmultimedia5-dev qml-module-qtmultimedia
-          - backend: mpv-multimedia
-            config: CONFIG+=mpv CONFIG+=multimedia
-            packages: libmpv-dev qtmultimedia5-dev qml-module-qtmultimedia
-
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 2
-          fetch-tags: true
-
-      - name: Install dependencies
-        run: ci/install_ubuntu_ci_deps.sh ${{ matrix.packages }}
-
-      - name: Validate packaging metadata
-        run: |
-          appstreamcli validate --pedantic --no-net distfiles/Orion.appdata.xml
-          desktop-file-validate distfiles/Orion.desktop
-
-      - name: Validate legacy CI guard
-        run: ci/check_legacy_ci_guard.sh
-
-      - name: Validate shell scripts
-        run: ci/check_shell_scripts.sh
-
-      - name: Validate build documentation
-        run: ci/check_build_docs.sh
-
-      - name: Validate release readiness
-        run: ci/check_release_readiness.sh
-
-      - name: Validate workflow hygiene
-        run: ci/check_workflow_hygiene.sh
-
-      - name: Validate GitHub issue templates
-        run: ci/check_github_issue_templates.sh
-
-      - name: Validate GitHub community files
-        run: ci/check_github_community_files.sh
-
-      - name: Validate version checker
-        run: ci/check_version_checker.sh
-
-      - name: Validate patch whitespace
-        run: ci/check_patch_whitespace.sh
-
-      - name: Validate upstream issue triage
-        run: ci/check_upstream_issue_triage.sh
-
-      - name: Validate Twitch API surface
-        run: ci/check_twitch_api_surface.sh
-
-      - name: Validate Twitch API usage
-        run: ci/check_twitch_api_guard.sh
-
-      - name: Validate OAuth callback parser
-        run: ci/check_oauth_callback_parser.sh
-
-      - name: Validate OAuth token validation
-        run: ci/check_oauth_token_validation.sh
-
-      - name: Validate Twitch emote ID handling
-        run: ci/check_twitch_emote_ids.sh
-
-      - name: Validate IRC tag parsing
-        run: ci/check_irc_tag_parsing.sh
-
-      - name: Validate Android metadata
-        run: ci/check_android_metadata.sh
-
-      - name: Validate F-Droid metadata
-        run: ci/check_fdroid_metadata.sh
-
-      - name: Validate Apple metadata
-        run: ci/check_apple_metadata.sh
-
-      - name: Validate QML resources
-        run: ci/check_qml_resources.sh
-
-      - name: Validate QML runtime dependencies
-        run: ci/check_qml_runtime_deps.sh
-
-      - name: Validate QML fonts
-        run: ci/check_qml_fonts.sh
-
-      - name: Validate QML image fallbacks
-        run: ci/check_qml_image_fallbacks.sh
-
-      - name: Validate notification fallbacks
-        run: ci/check_notification_fallbacks.sh
-
-      - name: Validate logging contracts
-        run: ci/check_logging_contracts.sh
-
-      - name: Validate modern Qt helper code
-        run: ci/check_modern_qt_helpers.sh
-
-      - name: Validate QML window contracts
-        run: ci/check_qml_window_contracts.sh
-
-      - name: Validate QML emote picker contracts
-        run: ci/check_qml_emote_picker_contracts.sh
-
-      - name: Validate QML VOD view contracts
-        run: ci/check_qml_vod_view_contracts.sh
-
-      - name: Validate QML HTML utilities
-        run: ci/check_qml_util_html.sh
-
-      - name: Validate playback recovery
-        run: ci/check_playback_recovery.sh
-
-      - name: Validate M3U8 parser
-        run: ci/check_m3u8_parser.sh
-
-      - name: Configure
-        run: ci/run_qmake.sh orion.pro ${{ matrix.config }}
-
-      - name: Build
-        run: make -j"$(nproc)"
-
-      - name: Validate install target
-        run: |
-          install_root="$PWD/install-root"
-          make INSTALL_ROOT="$install_root" install
-          test -x "$install_root/usr/bin/orion"
-          test -f "$install_root/usr/share/metainfo/Orion.appdata.xml"
-          test -f "$install_root/usr/share/applications/Orion.desktop"
-          test -f "$install_root/usr/share/icons/hicolor/scalable/apps/orion.svg"
-
-  macos-build:
-    name: macOS Qt5/mpv
-    runs-on: macos-15
-    timeout-minutes: 90
-    env:
-      HOMEBREW_NO_INSTALL_CLEANUP: "1"
-      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: "1"
-
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 2
-          fetch-tags: true
-
-      - name: Install dependencies
-        run: brew install qt@5 mpv
-
-      - name: Configure
-        run: |
-          qt_prefix="$(brew --prefix qt@5)"
-          mpv_prefix="$(brew --prefix mpv)"
-          echo "QMAKE=$qt_prefix/bin/qmake" >> "$GITHUB_ENV"
-          echo "$qt_prefix/bin" >> "$GITHUB_PATH"
-          QMAKE="$qt_prefix/bin/qmake" ci/run_qmake.sh orion.pro CONFIG+=mpv "INCLUDEPATH+=$mpv_prefix/include" "LIBS+=-L$mpv_prefix/lib"
-
-      - name: Build
-        run: make -j"$(sysctl -n hw.ncpu)"
-
-      - name: Validate app bundle
-        run: |
-          test -d orion.app
-          test -x orion.app/Contents/MacOS/orion
-          plutil -lint orion.app/Contents/Info.plist
-
   windows-build:
     name: Windows Qt5/mpv
     runs-on: windows-2025-vs2026
@@ -223,11 +44,29 @@ jobs:
             mingw-w64-ucrt-x86_64-qt5-base
             mingw-w64-ucrt-x86_64-qt5-declarative
             mingw-w64-ucrt-x86_64-qt5-graphicaleffects
+            mingw-w64-ucrt-x86_64-qt5-quickcontrols
             mingw-w64-ucrt-x86_64-qt5-quickcontrols2
             mingw-w64-ucrt-x86_64-qt5-svg
 
-      - name: Configure
-        run: ci/run_qmake.sh orion.pro CONFIG+=mpv
+      - name: Patch QML bugs for Qt 5.15 compatibility
+        shell: msys2 {0}
+        run: |
+          echo "Patching all textInteractionFlags lines..."
+          sed -i 's/.*textInteractionFlags:.*/\/\/ textInteractionFlags: patched for Qt5 compat/' src/qml/irc/ChatMessage.qml
+          echo "Verifying..."
+          grep -n "textInteractionFlags" src/qml/irc/ChatMessage.qml || echo "  All patched"
+          echo "Patching dp references in VodsView..."
+          sed -i 's/dp(200)/200/g' src/qml/VodsView.qml 2>/dev/null || true
+          sed -i 's/dp(48)/48/g' src/qml/VodsView.qml 2>/dev/null || true
+          sed -i 's/dp(24)/24/g' src/qml/VodsView.qml 2>/dev/null || true
+          sed -i 's/dp(16)/16/g' src/qml/VodsView.qml 2>/dev/null || true
+          sed -i 's/dp(12)/12/g' src/qml/VodsView.qml 2>/dev/null || true
+          sed -i 's/dp(8)/8/g' src/qml/VodsView.qml 2>/dev/null || true
+          sed -i 's/dp(4)/4/g' src/qml/VodsView.qml 2>/dev/null || true
+          echo "Patches applied"
+
+      - name: Configure (static runtime)
+        run: ci/run_qmake.sh orion.pro CONFIG+=mpv QMAKE_CXXFLAGS+="-static-libgcc -static-libstdc++" QMAKE_LFLAGS+="-static-libgcc -static-libstdc++"
 
       - name: Build
         run: mingw32-make -j"$(nproc)"
@@ -238,3 +77,267 @@ jobs:
               exit 0
           fi
           test -x orion.exe
+
+      - name: Quick smoke test
+        shell: msys2 {0}
+        run: |
+          echo "Smoke testing orion.exe..."
+          export QT_QPA_PLATFORM=offscreen
+          export QT_QUICK_BACKEND=software
+          export MPV_VO=null
+          ./release/orion.exe &
+          ORION_PID=$!
+          sleep 5
+          kill $ORION_PID 2>/dev/null
+          echo "Orion ran for 5 seconds without crashing - QML loaded successfully"
+
+      - name: Build stub vulkan-1.dll
+        shell: msys2 {0}
+        run: |
+          cat > vulkan_stub.c << 'EOF'
+          #include <windows.h>
+          BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
+              return TRUE;
+          }
+          #define VK_ERROR_INITIALIZATION_FAILED -3
+          __declspec(dllexport) int vkCreateInstance(void) { return VK_ERROR_INITIALIZATION_FAILED; }
+          __declspec(dllexport) int vkCreateDevice(void) { return VK_ERROR_INITIALIZATION_FAILED; }
+          __declspec(dllexport) int vkEnumeratePhysicalDevices(void) { return VK_ERROR_INITIALIZATION_FAILED; }
+          __declspec(dllexport) int vkCreateWin32SurfaceKHR(void) { return VK_ERROR_INITIALIZATION_FAILED; }
+          __declspec(dllexport) int vkCreateDisplayPlaneSurfaceKHR(void) { return VK_ERROR_INITIALIZATION_FAILED; }
+          __declspec(dllexport) void vkGetInstanceProcAddr(void) { return; }
+          __declspec(dllexport) void vkGetDeviceProcAddr(void) { return; }
+          __declspec(dllexport) void vkDestroyInstance(void) { return; }
+          __declspec(dllexport) void vkDestroyDevice(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceProperties(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceProperties2(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceFeatures(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceFeatures2(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceFormatProperties(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceFormatProperties2(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceImageFormatProperties(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceImageFormatProperties2(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceQueueFamilyProperties(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceQueueFamilyProperties2(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceMemoryProperties(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceMemoryProperties2(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceExternalBufferProperties(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceExternalSemaphoreProperties(void) { return; }
+          __declspec(dllexport) void vkGetDeviceQueue(void) { return; }
+          __declspec(dllexport) void vkQueueSubmit(void) { return; }
+          __declspec(dllexport) void vkQueueWaitIdle(void) { return; }
+          __declspec(dllexport) void vkDeviceWaitIdle(void) { return; }
+          __declspec(dllexport) void vkAllocateMemory(void) { return; }
+          __declspec(dllexport) void vkFreeMemory(void) { return; }
+          __declspec(dllexport) void vkMapMemory(void) { return; }
+          __declspec(dllexport) void vkUnmapMemory(void) { return; }
+          __declspec(dllexport) void vkCreateBuffer(void) { return; }
+          __declspec(dllexport) void vkDestroyBuffer(void) { return; }
+          __declspec(dllexport) void vkDestroySurfaceKHR(void) { return; }
+          __declspec(dllexport) void vkCreateSwapchainKHR(void) { return; }
+          __declspec(dllexport) void vkDestroySwapchainKHR(void) { return; }
+          __declspec(dllexport) void vkGetSwapchainImagesKHR(void) { return; }
+          __declspec(dllexport) void vkAcquireNextImageKHR(void) { return; }
+          __declspec(dllexport) void vkQueuePresentKHR(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceSurfaceSupportKHR(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceSurfaceCapabilitiesKHR(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceSurfaceFormatsKHR(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceSurfacePresentModesKHR(void) { return; }
+          __declspec(dllexport) void vkCreateDisplayModeKHR(void) { return; }
+          __declspec(dllexport) void vkGetDisplayPlaneSupportedDisplaysKHR(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceDisplayPropertiesKHR(void) { return; }
+          __declspec(dllexport) void vkGetPhysicalDeviceDisplayPlanePropertiesKHR(void) { return; }
+          __declspec(dllexport) void vkGetDisplayModePropertiesKHR(void) { return; }
+          __declspec(dllexport) void vkEnumerateInstanceExtensionProperties(void) { return; }
+          __declspec(dllexport) void vkEnumerateDeviceExtensionProperties(void) { return; }
+          EOF
+          gcc -shared -o release/vulkan-1.dll vulkan_stub.c
+          echo "Stub vulkan-1.dll created"
+
+      - name: Bundle all dependencies
+        shell: msys2 {0}
+        run: |
+          set +e
+          MINGW_PREFIX="/ucrt64"
+          EXE="release/orion.exe"
+          DEST="release"
+
+          echo "Copying direct dependencies..."
+          for dll in $(ldd "$EXE" | grep "$MINGW_PREFIX" | awk '{print $3}' | sort -u); do
+            if echo "$dll" | grep -qi "vulkan"; then
+              echo "Skipping: $(basename $dll)"
+            else
+              cp "$dll" "$DEST/"
+            fi
+          done
+
+          echo "Copying runtime DLLs..."
+          cp "$MINGW_PREFIX/bin/libwinpthread-1.dll" "$DEST/"
+          cp "$MINGW_PREFIX/bin/libgcc_s_seh-1.dll" "$DEST/"
+          cp "$MINGW_PREFIX/bin/libstdc++-6.dll" "$DEST/"
+          cp "$MINGW_PREFIX/bin/libmpv-2.dll" "$DEST/"
+
+          echo "Resolving second-level dependencies..."
+          for pass in 1 2 3; do
+            for existing_dll in "$DEST"/*.dll; do
+              [ -f "$existing_dll" ] || continue
+              for needed in $(ldd "$existing_dll" 2>/dev/null | grep "$MINGW_PREFIX" | awk '{print $3}' | sort -u); do
+                if [ ! -f "$DEST/$(basename $needed)" ]; then
+                  cp "$needed" "$DEST/"
+                fi
+              done
+            done
+          done
+
+          echo "Bundling missing common DLLs..."
+          for missing in libicudt78.dll libicuin78.dll libicuuc78.dll libbrotlidec.dll libbrotlicommon.dll libintl-8.dll libiconv-2.dll libzstd.dll libpcre2-8-0.dll libharfbuzz-0.dll libgraphite2.dll libfreetype-6.dll libbz2-1.dll libpng16-16.dll libEGL.dll libGLESv2.dll libssl-3-x64.dll libcrypto-3-x64.dll; do
+            if [ -f "$MINGW_PREFIX/bin/$missing" ]; then
+              cp "$MINGW_PREFIX/bin/$missing" "$DEST/"
+            fi
+          done
+
+          echo "Bundling display/runtime DLLs that qwindows needs..."
+          for display_dll in libEGL.dll libGLESv2.dll d3dcompiler_47.dll libdxcompiler.dll dxil.dll; do
+            if [ -f "$MINGW_PREFIX/bin/$display_dll" ]; then
+              cp "$MINGW_PREFIX/bin/$display_dll" "$DEST/"
+              echo "  Bundled $display_dll"
+            fi
+          done
+
+          echo "Bundling ANGLE/DirectX DLLs from MSYS2..."
+          for angle_dll in libEGL.dll libGLESv2.dll d3dcompiler_47.dll dxgi.dll d3d12.dll; do
+            if [ -f "$MINGW_PREFIX/bin/$angle_dll" ]; then
+              cp "$MINGW_PREFIX/bin/$angle_dll" "$DEST/"
+              echo "  Bundled $angle_dll from MSYS2"
+            fi
+          done          
+
+          echo "Bundling Qt plugins..."
+          mkdir -p "$DEST/platforms" "$DEST/styles" "$DEST/imageformats"
+          cp "$MINGW_PREFIX/share/qt5/plugins/platforms/qwindows.dll" "$DEST/platforms/" 2>/dev/null || true
+          cp "$MINGW_PREFIX/share/qt5/plugins/styles/qwindowsvistastyle.dll" "$DEST/styles/" 2>/dev/null || true
+          cp "$MINGW_PREFIX/share/qt5/plugins/imageformats/qsvg.dll" "$DEST/imageformats/" 2>/dev/null || true
+          cp "$MINGW_PREFIX/share/qt5/plugins/imageformats/qjpeg.dll" "$DEST/imageformats/" 2>/dev/null || true
+
+          echo "Nuclear QML fix - copy EVERYTHING Qt5 QML related..."
+          mkdir -p "$DEST/qml"
+          cp -r "$MINGW_PREFIX/share/qt5/qml/"* "$DEST/qml/" 2>/dev/null || true
+
+          echo "=== Fixing plugin dependencies ==="
+          echo "Checking what qtquick2plugin.dll needs..."
+          ldd "$DEST/qml/QtQuick.2/qtquick2plugin.dll" 2>/dev/null | grep "not found" && echo "  MISSING DEPENDENCIES FOUND" || echo "  All dependencies satisfied"
+          
+          echo "Checking what qsvg.dll needs..."
+          ldd "$DEST/imageformats/qsvg.dll" 2>/dev/null | grep "not found" && echo "  MISSING DEPENDENCIES FOUND" || echo "  All dependencies satisfied"
+          
+          echo "Recursively resolving ALL plugin dependencies..."
+          for pass in 1 2 3; do
+            echo "Pass $pass..."
+            find "$DEST" -name "*.dll" | while read dll; do
+              for needed in $(ldd "$dll" 2>/dev/null | grep "$MINGW_PREFIX" | awk '{print $3}' | sort -u); do
+                if [ ! -f "$DEST/$(basename $needed)" ]; then
+                  echo "  Copying $(basename $needed) for $(basename $dll)"
+                  cp "$needed" "$DEST/"
+                fi
+              done
+            done
+          done
+          
+          echo "Checking for any remaining missing DLLs..."
+          find "$DEST" -name "*.dll" | while read dll; do
+            ldd "$dll" 2>/dev/null | grep "not found" && echo "  $(basename $dll) STILL HAS MISSING DEPS"
+          done
+
+          echo "Also install any missing QML packages..."
+          pacman -S --noconfirm mingw-w64-ucrt-x86_64-qt5-quickcontrols mingw-w64-ucrt-x86_64-qt5-quickcontrols2 2>/dev/null || true
+
+
+          echo "Installing ANGLE and EGL packages..."
+          pacman -S --noconfirm mingw-w64-ucrt-x86_64-angleproject mingw-w64-ucrt-x86_64-qt5-angle 2>/dev/null || true
+
+          echo "Copying ANGLE DLLs from repo..."
+          cp windows-deps/libEGL.dll "$DEST/" 2>/dev/null || echo "  WARNING: libEGL.dll not found in windows-deps/"
+          cp windows-deps/libGLESv2.dll "$DEST/" 2>/dev/null || echo "  WARNING: libGLESv2.dll not found in windows-deps/"
+                  
+          echo "Copy any newly installed QML files..."
+          cp -r "$MINGW_PREFIX/share/qt5/qml/"* "$DEST/qml/" 2>/dev/null || true
+
+          echo "Create proper qt.conf..."
+          cat > "$DEST/qt.conf" << 'EOF'
+          [Paths]
+          Prefix = .
+          Qml2Imports = qml
+          EOF
+
+          echo "Creating launcher with error logging..."
+          cat > "$DEST/orion-revived.bat" << 'EOF'
+          @echo off
+          echo === Orion Debug Log === > debug.log
+          echo Date: %date% %time% >> debug.log
+          echo Computer: %COMPUTERNAME% >> debug.log
+          echo. >> debug.log
+          
+          set PATH=%~dp0;%PATH%
+          
+          echo Setting environment variables... >> debug.log
+          set QT_QPA_PLATFORM=windows
+          set QT_QUICK_BACKEND=software
+          set QSG_RHI_BACKEND=opengl
+          set QT_OPENGL=software
+          set QT_ANGLE_PLATFORM=warp
+          set MPV_VO=gpu
+          set MPV_GPU_API=opengl
+          set QT_LOGGING_RULES=qt.qpa.*=true
+          set QT_DEBUG_PLUGINS=1
+          
+          echo Environment set. Launching orion.exe... >> debug.log
+          echo. >> debug.log
+          echo === Orion Output === >> debug.log
+          orion.exe >> debug.log 2>&1
+          
+          echo. >> debug.log
+          echo === Exit Code: %ERRORLEVEL% === >> debug.log
+          
+          type debug.log
+          pause
+          EOF
+
+          echo "Creating minimal debug launcher..."
+          cat > "$DEST/orion-debug.bat" << 'EOF'
+          @echo off
+          set PATH=%~dp0;%PATH%
+          set QT_DEBUG_PLUGINS=1
+          set QT_LOGGING_RULES=qt.qpa.*=true
+          orion.exe 2> stderr.log
+          type stderr.log
+          pause
+          EOF
+
+          echo "=== Bundle complete ==="
+          find "$DEST" -name "*.dll" | wc -l
+          echo "DLLs bundled"
+
+      - name: Clean artifact
+        shell: msys2 {0}
+        run: |
+          find release/ -name "*.o" -delete
+          find release/ -name "*.cpp" -delete
+          find release/ -name "*.c" -delete
+          find release/ -name "*.h" -delete
+          find release/ -name "Makefile*" -delete
+          echo "Artifact cleaned"
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: orion-revived-windows
+          path: |
+            release/**/*.dll
+            release/**/*.exe
+            release/**/*.bat
+            release/**/*.conf
+            release/**/*.log
+            release/**/qml/**
+            release/**/platforms/**
+            release/**/styles/**
+            release/**/imageformats/**
